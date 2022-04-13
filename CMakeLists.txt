@@ -1,14 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
 
+set(CMAKE_TOOLCHAIN_FILE "./externals/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 set(CMAKE_CXX_STANDARD 14)
 
-
-
+#set(CMAKE_BUILD_TYPE Debug)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-project(SimpleGameEngine)
+project(kaki-SimpleGameEngine)
 
+find_package(fmt CONFIG REQUIRED)
+find_package(GLEW CONFIG REQUIRED)
+find_package(EABase CONFIG REQUIRED)
+find_package(EASTL CONFIG REQUIRED)
 
 function(sge_source_group src_path src_files)
 	foreach(FILE ${src_files}) 
@@ -41,15 +45,17 @@ function(sge_add_executable target_name src_path)
 	target_precompile_headers(${target_name} INTERFACE src/${target_name}/${target_name}-pch.h)
 endfunction()
 
-
-
+#-- core ---
 add_subdirectory(src/core)
 add_subdirectory(src/core/test)
 
+#-- render --
 add_subdirectory(src/render)
 
+#-- engine
 add_subdirectory(src/engine)
 
+#-- editor
 add_subdirectory(src/editor)
 add_subdirectory(src/editor/app)
 
