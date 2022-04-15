@@ -2,8 +2,9 @@
 #include "Renderer.h"
 #include "sge_render/base/Renderer_Base.h"
 
+#ifdef SGE_RENDER_COMP_DX11 //temp
 #include "sge_render/d3d11/Renderer_DirectX11.h"
-
+#endif
 
 namespace sge
 {
@@ -36,8 +37,14 @@ namespace sge
 		m_API = api;
 		clear();
 
-		switch (api) {
-		case RenderAPI::dx11: m_baseRenderer = eastl::make_unique<Renderer_DirectX11>();  break;
+		switch (api) { //temp
+
+#ifdef SGE_RENDER_COMP_DX11
+		case RenderAPI::dx11: m_baseRenderer = eastl::make_unique<Renderer_DirectX11>();  break;		
+#endif
+#if SGE_RENDER_COMP_METAL
+		//case RenderAPI::metal:  m_baseRenderer = new 
+#endif
 		default: m_baseRenderer = nullptr; break;
 		}
 	}

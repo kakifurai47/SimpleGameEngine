@@ -1,14 +1,12 @@
+
 #pragma once
 #include "sge_render/base/Renderer_Base.h"
 
-#include <d3d11.h>
-#include <d3dcompiler.h>
-
-#pragma comment (lib, "d3d11.lib")
-#pragma comment (lib, "d3dcompiler.lib")
-
 namespace sge
 {
+
+#ifdef SGE_RENDER_COMP_DX11
+
 	class NativeUIWindow;
 
 	class Renderer_DirectX11 : public Renderer_Base
@@ -34,4 +32,6 @@ namespace sge
 		ID3D11Buffer* pVBuffer;                // the pointer to the vertex buffer
 
 	};
+
+#endif
 }

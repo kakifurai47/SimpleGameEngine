@@ -5,6 +5,8 @@
 namespace sge
 {
 
+#ifdef SGE_RENDER_COMP_DX11
+
 	struct VERTEX {
 		FLOAT X, Y, Z;
 		float c[4];
@@ -162,4 +164,6 @@ namespace sge
 			devcon->IASetInputLayout(pLayout);
 		}
 	}
+
+#endif
 }
