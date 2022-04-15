@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sge_core/sge_core-pch.h> // <-- why ?
+#include "sge_core/base/sge_base.h"
 
 #if SGE_OS_WINDOWS
 
@@ -8,8 +8,8 @@
 #include "Win32/NativeUIWindow_Win32.h"
 
 namespace sge {
-	//using NativeUIWindow_Impl = NativeUIWindow_Win32;
-	//using NativeUIApp_Impl = NativeUIApp_Win32;
+	using NativeUIWindow_Impl = NativeUIWindow_Win32;
+	using NativeUIApp_Impl	  = NativeUIApp_Win32;
 }
 
 #else
@@ -20,12 +20,12 @@ namespace sge {
 
 namespace sge {
 
-	//class NativeUIWindow : public NativeUIWindow_Impl
-	//{
-	//};
-	//
-	//class NativeUIApp : public NativeUIApp_Impl
-	//{
-	//};
+	class NativeUIWindow : public NativeUIWindow_Impl
+	{
+	};
+	
+	class NativeUIApp : public NativeUIApp_Impl
+	{
+	};
 
 }

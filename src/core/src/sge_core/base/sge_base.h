@@ -59,9 +59,13 @@ inline void* operator new[](size_t size, size_t alignment, size_t alignmentOffse
 
 namespace sge
 {
+	template<class T> using UPtr = eastl::unique_ptr<T>;
 
-	
+	//template<class T, class... Args> inline UPtr<T> MakeUPtr(Args&& ... args) { return eastl::make_unique<T>(args ...); }
 
+	using TempString = eastl::fixed_string<char, 220, true>;
+	using StrView    = eastl::basic_string_view<char>;
+	using String     = eastl::basic_string<char>;
 
 	class NonCopyable
 	{

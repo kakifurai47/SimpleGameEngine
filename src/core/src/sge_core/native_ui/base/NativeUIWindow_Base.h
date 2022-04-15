@@ -1,11 +1,22 @@
 #pragma once
 
-#include <sge_core/math/Rect2.h>
+
 
 namespace sge {
 
-	class NativeUIWindow_Base : public NonCopyable 
+	class NativeUIWindow_Base : public NonCopyable
 	{
+	public:
+		void create();		
+	protected:
+		virtual void onCreate()  {};
+		virtual void onClose()	 {};
+		virtual void onDestroy() {};
+
+		virtual void onPaint()	 {};
+		
+
+
 	};
 
 }
