@@ -12,7 +12,7 @@ namespace sge {
 		using Base = NativeUIWindow_Base;
 
 	public:
-		HWND m_hmwd;
+		HWND m_hwmd;
 
 	protected:
 		virtual void onCreate()  override;

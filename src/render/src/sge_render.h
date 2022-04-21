@@ -1,6 +1,4 @@
 #pragma once
 
-
-#include <sge_core/base/sge_base.h>
-
-#include "sge_render/Renderer.h"
+#include "sge_render/base/Renderer.h"
+#include "sge_render/base/RenderContext.h"

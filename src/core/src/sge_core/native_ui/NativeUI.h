@@ -1,9 +1,6 @@
 #pragma once
 
-#include "sge_core/base/sge_base.h"
-
 #if SGE_OS_WINDOWS
-
 #include "Win32/NativeUIApp_Win32.h"
 #include "Win32/NativeUIWindow_Win32.h"
 

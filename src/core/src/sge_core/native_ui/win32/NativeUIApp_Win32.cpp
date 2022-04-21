@@ -5,10 +5,8 @@
 
 namespace sge {
 
-	void NativeUIApp_Win32::onCreate()
-	{
-		Base::onCreate();
-		SGE_LOG("Creating Win App");
+	void NativeUIApp_Win32::onCreate() {
+		Base::onCreate();		
 	}
 
 	void NativeUIApp_Win32::onRun()

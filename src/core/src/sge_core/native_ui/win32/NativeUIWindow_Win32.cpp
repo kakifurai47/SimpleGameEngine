@@ -1,3 +1,4 @@
+
 #include "NativeUIWindow_Win32.h"
 #include <sge_core/string/UtfUtil.h>
 
@@ -10,8 +11,7 @@ namespace sge {
 	{
 		Base::onCreate();
 
-		auto hInstance = ::GetModuleHandle(nullptr);
-		
+		auto hInstance = ::GetModuleHandle(nullptr);		
 		WNDCLASSEX wc = {};
 		
 		const wchar_t* szWindowClass = L"MyWindow";
@@ -27,12 +27,18 @@ namespace sge {
 		wc.hbrBackground	 = (HBRUSH)(COLOR_WINDOW + 1);
 		wc.lpszMenuName		 = NULL;
 		wc.lpszClassName	 = szWindowClass;
-		wc.hIconSm			 = LoadIcon(wc.hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
+		wc.hIconSm			 = LoadIcon(wc.hInstance, MAKEINTRESOURCE(IDI_APPLICATION));		
 		
+		WNDCLASSEX tmpWc;
+		bool registered = (::GetClassInfoEx(hInstance, szWindowClass, &tmpWc) != 0);
+
+		if (!registered) {
+			if (!::RegisterClassEx(&wc)) {				
+				throw SGE_ERROR("registerclassex");
+			}
+		}
 		
-		::RegisterClassEx(&wc);
-		
-		m_hmwd = ::CreateWindowEx(0,
+		m_hwmd = ::CreateWindowEx(0,
 			szWindowClass,
 			szWindowClass,
 			WS_OVERLAPPEDWINDOW,
@@ -46,8 +52,10 @@ namespace sge {
 			this
 		);
 
-		::ShowWindow  (m_hmwd, SW_NORMAL);
-		::UpdateWindow(m_hmwd);
+		if (!m_hwmd) {
+			throw SGE_ERROR("CreateWindowEx");
+		}
+		::ShowWindow(m_hwmd, SW_NORMAL);
 	}
 
 	void NativeUIWindow_Win32::onDestroy()
@@ -67,13 +75,16 @@ namespace sge {
 			}break;
 
 			case WM_PAINT: {
+				PAINTSTRUCT ps;
+				HDC hdc = BeginPaint(hwnd, &ps);
+
 				if (auto* thisObj = s_getThis(hwnd)) {
 					thisObj->onPaint();
 				}
+				EndPaint(hwnd, &ps);				
 			}break;
 
 			case WM_SIZE: {
-
 				SGE_LOG("On Resize");
 
 			}break;
@@ -81,7 +92,7 @@ namespace sge {
 			case WM_DESTROY: {
 				if (auto* thisObj = s_getThis(hwnd)) {
 					::SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)nullptr);
-					thisObj->m_hmwd = nullptr;
+					thisObj->m_hwmd = nullptr;
 					thisObj->onDestroy();
 				}
 				return 0;
@@ -96,5 +107,4 @@ namespace sge {
 		return ::DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 }
-
 #endif
