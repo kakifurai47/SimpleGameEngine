@@ -77,8 +77,7 @@ namespace sge {
 			case WM_PAINT: {
 				PAINTSTRUCT ps;
 				HDC hdc = BeginPaint(hwnd, &ps);
-
-				if (auto* thisObj = s_getThis(hwnd)) {
+				if (auto* thisObj = s_getThis(hwnd)) {					
 					thisObj->onPaint();
 				}
 				EndPaint(hwnd, &ps);				

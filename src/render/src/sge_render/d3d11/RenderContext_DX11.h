@@ -12,7 +12,19 @@ namespace sge {
 	public:
 		RenderContext_DX11(CreateDesc& desc);
 	protected:
-		ComPtr<DX11_IDXGISwapChain> m_dxgiSwapChain;
+		Renderer_DX11* m_renderer = nullptr;
+
+		ComPtr<DX11_IDXGISwapChain>		  m_dxgiSwapChain;
+		ComPtr<DX11_ID3DRenderTargetView> m_d3dRenderTargetView;
+
+	protected:
+		void _createRenderTarget();
+
+		virtual void onSetViewport(RenderCmd_SetViewport* cmd) override;
+		virtual void onClearBuffer(RenderCmd_Clear*		  cmd) override;
+		virtual void onSwapBuffer () override;
+		virtual void onBeginRender() override;
+
 	};
 
 

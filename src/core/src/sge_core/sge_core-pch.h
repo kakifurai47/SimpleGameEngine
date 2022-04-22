@@ -3,3 +3,5 @@
 
 #include <sge_core/base/Error.h>
 #include <sge_core/log/Log.h>
+
+#include <sge_core/math/Math.h>

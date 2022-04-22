@@ -11,15 +11,23 @@ namespace sge
 	sge::Renderer* Renderer::s_current = nullptr;
 
 	Renderer* Renderer::create(CreateDesc& desc) {
-		switch (desc.type)  
-		{
+		Renderer* rdr = nullptr;
+
+		switch (desc.type) {
 		#if SGE_RENDER_COMP_DX11
-			case Render_ApiType::DX11:  return new Renderer_DX11(desc);
+			case Render_ApiType::DX11:  rdr = new Renderer_DX11(desc); break;
 		#endif	
+			default: throw SGE_ERROR("Unsupported platform");
 		}
-		throw SGE_ERROR("Unsupported platform");
+		if (s_current) {
+			s_current->destroy();
+		}
+		s_current = rdr;
+		return rdr;
 	}
 
-	
+	void Renderer::destroy() {
+		onDestory();
+	}
 
 }

@@ -26,11 +26,17 @@ namespace sge
 	public:
 		using CreateDesc = Renderer_CreateDesc;
 
+		Renderer() = default;
+		virtual ~Renderer() = default;
+
 		static Renderer* current() { return s_current; }
 
 		static Renderer* create(CreateDesc& desc);
-		
+
+		void destroy();
+
 		virtual RenderContext* onCreateRenderContext(RenderContext_CreateDesc& desc) = 0;
+		virtual void onDestory() {};
 
 	protected:
 		static Renderer* s_current;

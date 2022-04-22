@@ -9,16 +9,26 @@ namespace sge {
 		virtual void MainWin::onCreate() override {
 			Base::onCreate();
 
-			RenderContext::CreateDesc desc;
-			desc.window = this;
-			m_ctx.reset(RenderContext::create(desc));			
+			{
+				RenderContext::CreateDesc desc;
+				desc.window = this;
+				m_ctx.reset(RenderContext::create(desc));
+			}
 		}
 
 		virtual void MainWin::onPaint() override {
 			Base::onPaint();
+			auto* c0 = m_buffer.addCmd<RenderCmd_SetViewport>();
+			auto* c1 = m_buffer.addCmd<RenderCmd_Clear>();
+			c1->color = Color4f(0, 0, 0.5f, 1);
+
+			if (m_ctx) {
+				m_ctx->render(m_buffer);
+			}
 		}
 
 		UPtr<RenderContext> m_ctx = nullptr;
+		CommandBuffer m_buffer;
 	};
 	
 	class EditorApp : public NativeUIApp 
@@ -45,6 +55,7 @@ namespace sge {
 		}
 	private:
 		MainWin  m_mainWin;
+		
 		//Renderer m_renderer;
 	};
 }

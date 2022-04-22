@@ -59,7 +59,29 @@ inline void* operator new[](size_t size, size_t alignment, size_t alignmentOffse
 
 namespace sge
 {
+	using u8	= uint8_t;
+	using u16	= uint16_t;
+	using u32	= uint32_t;
+	using u64	= uint64_t;
+
+	using i8	= int8_t;
+	using i16	= int16_t;
+	using i32	= int32_t;
+	using i64	= int64_t;
+
+	//using f16 = half;
+	using f32	= float;
+	using f64	= double;
+	using f128	= long double;
+
 	template<class T> using UPtr = eastl::unique_ptr<T>;
+	template<class T> using SPtr = eastl::shared_ptr<T>;
+	template<class T> using WPtr = eastl::weak_ptr<T>;
+
+	template<class T> using Span = eastl::span<T>;
+	template<class T, size_t N, bool bEnableOverflow = true> using Vector_ = eastl::fixed_vector<T, N, bEnableOverflow>;
+
+	template<class T> using Vector = eastl::vector<T>;
 
 	template<class T> using StrViewT = eastl::basic_string_view<T>;
 	using StrViewA = StrViewT<char>;
