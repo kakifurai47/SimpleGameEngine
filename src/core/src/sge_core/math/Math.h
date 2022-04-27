@@ -1,12 +1,14 @@
 #pragma once
 
+#include "sge_core/base/sge_base.h"
+
 namespace sge
 {
 	struct Math
 	{
-		inline static constexpr bool isPow2(u_int v) { return v && !(v & (v - 1)); }
+		inline static constexpr bool isPow2(u64 v) { return v && !(v & (v - 1)); }
 
-		static constexpr u_int nextPow2(u_int v) {
+		static constexpr u64 nextPow2(u64 v) {
 			v--;
 			v |= v >> 1;
 			v |= v >> 2;

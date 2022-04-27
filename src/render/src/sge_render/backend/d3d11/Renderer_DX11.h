@@ -2,7 +2,7 @@
 
 #ifdef SGE_RENDER_COMP_DX11
 
-#include "sge_render/base/Renderer.h"
+#include "../base/Renderer.h"
 #include "sge_render_dx11.h"
 
 namespace sge

@@ -2,10 +2,37 @@
 #include <sge_editor.h>
 
 namespace sge {
+
+	template <int N>
+	void foo() {
+		SGE_DUMP_VAR(N);
+	}
+
+	template <int N, int M, int ... Rest>
+	void foo() {
+		foo<N>();
+		//SGE_DUMP_VAR(N);
+		foo<M, Rest...>();
+	}
+
+	template<int N, int M>
+	void bar() {
+		SGE_DUMP_VAR(N);
+		SGE_DUMP_VAR(M);
+		SGE_LOG("\n");
+	}
+
+	template<int N, int M, int O, int P, int ... Rest>
+	void bar() {
+		bar<N, M>();
+		bar<O, P, Rest...>();
+	}
+
+
 	class MainWin : public NativeUIWindow {
 	public:
 		using Base = NativeUIWindow;
-
+		 
 		virtual void MainWin::onCreate() override {
 			Base::onCreate();
 
@@ -14,6 +41,15 @@ namespace sge {
 				desc.window = this;
 				m_ctx.reset(RenderContext::create(desc));
 			}
+
+			{
+
+
+			}
+			
+
+
+
 		}
 
 		virtual void MainWin::onPaint() override {
@@ -29,6 +65,7 @@ namespace sge {
 
 		UPtr<RenderContext> m_ctx = nullptr;
 		CommandBuffer m_buffer;
+		EditMesh editMesh;
 	};
 	
 	class EditorApp : public NativeUIApp 

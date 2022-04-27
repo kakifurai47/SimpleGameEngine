@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RenderCommand.h"
+#include "sge_render/command/RenderCommand.h"
 
 namespace sge  {
 
@@ -8,13 +8,10 @@ namespace sge  {
 		NativeUIWindow* window = nullptr;
 	};
 
-	class CommandBuffer;
-	//class RenderCmdBase;
-	class RenderContext : public NonCopyable 
-	{
-		using CmdType = RenderCmdBase::CmdType;
-
+	class CommandBuffer;	
+	class RenderContext : public NonCopyable  {
 	public:
+		using CmdType	 = RenderCmdBase::CmdType;
 		using CreateDesc = RenderContext_CreateDesc;
 
 		static RenderContext* create(CreateDesc& desc);
@@ -23,7 +20,6 @@ namespace sge  {
 		virtual ~RenderContext() = default;
 
 		void render(CommandBuffer& buffer);
-
 	protected:
 		
 		virtual void onSetViewport(RenderCmd_SetViewport*	cmd) {}
@@ -35,9 +31,6 @@ namespace sge  {
 		virtual void onEndRender  () {}
 
 		virtual void onTestDraw	  () {}
-
-
-
 	};
 	
 }

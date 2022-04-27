@@ -1,6 +1,6 @@
 #include "RenderContext.h"
 #include "Renderer.h"
-#include "CommandBuffer.h"
+#include "sge_render/command/CommandBuffer.h"
 
 namespace sge {
 

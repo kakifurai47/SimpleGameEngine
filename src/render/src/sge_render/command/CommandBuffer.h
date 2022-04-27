@@ -7,10 +7,11 @@ namespace sge
 	class CommandBuffer : public NonCopyable
 	{
 	public:
+		static const u64 size = 4 * 1024 * 1024;
+
 		CommandBuffer ();
 		~CommandBuffer();
 
-		const u_int size  = 4194304;
 		Span<RenderCmdBase*> cmds() { return m_cmds; }
 
 		template<typename T>
