@@ -17,5 +17,22 @@ namespace sge
 			v |= v >> 16;			
 			return ++v;
 		}
+
+
+
 	};
+
+	struct BitUtil
+	{
+		template<class T, size_t shift> 
+		static constexpr auto add(T t)
+		{
+
+		}
+
+
+
+	};
+
+	
 }

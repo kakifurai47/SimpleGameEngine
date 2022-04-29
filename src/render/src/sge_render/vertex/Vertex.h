@@ -1,182 +1,163 @@
 #pragma once
 
+#include "sge_render/backend/base/RenderFormat.h"
+
 namespace sge
 {
 	enum class Vertex_SemanticType : u8 {
-		None	 = 0,
-		Position = 1,
-		Color	 = 2,
-		Normal	 = 3,
-		Binormal = 4,
-		Tangent	 = 5,
-		TexCoord = 6,
-	};
-
-	enum class Vertex_Semantic : u16
-	{
-		None,
+		None = 0,
 		Position,
-
-		Color0,
-		Color1,
-		Color2,
-		Color3,
-
-		TexCoord0,
-		TexCoord1,
-		TexCoord2,
-		TexCoord3,
-		TexCoord4,
-		TexCoord5,
-		TexCoord6,
-		TexCoord7,
-
+		Color,
+		TexCoord,
 		Normal,
-		Binormal,
 		Tangent,
+		Binormal,
 	};
 
 
-	enum class VFormat_DataType : u8 {
-		None  = 0,
-		Float = 1,
-		UInt  = 2,
-		SInt  = 3,
-		UNorm = 4,
-		SNorm = 5,
-	};
+	enum class VertexType : u64 { None };
 
-	enum class VFormat_SizeType : u8 {
-		b00 = 0,
-		b08 = 1,
-		b16 = 2,
-		b32 = 3,
-		b64 = 4,
-	};
-
-	enum class VFormat_CompCount : u8 {
-		x1 = 0,
-		x2 = 1,
-		x3 = 2,
-		x4 = 3,
-	};
-
-	//fmt bit : dddd_ss_cc	
-	template<VFormat_DataType Dtype, VFormat_SizeType Size, VFormat_CompCount Cnt>
-	static constexpr u8 Vertex_toFmt_t() {
-		return static_cast<u8>(Dtype) << 4 |
-			   static_cast<u8>(Size)  << 2 |
-			   static_cast<u8>(Cnt);
-	}
-
-	enum class Vertex_FormatType : u8;
-	struct VFormt_Util {
-
-		using FmtT   = Vertex_FormatType;
-		using DataT  = VFormat_DataType ;
-		using SizeT  = VFormat_SizeType ;
-		using CountT = VFormat_CompCount;
-
-		static constexpr DataT  getData_t (FmtT t) { return static_cast<DataT> (static_cast<u8>(t) >> 4 & 0xF); }
-		static constexpr SizeT  getSize_t (FmtT t) { return static_cast<SizeT> (static_cast<u8>(t) >> 2 & 0x3); }
-		static constexpr CountT getCount_t(FmtT t) { return static_cast<CountT>(static_cast<u8>(t)	    & 0x3); }
-	};
-
-#define E(T, SIZE, CNT) T##SIZE##CNT \
-	 = Vertex_toFmt_t<VFormat_DataType::T, VFormat_SizeType::SIZE, VFormat_CompCount::CNT>()\
-
-	enum class Vertex_FormatType : u8 {
-		None,
-		E(Float, b08, x1), E(Float, b08, x2), E(Float, b08, x3), E(Float, b08, x4),
-		E(Float, b16, x1), E(Float, b16, x2), E(Float, b16, x3), E(Float, b16, x4),
-		E(Float, b32, x1), E(Float, b32, x2), E(Float, b32, x3), E(Float, b32, x4),
-		E(Float, b64, x1), E(Float, b64, x2), E(Float, b64, x3), E(Float, b64, x4),
-					   
-		E(UInt,  b08, x1), E(UInt,  b08, x2), E(UInt,  b08, x3), E(UInt,  b08, x4),
-		E(UInt,  b16, x1), E(UInt,  b16, x2), E(UInt,  b16, x3), E(UInt,  b16, x4),
-		E(UInt,  b32, x1), E(UInt,  b32, x2), E(UInt,  b32, x3), E(UInt,  b32, x4),
-		E(UInt,  b64, x1), E(UInt,  b64, x2), E(UInt,  b64, x3), E(UInt,  b64, x4),
-				 		
-		E(SInt,  b08, x1), E(SInt,  b08, x2), E(SInt,  b08, x3), E(SInt,  b08, x4),
-		E(SInt,  b16, x1), E(SInt,  b16, x2), E(SInt,  b16, x3), E(SInt,  b16, x4),
-		E(SInt,  b32, x1), E(SInt,  b32, x2), E(SInt,  b32, x3), E(SInt,  b32, x4),
-		E(SInt,  b64, x1), E(SInt,  b64, x2), E(SInt,  b64, x3), E(SInt,  b64, x4),
-					   
-		E(UNorm, b08, x1), E(UNorm, b08, x2), E(UNorm, b08, x3), E(UNorm, b08, x4),
-		E(UNorm, b16, x1), E(UNorm, b16, x2), E(UNorm, b16, x3), E(UNorm, b16, x4),
-		E(UNorm, b32, x1), E(UNorm, b32, x2), E(UNorm, b32, x3), E(UNorm, b32, x4),
-		E(UNorm, b64, x1), E(UNorm, b64, x2), E(UNorm, b64, x3), E(UNorm, b64, x4),
-					   
-		E(SNorm, b08, x1), E(SNorm, b08, x2), E(SNorm, b08, x3), E(SNorm, b08, x4),
-		E(SNorm, b16, x1), E(SNorm, b16, x2), E(SNorm, b16, x3), E(SNorm, b16, x4),
-		E(SNorm, b32, x1), E(SNorm, b32, x2), E(SNorm, b32, x3), E(SNorm, b32, x4),
-		E(SNorm, b64, x1), E(SNorm, b64, x2), E(SNorm, b64, x3), E(SNorm, b64, x4),
-	};
-#undef E
-
-	class VertexLayout : public NonCopyable
+	struct VertexType_BitfieldUtil
 	{
-	public:
-		using SemanticT	 = Vertex_SemanticType;
-		using FormatT	 = Vertex_FormatType;
+		using SemanticT = Vertex_SemanticType;
+		using FormatT  = Render_FormatType;
 
+		enum class Bitfield : u8 {
+			None			 =  0,
+			PosFormat		 =  0,  //8 bit
+			ColorFormat		 =  8,  //8 bit
+			UVFormat		 = 16,  //8 bit
+			NormalFormat	 = 24,  //8 bit
+
+			ColorCount		 = 32,  //2 bit
+			UVCount			 = 34,  //8 bit
+			NormalCount		 = 42,  //2 bit
+			TangentCount	 = 44,  //2 bit
+			BinormalCount	 = 46,  //2 bit
+		};
+
+		template<SemanticT SEM_TYPE> static constexpr  u64 set(FormatT fmt, size_t count) { return 0; }
+		template<SemanticT SEM_TYPE> static constexpr void get(VertexType type, FormatT& fmt, size_t& count)  {}
+
+#define SETBIT(SEM_TYPE, FMT_SHIFT, COUNT_SHIFT) \
+		template<> static constexpr \
+		u64 set<SEM_TYPE>(FormatT fmt, size_t count) { \
+			return (u64)fmt << (u64)FMT_SHIFT | count << (u64)COUNT_SHIFT; \
+		} \
+//--------------
+#define GETBIT(SEM_TYPE, FMT_SHIFT, FMT_MASK, COUNT_SHIFT, COUNT_MASK) \
+		template<> static constexpr \
+		void get<SEM_TYPE>(VertexType type, FormatT& fmt, size_t& count) { \
+			fmt   = (FormatT)((u64)type >> (u64)FMT_SHIFT & FMT_MASK); \
+			count = (u64)type >> (u64)COUNT_SHIFT & COUNT_MASK; \
+		 } \
+//--------------
+
+#define CREATE_BIT_OP(SEM_TYPE, FMT_SHIFT, FMT_MASK, COUNT_SHIFT, COUNT_MASK) \
+		SETBIT(SEM_TYPE, FMT_SHIFT, COUNT_SHIFT) \
+		GETBIT(SEM_TYPE, FMT_SHIFT, FMT_MASK, COUNT_SHIFT, COUNT_MASK) \
+//--------------
+
+		CREATE_BIT_OP(SemanticT::Position,	 Bitfield::PosFormat,	 0xFF, Bitfield::None,		    0	);
+		CREATE_BIT_OP(SemanticT::Color,		 Bitfield::ColorFormat,  0xFF, Bitfield::ColorCount,    0x3	);
+		CREATE_BIT_OP(SemanticT::TexCoord,	 Bitfield::UVFormat,	 0xFF, Bitfield::UVCount,	    0xFF);
+		CREATE_BIT_OP(SemanticT::Normal,	 Bitfield::NormalFormat, 0xFF, Bitfield::NormalCount,   0x3	);
+		CREATE_BIT_OP(SemanticT::Tangent,	 Bitfield::NormalFormat, 0xFF, Bitfield::TangentCount,  0x3	);
+		CREATE_BIT_OP(SemanticT::Binormal,	 Bitfield::NormalFormat, 0xFF, Bitfield::BinormalCount, 0x3	);
+
+#undef CREATE_BIT_OP
+#undef GETBIT
+#undef SETBIT
+	};
+
+
+	class VertexLayout : public NonCopyable {
+	public:
+		using VtxBitUtil = VertexType_BitfieldUtil;
+		using SemanticT	 = Vertex_SemanticType;
+		using FormatT	 = Render_FormatType;
+	
 		struct Element {
+
+			Element() = default;
+			Element(FormatT format_, SemanticT semantic_, u8 semanticIdx_, u16 offset_)
+				: format(format_)
+				, semantic(semantic_)
+				, semanticIdx(semanticIdx_)
+				, offset(offset_)
+			{
+			}
+
+
 			FormatT	  format		= FormatT::None;
 			SemanticT semantic		= SemanticT::None;
 			u8		  semanticIdx	= 0;
 			u16		  offset		= 0;
 		};
-
-		VertexLayout() 
-			: typeId(0, 0) , stride(0)
-		{
-		}
-
-		u128   typeId;
-		size_t stride;
+	
+		VertexType	typeId = VertexType::None;
+		size_t		stride = 0;
 		Vector_<Element, 16> elements;
 
-		template<int X>
-		void create(/*X&& x, Y&& y, ARGS&& ...args*/)
-		{
-			SGE_DUMP_VAR(X);
-			//SGE_DUMP_VAR(Y);			
+		template<class DESC>
+		void addElement() {
+			
+			
 		}
 
 
-		template<int X, int ...ARGS>
-		void create(/*X&& x, Y&& y, ARGS&& ...args*/)
-		{
-			create<X>();
-			//create<ARGS...>();
-
-
-			//create(SGE_FORWARD(args)...);
-		}
-
-		//template<template<class> class H, class S>
-		//void create_02(H<S> value)
-		//{
-		//	
-		//}
-
-		//template<int a>
-		//void create_03()
-		//{
-
-		//}
 	};
 
-	enum class VertexType : u64 { None };
+	template<Vertex_SemanticType SMT_TYPE, Render_FormatType FMT_TYPE, size_t COUNT>
+	struct Vertex_ElementDesc {
+		static const Vertex_SemanticType semanticType = SMT_TYPE;
+		static const Render_FormatType   formatType	  = FMT_TYPE;
+		static const size_t				 count		  = COUNT;
+	};
 
-	
+	template<class ...DESCs> 
+	struct Vertex;
 
-	
-	
-	
+	template<class DESC>
+	struct Vertex <DESC>
+	{
+		using TUtil = VertexType_BitfieldUtil;
 
-	
+		static const VertexType kType = 
+			static_cast<VertexType>(TUtil::set<DESC::semanticType>(DESC::formatType, DESC::count));		
+
+		static constexpr void onRegister(VertexLayout* layout) {
+			layout->addElement<DESC>();
+		}
+	};
+
+	template<class DESC1, class ...DESCs>
+	struct Vertex<DESC1, DESCs...>
+	{
+		static const VertexType kType = static_cast<VertexType>(static_cast<u64>(Vertex<DESC1>   ::kType) + 
+															    static_cast<u64>(Vertex<DESCs...>::kType));
+
+		static constexpr void onRegister(VertexLayout* layout) {
+			Vertex<DESC1>   ::onRegister(layout);
+			Vertex<DESCs...>::onRegister(layout);
+		}
+	};
 
 
+	struct Vertex_ElementDescLib {
+		using FMT = Render_FormatType;
+		using SMT = Vertex_SemanticType;
 
+		using pos_f32x3_c1 = Vertex_ElementDesc<SMT::Position,	FMT::Floatb32x3, 1>;
+		using tex_f32x2_c1 = Vertex_ElementDesc<SMT::TexCoord,	FMT::Floatb32x2, 3>;
+		using col_c32x4_c1 = Vertex_ElementDesc<SMT::Color,		FMT::UNormb08x4, 1>;
+	};
+
+
+	struct VertexLib {
+		using Desc	 = Vertex_ElementDescLib;
+
+		using Pos    = Vertex<Desc::pos_f32x3_c1>;
+		using PosTex = Vertex<Desc::pos_f32x3_c1, Desc::tex_f32x2_c1>;
+	};
 }

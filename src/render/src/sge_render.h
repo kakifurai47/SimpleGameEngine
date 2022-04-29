@@ -1,5 +1,7 @@
 #pragma once
 
+#include "sge_render/backend/base/RenderFormat.h"
+
 #include "sge_render/backend/base/Renderer.h"
 #include "sge_render/backend/base/RenderContext.h"
 

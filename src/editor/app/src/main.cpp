@@ -3,32 +3,6 @@
 
 namespace sge {
 
-	template <int N>
-	void foo() {
-		SGE_DUMP_VAR(N);
-	}
-
-	template <int N, int M, int ... Rest>
-	void foo() {
-		foo<N>();
-		//SGE_DUMP_VAR(N);
-		foo<M, Rest...>();
-	}
-
-	template<int N, int M>
-	void bar() {
-		SGE_DUMP_VAR(N);
-		SGE_DUMP_VAR(M);
-		SGE_LOG("\n");
-	}
-
-	template<int N, int M, int O, int P, int ... Rest>
-	void bar() {
-		bar<N, M>();
-		bar<O, P, Rest...>();
-	}
-
-
 	class MainWin : public NativeUIWindow {
 	public:
 		using Base = NativeUIWindow;
@@ -43,13 +17,11 @@ namespace sge {
 			}
 
 			{
+				auto t = VertexLib::PosTex::kType;
 
-
+				VertexLayout layout;
+				VertexLib::PosTex::onRegister(&layout);
 			}
-			
-
-
-
 		}
 
 		virtual void MainWin::onPaint() override {
