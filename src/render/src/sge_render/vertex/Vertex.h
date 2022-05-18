@@ -31,6 +31,12 @@ namespace sge {
 		template<class D> static constexpr auto getFMT(D) noexcept { return meta::get<1>(D{}); }
 		template<class D> static constexpr auto getCNT(D) noexcept { return meta::get<2>(D{}); }
 
+		template<class D1, class D2> struct ElmDescComp {
+			static const bool value =
+				(enumInt(getSMT(D1{})) << bit_size(FT{}) | enumInt(getFMT(D1{}))) <
+				(enumInt(getSMT(D2{})) << bit_size(FT{}) | enumInt(getFMT(D2{})));
+		};
+
 		template<ST... SMT_TYPEs, size_t... SMT_IDXs, FT... FMT_TYPEs>
 		static constexpr auto _makeVtxDataType(meta::tlist<meta::vlist<SMT_TYPEs, SMT_IDXs, FMT_TYPEs>...>) noexcept
 			-> eastl::tuple<typename Render_DataType<FMT_TYPEs>::type...> {
@@ -86,18 +92,28 @@ namespace sge {
 			return {};
 		}
 
+		template<ST SMT_TYPE, size_t SMT_IDX, size_t RET_IDX>
+		static constexpr auto _getSlotIdx(meta::empty_tlist) noexcept -> meta::null_type { return {}; }
+
+		template<ST SEARCH_SMT_TYPE, size_t SEARCH_SMT_IDX,
+				 size_t RET_IDX = 0,
+				 ST	SMT_T, size_t SMT_IDX, FT FMT_T,
+				 class... SLOTs>
+		static constexpr auto _getSlotIdx(meta::tlist<Slot<SMT_T, SMT_IDX, FMT_T>, SLOTs...>) noexcept {			
+			if constexpr( SMT_T	  == SEARCH_SMT_TYPE && 
+						  SMT_IDX == SEARCH_SMT_IDX) //TODO: constant get<>();
+				 { return RET_IDX;																			  }
+			else { return _getSlotIdx<SEARCH_SMT_TYPE, SEARCH_SMT_IDX, RET_IDX + 1>(meta::tlist<SLOTs...>{}); }
+		}		
+
 	public:
-		template<class D1, class D2> struct ElmDescComp {
-			static const bool value = 
-			( enumInt(getSMT(D1{})) << bit_size(FT{}) | enumInt(getFMT(D1{})) ) <
-			( enumInt(getSMT(D2{})) << bit_size(FT{}) | enumInt(getFMT(D2{})) );
-		};
+		template<class... DESCs>  using SortedDESCs = decltype(meta::insertion_sort<ElmDescComp>(meta::tlist<DESCs...>{}));
+		template<class... DESCs>  static constexpr auto makeSlots() noexcept { return _makeSlots(SortedDESCs<DESCs...>{});}
 
-		template<class... DESCs>  using SortedDESCs = decltype(meta::insertion_sort<ElmDescComp>(meta::tlist<DESCs...>{})  );
+		template<ST SMT_TYPE, size_t SMT_IDX, class SLOT_LIST> static constexpr
+		auto getSlotIdx(SLOT_LIST) noexcept { return _getSlotIdx<SMT_TYPE, SMT_IDX>(SLOT_LIST{}); }
 
-		template<class... DESCs>  static constexpr auto makeSlots() noexcept { return _makeSlots(SortedDESCs<DESCs...>{} ); }
-
-		template<class SLOT_LIST> using VtxData = decltype(_makeVtxDataType(SLOT_LIST{}));
+		template<class  SLOT_LIST> using VtxData	= decltype(	_makeVtxDataType(SLOT_LIST{})	  );
 	};
 
 	struct VertexType {
@@ -155,13 +171,26 @@ namespace sge {
 		using ST = Vertex_SemanticType;
 		using FT = Render_FormatType;
 		using UT = Vertex_Util;
-	public:
-		using SlotList = decltype (		UT::makeSlots<DESCs...>()	);
 
-
-
-
+		using SlotList = decltype (UT::makeSlots<DESCs...>());
 		UT::VtxData<SlotList> data;
+
+		template<ST SMT_TYPE, size_t SMT_IDX> static constexpr decltype(auto) idx  ()  noexcept { return UT::getSlotIdx<SMT_TYPE, SMT_IDX>(SlotList{});	}
+		template<ST SMT_TYPE, size_t SMT_IDX> static constexpr decltype(auto) valid()  noexcept { return !meta::is_null(idx<SMT_TYPE, SMT_IDX>());		}
+		template<ST SMT_TYPE, size_t SMT_IDX>		 constexpr decltype(auto) slot ()  noexcept { return eastl::get<idx<SMT_TYPE, SMT_IDX>()>(data);	}
+		template<ST SMT_TYPE, size_t SMT_IDX> using							  slot_t = decltype (		 eastl::get<idx<SMT_TYPE, SMT_IDX>()>(data)		);
+
+		template<ST SMT_TYPE, size_t SMT_IDX>
+		constexpr meta::enif_t<true, slot_t<SMT_TYPE, SMT_IDX>> getSlot() {
+			return slot<SMT_TYPE, SMT_IDX>();
+		}
+	public:
+		template<size_t SMT_IDX> decltype(auto) position() { return getSlot<ST::Position,	SMT_IDX>(); }
+		template<size_t SMT_IDX> decltype(auto) color	() { return getSlot<ST::Color,		SMT_IDX>(); }
+		template<size_t SMT_IDX> decltype(auto) texcoord() { return getSlot<ST::Texcoord,	SMT_IDX>(); }
+		template<size_t SMT_IDX> decltype(auto) normal	() { return getSlot<ST::Normal,		SMT_IDX>(); }
+		template<size_t SMT_IDX> decltype(auto) tangent	() { return getSlot<ST::Tangent,	SMT_IDX>(); }
+		template<size_t SMT_IDX> decltype(auto) binormal() { return getSlot<ST::Binormal,	SMT_IDX>(); }
 	};
 
 	struct VertexElmDescLib {

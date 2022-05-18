@@ -7,30 +7,21 @@
 namespace sge {
 
 
+
 class Test_Vertex : public UnitTestBase {
 public:
 
 	void test_layout() {
+		using SMT = Vertex_SemanticType;
 		using FMT = Render_FormatType;
-
 
 		{
 			using V0  = VertexLib::PosTexCol;
-			meta::print_list(V0::SlotList{});
-
 			V0 v0;
 
-			
-			
-			eastl::get<0>(v0.data).x = 3;
-			SGE_DUMP_VAR(sizeof(v0));
-
-
-			eastl::tuple<float, int> tup01;
-
-
-			eastl::get<0>(tup01) = 1;
-
+			v0.position<0>().x = 4;
+			auto b = v0.color<3>().x;
+			SGE_DUMP_VAR(b);
 
 		}
 	}
