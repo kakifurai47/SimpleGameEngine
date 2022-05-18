@@ -154,11 +154,11 @@ namespace sge {
 		template<class... Ts> static constexpr
 		VertexType make(Ts&&... ts) {
 			auto&& ret = _make(SGE_FORWARD(ts)...);
-			//if (SORT) {
-			//	//do sorting here;
-			//}
+			//TODO : add optional sorting here
 			return ret;
 		}
+
+		//TODO : add comparator here for map
 
 	private:
 		template<auto... Vs> static constexpr
@@ -186,6 +186,8 @@ namespace sge {
 				}
 				start++;
 			}
+			//TODO : static assert if intended add desc exceed allowance
+			//	   : warning at run-time.
 			for (size_t i = 0, slotIdx = start; i < count; i++, slotIdx++) {
 				if (slotIdx >= end) {
 					return rhs;
@@ -214,6 +216,9 @@ namespace sge {
 		Vector_<Element, 16>	elements;
 		VertexType				type;
 		size_t					stride;
+
+		//TODO : fill layout here
+
 	};
 
 	template<class... DESCs>
