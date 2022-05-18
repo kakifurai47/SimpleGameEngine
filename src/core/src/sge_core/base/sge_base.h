@@ -59,11 +59,19 @@ inline void* operator new[](size_t size, size_t alignment, size_t alignmentOffse
 
 namespace sge
 {
+	template<class T> inline constexpr typename std::underlying_type<T>::type     enumInt(T  value) { return       static_cast<typename std::underlying_type<T>::type>(value);   }
+	template<class T> inline constexpr typename std::underlying_type<T>::type& enumIntRef(T& value) { return *reinterpret_cast<typename std::underlying_type<T>::type*>(&value); }
+	template<class T> inline constexpr typename std::underlying_type<T>::type const& enumIntRef(const T& value) { return *reinterpret_cast<const typename std::underlying_type<T>::type*>(&value); }
+
+	template<class T> inline bool constexpr enumHas(const T& a, const T& b) { return static_cast<T>(enumInt(a) & enumInt(b)) != static_cast<T>(0); }
+
+	template<class T> SGE_INLINE T* constCast(const T* v) { return const_cast<T*>(v); }
+	template<class T> SGE_INLINE T& constCast(const T& v) { return const_cast<T&>(v); }
+
 	using u8	= uint8_t;
 	using u16	= uint16_t;
 	using u32	= uint32_t;
 	using u64	= uint64_t;
-	using u128	= uint128_t;
 
 	using i8	= int8_t;
 	using i16	= int16_t;
@@ -74,6 +82,24 @@ namespace sge
 	using f32	= float;
 	using f64	= double;
 	using f128	= long double;
+
+	constexpr size_t char_bit() { return CHAR_BIT; }
+	template <typename T> constexpr size_t bit_size(T) { return sizeof(T) * char_bit(); }
+
+	template< class Obj, class Member > constexpr
+	intptr_t memberOffset(Member Obj::* ptrToMember) {
+		Obj* c = nullptr;
+		Member* m = &(c->*ptrToMember);
+		return reinterpret_cast<intptr_t>(m);
+	}
+
+	template<class T, size_t N> constexpr
+	size_t array_size(const T(&)[N]) { return N; }
+
+	template<class T> struct remove_member_pointer;
+	template<class T, class C> struct remove_member_pointer<T C::*> { using type = T; };
+	template<class T> using remove_member_pointer_t = typename remove_member_pointer<T>::type;
+
 
 	template<class T> using UPtr = eastl::unique_ptr<T>;
 	template<class T> using SPtr = eastl::shared_ptr<T>;
@@ -174,4 +200,6 @@ namespace sge
 	};
 
 	template<class T> inline void sge_delete(T* p) { delete p; }
+
+
 }

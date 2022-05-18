@@ -5,8 +5,8 @@
 namespace sge
 {
 	template<class T>
-	class Tuple2
-	{
+	class Tuple2 {
+	public:
 		union {
 			struct {
 				T x, y;
@@ -22,8 +22,8 @@ namespace sge
 	};
 
 	template<class T>
-	class Tuple3
-	{
+	class Tuple3 {
+	public:
 		union {
 			struct {
 				T x, y, z;
@@ -39,8 +39,8 @@ namespace sge
 	};
 
 	template<class T>
-	class Tuple4
-	{
+	class Tuple4 {
+	public:
 		union {
 			struct {
 				T x, y, z, w;
@@ -55,13 +55,11 @@ namespace sge
 		}
 	};
 
-	using Tuple2f = Tuple2<f32>;
-	using Tuple3f = Tuple3<f32>;
-	using Tuple4f = Tuple4<f32>;
+	using Tuple2f = Tuple2<float>;
+	using Tuple3f = Tuple3<float>;
+	using Tuple4f = Tuple4<float>;
 
-	using Tuple2d = Tuple2<u8>;
-	using Tuple3d = Tuple3<u8>;
-	using Tuple4d = Tuple4<u8>;
-
-
+	using Tuple2d = Tuple2<double>;
+	using Tuple3d = Tuple3<double>;
+	using Tuple4d = Tuple4<double>;
 }

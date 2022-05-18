@@ -12,7 +12,8 @@
 namespace sge {
 
 	void run_temp_test() {		
-		RUN_TEST(test_LinearAllocator);		
+		//RUN_TEST(test_typelist);
+		RUN_TEST(test_vertex);
 	}
 
 	int test_main() {

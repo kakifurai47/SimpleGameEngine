@@ -9,3 +9,7 @@
 #include "sge_core/math/Color.h"
 #include "sge_core/math/Vec.h"
 #include "sge_core/math/Tuple.h"
+
+#include "sge_core/meta/meta_common.h"
+#include "sge_core/meta/vlist.h"
+#include "sge_core/meta/tlist.h"

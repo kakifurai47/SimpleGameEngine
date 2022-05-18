@@ -1,5 +1,6 @@
 
 #include <sge_editor.h>
+#include <array>
 
 namespace sge {
 
@@ -8,20 +9,22 @@ namespace sge {
 		using Base = NativeUIWindow;
 		 
 		virtual void MainWin::onCreate() override {
-			Base::onCreate();
+			//Base::onCreate();
+			//{
+			//	RenderContext::CreateDesc desc;
+			//	desc.window = this;
+			//	m_ctx.reset(RenderContext::create(desc));
+			//}
 
 			{
-				RenderContext::CreateDesc desc;
-				desc.window = this;
-				m_ctx.reset(RenderContext::create(desc));
+
+
+
+
+
 			}
 
-			{
-				auto t = VertexLib::PosTex::kType;
 
-				VertexLayout layout;
-				VertexLib::PosTex::onRegister(&layout);
-			}
 		}
 
 		virtual void MainWin::onPaint() override {
@@ -47,7 +50,7 @@ namespace sge {
 		virtual void EditorApp::onCreate() override
 		{
 			Base::onCreate();
-
+			
 			{
 				Renderer::CreateDesc desc;
 				desc.type = Render_ApiType::DX11;

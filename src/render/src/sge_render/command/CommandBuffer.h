@@ -26,7 +26,7 @@ namespace sge
 
 		void clear();
 
-	protected:		
+	protected:
 		u8* m_buffer  = nullptr;
 		LinearAllocator m_alloc;
 		Vector<RenderCmdBase*> m_cmds;
