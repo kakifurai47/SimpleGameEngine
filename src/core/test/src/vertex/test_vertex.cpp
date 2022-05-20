@@ -64,11 +64,33 @@ public:
 
 		print_VertexType(r4);
 	}
+
+	void printElement(const VertexLayout::Element& elm)
+	{
+		SGE_DUMP_VAR(static_cast<u64>(elm.format));
+		SGE_DUMP_VAR(static_cast<u64>(elm.semantic));
+		SGE_DUMP_VAR(static_cast<u64>(elm.smtIdx));
+		SGE_DUMP_VAR(static_cast<u64>(elm.offset));
+	}
+
+
+	void create_layout() {
+		
+		VertexLayout layout;
+
+		layout.set(VertexLib::PosTexCol::SlotList{});
+		
+		for (const auto& elm : layout.elements) {
+			printElement(elm);
+			SGE_LOG("----------------");
+		}
+	}
+
 };
 
 } // namespace 
 
 void test_vertex() {
 	using namespace sge;
-	SGE_TEST_CASE(Test_Vertex, test_layout());
+	SGE_TEST_CASE(Test_Vertex, create_layout());
 }

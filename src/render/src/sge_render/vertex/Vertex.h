@@ -17,9 +17,7 @@ namespace sge {
 	template<Vertex_SemanticType SMT, Render_FormatType	FMT, u8 CNT> 
 	using Vertex_ElmDesc = meta::vlist<SMT, FMT, CNT>;
 
-	struct VertexType;
-	
-	struct Vertex_Util {
+	struct VertexUtil {		
 	private:
 		using ST = Vertex_SemanticType;
 		using FT = Render_FormatType;
@@ -158,7 +156,10 @@ namespace sge {
 			return ret;
 		}
 
-		//TODO : add comparator here for map
+		bool operator() (const VertexType& lhs, const VertexType& rhs) {
+			return	lhs.data[0] == rhs.data[0] &&
+					lhs.data[1] == rhs.data[1];
+		}
 
 	private:
 		template<auto... Vs> static constexpr
@@ -197,7 +198,7 @@ namespace sge {
 			return rhs;
 		}
 
-		template<class ...Ts> static constexpr
+		template<class... Ts> static constexpr
 		decltype(auto) _add(VertexType&& rhs, SmtType smt, FmtType fmt, size_t cnt, Ts&&... ts) {
 			return _add(SGE_FORWARD(_add(SGE_FORWARD(rhs), smt, fmt, cnt)), SGE_FORWARD(ts) ...);
 		}
@@ -217,16 +218,37 @@ namespace sge {
 		VertexType				type;
 		size_t					stride;
 
-		//TODO : fill layout here
+		static VertexLayout* get(const VertexType& type_) {
+			return nullptr;
+		}
 
+		void set(meta::empty_tlist, size_t off = 0) {}
+
+		template<class H, class... SLOTs> constexpr
+		void set(meta::tlist<H, SLOTs...>, size_t off = 0) {
+			off += _add(H{}, off);
+			set(meta::tlist<SLOTs...>{}, off);
+		}
+
+	private:
+		template<SmtType SMT_T, size_t SMT_IDX, FmtType FMT_T> constexpr
+		size_t _add(meta::vlist<SMT_T, SMT_IDX, FMT_T>, size_t off) {
+			auto& elm = elements.push_back();
+			elm.format	 = FMT_T;
+			elm.semantic = SMT_T;
+			elm.smtIdx	 = SMT_IDX;
+			elm.offset	 = off;
+			return Render_FormatDesc<FMT_T>::size;
+		}
 	};
 
 	template<class... DESCs>
 	class Vertex {
 		using ST = Vertex_SemanticType;
 		using FT = Render_FormatType;
-		using UT = Vertex_Util;
+		using UT = VertexUtil;
 
+	public:
 		using SlotList = decltype (UT::makeSlots<DESCs...>());
 		UT::VtxData<SlotList> m_data;
 
@@ -241,7 +263,8 @@ namespace sge {
 			return slotData<SMT_TYPE, SMT_IDX>();
 		}
 	public:
-		static constexpr VertexType kType() { return VertexType::make(meta::cocat(DESCs{}...)); } //work around? w/o cocat
+		static constexpr VertexType kType() { return VertexType::make(meta::cocat(DESCs{}...)); }
+		static VertexLayout* layout() { return nullptr; }
 
 		template<size_t SMT_IDX> constexpr decltype(auto) position	() { return getSlotData<ST::Position,	SMT_IDX>(); }
 		template<size_t SMT_IDX> constexpr decltype(auto) color		() { return getSlotData<ST::Color,		SMT_IDX>(); }
@@ -269,5 +292,15 @@ namespace sge {
 		using PosTex	= Vertex<DL::pos_f32x3_c1, DL::tex_f32x2_c1>;
 		using PosCol	= Vertex<DL::col_c32x4_c1, DL::pos_f32x3_c1>;
 		using PosTexCol = Vertex<DL::pos_f32x3_c1, DL::tex_f32x2_c1, DL::col_c32x4_c1>;
+	};
+
+	class VertexLayoutManager {
+	public:
+		VertexLayoutManager();
+
+
+	private:
+		static VertexLayoutManager* s_current;
+		Map<VertexType, VertexLayout> m_table;
 	};
 }
