@@ -1,20 +1,23 @@
 #pragma once
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
 #include "../detect_platform/sge_detect_platform.h"
 
 #if SGE_OS_WINDOWS
-#define NOMINMAX 1
-
-#include <WinSock2.h> // WinSock2.h must include before windows.h to avoid winsock1 define
-#include <ws2tcpip.h> // struct sockaddr_in6
-#pragma comment(lib, "Ws2_32.lib")
-
-#include <Windows.h>
+	#define NOMINMAX 1
+	#include <WinSock2.h> // WinSock2.h must include before windows.h to avoid winsock1 define
+	#include <ws2tcpip.h> // struct sockaddr_in6
+	#pragma comment(lib, "Ws2_32.lib")
+	#include <Windows.h>
+	#include <intsafe.h>
 #else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h> // struct sockaddr_in
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netdb.h>
+	#include <netinet/in.h> // struct sockaddr_in
 #endif
 
 #include <cassert>
@@ -22,6 +25,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstdint>
+#include <atomic>
 
 #include <EASTL/vector.h>
 #include <EASTL/fixed_vector.h>
@@ -30,8 +34,11 @@
 #include <EASTL/string_view.h>
 #include <EASTL/span.h>
 
+#include <EASTL/optional.h>
+
 #include <EASTL/map.h>
 #include <EASTL/hash_map.h>
+#include <EASTL/vector_map.h>
 #include <EASTL/string_map.h>
 
 #include <EASTL/unique_ptr.h>
@@ -96,49 +103,91 @@ namespace sge
 	template<class T, size_t N> constexpr
 	size_t array_size(const T(&)[N]) { return N; }
 
-	template<class T> struct remove_member_pointer;
-	template<class T, class C> struct remove_member_pointer<T C::*> { using type = T; };
-	template<class T> using remove_member_pointer_t = typename remove_member_pointer<T>::type;
-
-
 	template<class T> using UPtr = eastl::unique_ptr<T>;
 	template<class T> using SPtr = eastl::shared_ptr<T>;
 	template<class T> using WPtr = eastl::weak_ptr<T>;
 
 	template<class T> using Span = eastl::span<T>;
-	template<class T, size_t N, bool bEnableOverflow = true> using Vector_ = eastl::fixed_vector<T, N, bEnableOverflow>;
+	using ByteSpan = Span<const u8>;
 
+	template<class DST, class SRC> inline
+		Span<DST> spanCast(Span<SRC> src) {
+		size_t sizeInBytes = src.size() * sizeof(SRC);
+		return Span<DST>(reinterpret_cast<DST*>(src.data()), sizeInBytes / sizeof(DST));
+	}
+
+	template<class T, size_t N, bool bEnableOverflow = true> using Vector_ = eastl::fixed_vector<T, N, bEnableOverflow>;
 	template<class T> using Vector = eastl::vector<T>;
+
+	template<class KEY, class VALUE> using Map = eastl::map<KEY, VALUE>;
+	template<class KEY, class VALUE> using VectorMap = eastl::vector_map<KEY, VALUE>;
+
+	template<class T> using Opt = eastl::optional<T>;
 
 	template<class T> using StrViewT = eastl::basic_string_view<T>;
 	using StrViewA = StrViewT<char>;
 	using StrViewW = StrViewT<wchar_t>;
-	
+
 	template<class T, size_t N, bool bEnableOverflow = true>
-	class StringT : public eastl::fixed_string<T, N, bEnableOverflow> {
-		using Base = eastl::fixed_string<T, N, bEnableOverflow>;
-	public:
-		StringT() = default;
-		StringT(StrViewT<T> view) : Base(view.data(), view.size()) {}
-		StringT(StringT&&	str)  : Base(std::move(str)) {}
-	
-		template<class R> void operator=(R&& r) { Base::operator=(SGE_FORWARD(r)); }
+	struct StringT_Base {
+		using type = typename eastl::fixed_string<T, N, bEnableOverflow>;
 	};
 
-	using StringA = eastl::basic_string<char>;
-	using StringW = eastl::basic_string<wchar_t>;
-	
+	template<class T>
+	struct StringT_Base<T, 0, true> {
+		using type = typename eastl::basic_string<T>;
+	};
+
+	template<class T, size_t N, bool bEnableOverflow = true> // using FixedStringT = eastl::fixed_string<T, N, bEnableOverflow>;
+	class StringT : public StringT_Base<T, N, bEnableOverflow>::type {
+		using Base = typename StringT_Base<T, N, bEnableOverflow>::type;
+	public:
+		StringT() = default;
+		StringT(const T* begin, const T* end) : Base(begin, end) {}
+		StringT(StrViewT<T> view) : Base(view.data(), view.size()) {}
+		StringT(StringT&& str) : Base(std::move(str)) {}
+
+		template<class R> void operator=(R&& r) { Base::operator=(SGE_FORWARD(r)); }
+
+		void operator+=(StrViewT<T> v) { Base::append(v.begin(), v.end()); }
+		template<class R> void operator+=(const R& r) { Base::operator+=(r); }
+
+		StrViewT<T>	view() const { return StrViewT<T>(data(), size()); }
+	};
+
 	template<size_t N, bool bEnableOverflow = true> using StringA_ = StringT<char, N, bEnableOverflow>;
 	template<size_t N, bool bEnableOverflow = true> using StringW_ = StringT<wchar_t, N, bEnableOverflow>;
-	
+
 	using TempStringA = StringA_<220>;
 	using TempStringW = StringW_<220>;
-	
+
+	using StringA = StringA_<0>;
+	using StringW = StringW_<0>;
+
 	using StrView	= StrViewA;
 	using String	= StringA;
-	
+
+	inline StrView StrView_make(ByteSpan s) {
+		return StrView(reinterpret_cast<const char*>(s.data()), s.size());
+	}
+
+	inline ByteSpan ByteSpan_make(StrView v) {
+		return ByteSpan(reinterpret_cast<const u8*>(v.data()), v.size());
+	}
+
 	template<size_t N> using String_ = StringA_<N>;
 	using TempString = TempStringA;
+
+	template<size_t N> struct CharBySize;
+	template<> struct CharBySize<1> { using Type = char;	 };
+	template<> struct CharBySize<2> { using Type = char16_t; };
+	template<> struct CharBySize<4> { using Type = char32_t; };
+
+	struct WCharUtil {
+		using Char = typename CharBySize<sizeof(wchar_t)>::Type;
+		Char    toChar (wchar_t c) { return static_cast<Char>(c);	 }
+		wchar_t toWChar(Char    c) { return static_cast<wchar_t>(c); }
+	};
 
 	class SrcLoc
 	{

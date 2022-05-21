@@ -10,6 +10,11 @@
 #include "sge_core/math/Vec.h"
 #include "sge_core/math/Tuple.h"
 
+#include "sge_core/file/MemMapFile.h"
+#include "sge_core/file/Directory.h"
+
+
+
 #include "sge_core/meta/meta_common.h"
 #include "sge_core/meta/vlist.h"
 #include "sge_core/meta/tlist.h"
