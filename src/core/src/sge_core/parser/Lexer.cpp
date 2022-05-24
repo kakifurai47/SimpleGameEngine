@@ -3,7 +3,7 @@
 
 namespace sge {
 
-	const char* Lexer::_tokenGetTypeChar(Type type) {
+	const char* Lexer::_type2char(Type type) {
 		switch (type) {
 		case Type::Identifier:		return "Identifier";
 		case Type::Separator:		return "Separator";
@@ -30,6 +30,10 @@ namespace sge {
 		return false;
 	}
 
+	void Lexer::_resetToken(StrView src) {
+		m_token.value = { &src[m_offset], 0 };
+	}
+
 	void Lexer::_advance(StrView src, size_t len, bool consume) {
 		SGE_ASSERT(m_offset + len <= src.size());
 		m_offset += len;
@@ -42,8 +46,9 @@ namespace sge {
 	}
 
 	template<class FUNC>
-	bool sge::Lexer::findMatch(StrView src, Type type, bool consume, FUNC&& startPred, size_t searchLen) {
-		if (m_offset + searchLen > src.size()) {
+	bool sge::Lexer::_findMatch(StrView src, Type type, bool consume, FUNC&& startPred, size_t searchLen) {
+		if (m_offset + searchLen > src.size() ||
+					   m_offset == src.size()) {
 			return false;
 		}
 		if (startPred(src, m_offset)) {
@@ -55,11 +60,12 @@ namespace sge {
 	}
 
 	template<class FUNC>
-	bool sge::Lexer::scanUntil(StrView src, bool skip, FUNC&& endPred, size_t searchLen) {
+	bool sge::Lexer::_scanUntil(StrView src, bool skip, FUNC&& endPred, size_t searchLen) {
 		size_t count = 0;
 		for (;;) {
 			auto o = m_offset + count;
-			if (o + searchLen > src.size()) {
+			if (o + searchLen > src.size() ||
+						   o == src.size()) {
 				return false;
 			}
 			if (endPred(src, o)) {
@@ -88,7 +94,7 @@ namespace sge {
 		_resetToken(src);
 		{//White space
 			auto whitespace = [](StrView s, size_t i) { return _match(s[i], " \n\t");  };
-			if (findMatch(src, Type::None, true, whitespace, 1)) { scanUntil(src, false, std::not_fn(whitespace), 1); }
+			if (_findMatch(src, Type::None, true, whitespace, 1)) { _scanUntil(src, false, std::not_fn(whitespace), 1); }
 
 			if (m_offset >= src.size()) {
 				return false;
@@ -101,28 +107,28 @@ namespace sge {
 			auto slashAsterisk = [](StrView s, size_t i) { return s[i] == '/' && s[i + 1] == '*';  };
 			auto asteriskSlash = [](StrView s, size_t i) { return s[i] == '*' && s[i + 1] == '/';  };
 
-			if (findMatch(src, Type::Command, false, doubleSlash,	 2)) { return scanUntil(src, true, lineFeed,	  1); }
-			if (findMatch(src, Type::Command, false, slashAsterisk,  2)) { return scanUntil(src, true, asteriskSlash, 2); }
+			if (_findMatch(src, Type::Command, false, doubleSlash,	  2)) { return _scanUntil(src, true, lineFeed,	    1); }
+			if (_findMatch(src, Type::Command, false, slashAsterisk,  2)) { return _scanUntil(src, true, asteriskSlash, 2); }
 		}
 		{//Literal
 			auto doubleQuote = [](StrView s, size_t i) { return s[i] == '\"';	};
 			auto digit		 = [](StrView s, size_t i) { return _isDigit(s[i]); };
 			auto digicont	 = [](StrView s, size_t i) { return _isDigit(s[i]) || _match(s[i], ",."); };
-			if (findMatch(src, Type::Literal, false, doubleQuote, 1)) { return scanUntil(src, true,  doubleQuote, 1);			};
-			if (findMatch(src, Type::Literal, true,	 digit,		  1)) { return scanUntil(src, false, std::not_fn(digicont), 1); };
-		}		
+			if (_findMatch(src, Type::Literal, false, doubleQuote, 1)) { return _scanUntil(src, true,  doubleQuote, 1);			  };
+			if (_findMatch(src, Type::Literal, true,  digit,	   1)) { return _scanUntil(src, false, std::not_fn(digicont), 1); };
+		}
 		{//Identifiers
 			auto alphabet = [](StrView s, size_t i) { return _isAlphabetic(s[i]); };
-			auto idenSymb = [](StrView s, size_t i) { char c = s[i];   return _isAlphabetic(c) || _isDigit(c) || c == '_';	   };
-			if (findMatch(src, Type::Identifier, true, alphabet, 1)) { return scanUntil(src, false, std::not_fn(idenSymb), 1); };
+			auto idenSymb = [](StrView s, size_t i) { char c = s[i];    return _isAlphabetic(c) || _isDigit(c) || c == '_';	     };
+			if (_findMatch(src, Type::Identifier, true, alphabet, 1)) { return _scanUntil(src, false, std::not_fn(idenSymb), 1); };
 		}
 		{//Separator
 			auto separator = [](StrView s, size_t i) { return _match(s[i], "[](){};");  };
-			if (findMatch(src, Type::Separator, true, separator, 1)) { return true;		}
+			if (_findMatch(src, Type::Separator, true, separator, 1)) { return true;	}
 		}
 		{//Operator
 			auto op = [](StrView s, size_t i) { return _match(s[i], "+-*/%=:."); };
-			if(findMatch(src, Type::Operator, true, op, 1)) { return true;		}
+			if(_findMatch(src, Type::Operator, true, op, 1)) { return true;		 }
 		}
 
 		SGE_ASSERT(false);

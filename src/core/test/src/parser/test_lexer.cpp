@@ -56,8 +56,7 @@ namespace sge {
 					if (outType == Lexer::Type::Command) {
 						continue;
 					}
-					SGE_LOG("Token [{}],	 [{}]",
-						Lexer::_tokenGetTypeChar(outType), outString);
+					SGE_LOG("Token [{}]:	 [{}]", Lexer::_type2char(outType), outString);
 				}else {
 					break;
 				}

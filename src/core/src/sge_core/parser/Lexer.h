@@ -16,7 +16,7 @@ namespace sge {
 		bool nextToken(StrView src);
 		void retrieve (Type& outType, String &outVal);
 
-		static const char* _tokenGetTypeChar(Type type);
+		static const char* _type2char(Type type);
 
 	private:
 		struct Token {
@@ -24,10 +24,10 @@ namespace sge {
 			StrView value = {};
 		};
 
-		template<class FUNC> bool findMatch(StrView src, Type type, bool consume, FUNC&& startPred, size_t searchLen);
-		template<class FUNC> bool scanUntil(StrView src,			bool skip,	  FUNC&& endPred,   size_t searchLen);
+		template<class FUNC> bool _findMatch(StrView src, Type type, bool consume, FUNC&& startPred, size_t searchLen);
+		template<class FUNC> bool _scanUntil(StrView src,			 bool skip,	   FUNC&& endPred,   size_t searchLen);
 
-		void _resetToken(StrView src) { m_token.value = { &src[m_offset], 0 }; }
+		void _resetToken(StrView src);
 		void _advance	(StrView src, size_t len, bool consume);
 
 		Token  m_token = {};
