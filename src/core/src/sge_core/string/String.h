@@ -28,12 +28,12 @@ namespace sge {
 
 		static bool ignoreCaseCompare(char a, char b) { return tolower(a) == tolower(b); }
 
-		static bool tryParse(StrView view, i8& outValue);
+		static bool tryParse(StrView view, i8&  outValue);
 		static bool tryParse(StrView view, i16& outValue);
 		static bool tryParse(StrView view, i32& outValue);
 		static bool tryParse(StrView view, i64& outValue);
 
-		static bool tryParse(StrView view, u8& outValue);
+		static bool tryParse(StrView view, u8&  outValue);
 		static bool tryParse(StrView view, u16& outValue);
 		static bool tryParse(StrView view, u32& outValue);
 		static bool tryParse(StrView view, u64& outValue);

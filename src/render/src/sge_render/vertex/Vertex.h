@@ -53,7 +53,7 @@ namespace sge {
 				using				nextStack  = decltype(  _newStack<next>	  (descList)			);
 				static const size_t nextSmIdx  =		   _newSmtIdx<SMT_IDX>(nextStack{},	front{}	);
 
-				return meta::push_front(_makeSlots<nextCount, nextSmIdx>(nextStack{}), 
+				return meta::push_front(_makeSlots<nextCount, nextSmIdx>(nextStack{}),
 										_slot<SMT_IDX>(front{}));
 			}
 		}
@@ -97,7 +97,7 @@ namespace sge {
 				 size_t RET_IDX = 0,
 				 ST	SMT_T, size_t SMT_IDX, FT FMT_T,
 				 class... SLOTs>
-		static constexpr auto _getSlotIdx(meta::tlist<Slot<SMT_T, SMT_IDX, FMT_T>, SLOTs...>) noexcept {			
+		static constexpr auto _getSlotIdx(meta::tlist<Slot<SMT_T, SMT_IDX, FMT_T>, SLOTs...>) noexcept {
 			if constexpr( SMT_T	  == SEARCH_SMT_TYPE && 
 						  SMT_IDX == SEARCH_SMT_IDX) //TODO: constant get<>();
 				 { return RET_IDX;																			  }
@@ -200,7 +200,7 @@ namespace sge {
 
 		template<class... Ts> static constexpr
 		decltype(auto) _add(VertexType&& rhs, SmtType smt, FmtType fmt, size_t cnt, Ts&&... ts) {
-			return _add(SGE_FORWARD(_add(SGE_FORWARD(rhs), smt, fmt, cnt)), SGE_FORWARD(ts) ...);
+			return _add(SGE_FORWARD(_add(SGE_FORWARD(rhs), smt, fmt, cnt)), SGE_FORWARD(ts)...);
 		}
 	};
 
@@ -218,19 +218,22 @@ namespace sge {
 		VertexType				type;
 		size_t					stride;
 
-		static VertexLayout* get(const VertexType& type_) {
-			return nullptr;
-		}
-
-		void set(meta::empty_tlist, size_t off = 0) {}
-
-		template<class H, class... SLOTs> constexpr
-		void set(meta::tlist<H, SLOTs...>, size_t off = 0) {
-			off += _add(H{}, off);
-			set(meta::tlist<SLOTs...>{}, off);
+		template<class VERTEX> constexpr 
+		void set(VERTEX) {
+			type = VERTEX::kType();
+			stride = sizeof(VERTEX);
+			_set(VERTEX::SlotList{});
 		}
 
 	private:
+		constexpr void _set(meta::empty_tlist, size_t off = 0) {}
+
+		template<class H, class... SLOTs> constexpr
+		void _set(meta::tlist<H, SLOTs...>, size_t off = 0) {
+			off += _add(H{}, off);
+			_set(meta::tlist<SLOTs...>{}, off);
+		}
+
 		template<SmtType SMT_T, size_t SMT_IDX, FmtType FMT_T> constexpr
 		size_t _add(meta::vlist<SMT_T, SMT_IDX, FMT_T>, size_t off) {
 			auto& elm = elements.push_back();
@@ -247,31 +250,32 @@ namespace sge {
 		using ST = Vertex_SemanticType;
 		using FT = Render_FormatType;
 		using UT = VertexUtil;
-
 	public:
-		using SlotList = decltype (UT::makeSlots<DESCs...>());
-		UT::VtxData<SlotList> m_data;
-
-		template<ST SMT_TYPE, size_t SMT_IDX> static constexpr decltype(auto) idx	   ()  noexcept { return UT::getSlotIdx<SMT_TYPE, SMT_IDX>(SlotList{});	}
-		template<ST SMT_TYPE, size_t SMT_IDX> static constexpr decltype(auto) valid	   ()  noexcept { return !meta::is_null(idx<SMT_TYPE, SMT_IDX>());		}
-		template<ST SMT_TYPE, size_t SMT_IDX>		 constexpr decltype(auto) slotData ()  noexcept { return eastl::get<idx<SMT_TYPE, SMT_IDX>()>(m_data);	}
-		template<ST SMT_TYPE, size_t SMT_IDX> using							  slotData_t = decltype (		 eastl::get<idx<SMT_TYPE, SMT_IDX>()>(m_data)	);
-
-		template<ST SMT_TYPE, size_t SMT_IDX>
-		constexpr meta::enif_t<valid<SMT_TYPE, SMT_IDX>(), slotData_t<SMT_TYPE, SMT_IDX>>
-		getSlotData() {
-			return slotData<SMT_TYPE, SMT_IDX>();
-		}
-	public:
+		using  SlotList = decltype (UT::makeSlots<DESCs...>());
 		static constexpr VertexType kType() { return VertexType::make(meta::cocat(DESCs{}...)); }
+
 		static VertexLayout* layout() { return nullptr; }
 
-		template<size_t SMT_IDX> constexpr decltype(auto) position	() { return getSlotData<ST::Position,	SMT_IDX>(); }
-		template<size_t SMT_IDX> constexpr decltype(auto) color		() { return getSlotData<ST::Color,		SMT_IDX>(); }
-		template<size_t SMT_IDX> constexpr decltype(auto) texcoord	() { return getSlotData<ST::Texcoord,	SMT_IDX>(); }
-		template<size_t SMT_IDX> constexpr decltype(auto) normal	() { return getSlotData<ST::Normal,		SMT_IDX>(); }
-		template<size_t SMT_IDX> constexpr decltype(auto) tangent	() { return getSlotData<ST::Tangent,	SMT_IDX>(); }
-		template<size_t SMT_IDX> constexpr decltype(auto) binormal	() { return getSlotData<ST::Binormal,	SMT_IDX>(); }
+		template<size_t SMT_IDX> constexpr decltype(auto) position	() { return _getSlotData<ST::Position,	SMT_IDX>(); }
+		template<size_t SMT_IDX> constexpr decltype(auto) color		() { return _getSlotData<ST::Color,		SMT_IDX>(); }
+		template<size_t SMT_IDX> constexpr decltype(auto) texcoord	() { return _getSlotData<ST::Texcoord,	SMT_IDX>(); }
+		template<size_t SMT_IDX> constexpr decltype(auto) normal	() { return _getSlotData<ST::Normal,	SMT_IDX>(); }
+		template<size_t SMT_IDX> constexpr decltype(auto) tangent	() { return _getSlotData<ST::Tangent,	SMT_IDX>(); }
+		template<size_t SMT_IDX> constexpr decltype(auto) binormal	() { return _getSlotData<ST::Binormal,	SMT_IDX>(); }
+
+	private:
+		UT::VtxData<SlotList> m_data;
+
+		template<ST SMT_TYPE, size_t SMT_IDX> static constexpr decltype(auto) _idx	    ()  noexcept { return UT::getSlotIdx<SMT_TYPE, SMT_IDX>(SlotList{});	}
+		template<ST SMT_TYPE, size_t SMT_IDX> static constexpr decltype(auto) _valid	()  noexcept { return !meta::is_null(_idx<SMT_TYPE, SMT_IDX>());		}
+		template<ST SMT_TYPE, size_t SMT_IDX>		 constexpr decltype(auto) _slotData ()  noexcept { return eastl::get<_idx<SMT_TYPE, SMT_IDX>()>(m_data);	}
+		template<ST SMT_TYPE, size_t SMT_IDX> using							  _slotData_t = decltype (		  eastl::get<_idx<SMT_TYPE, SMT_IDX>()>(m_data)		);
+
+		template<ST SMT_TYPE, size_t SMT_IDX>
+		constexpr meta::enif_t<_valid<SMT_TYPE, SMT_IDX>(), _slotData_t<SMT_TYPE, SMT_IDX>>
+		_getSlotData() {
+			return _slotData<SMT_TYPE, SMT_IDX>();
+		}
 	};
 
 	struct VertexElmDescLib {

@@ -12,8 +12,8 @@
 namespace sge {
 
 	void run_temp_test() {		
-		RUN_TEST(test_vertex);
-		//RUN_TEST(test_parser);
+		//RUN_TEST(test_vertex);
+		RUN_TEST(test_parser);
 	}
 
 	int test_main() {

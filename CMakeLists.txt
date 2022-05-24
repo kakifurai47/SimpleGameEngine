@@ -13,6 +13,7 @@ find_package(fmt CONFIG REQUIRED)
 find_package(GLEW CONFIG REQUIRED)
 find_package(EABase CONFIG REQUIRED)
 find_package(EASTL CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 function(sge_source_group src_path src_files)
 	foreach(FILE ${src_files}) 
@@ -22,6 +23,18 @@ function(sge_source_group src_path src_files)
 		set(GROUP "${GROUP}")
 		source_group("${GROUP}" FILES "${FILE}")	
 	endforeach()
+endfunction()
+
+function(sge_set_target_warning_level target_name)
+	if(MSVC)
+	  target_compile_options(${target_name} PRIVATE /WX)     #warning treated as error
+	  target_compile_options(${target_name} PRIVATE /W4)     #warning level 4
+	  target_compile_options(${target_name} PRIVATE /wd4100) #warning C4100: unreferenced formal parameter in function
+	  target_compile_options(${target_name} PRIVATE /wd4201) #warning C4201: nonstandard extension used: nameless struct/union
+	  target_compile_options(${target_name} PRIVATE /wd4127) #warning C4127: conditional expression is constant
+	else()
+	  target_compile_options(${target_name} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+	endif()
 endfunction()
 
 function(sge_add_library target_name src_path)
@@ -51,6 +64,7 @@ add_subdirectory(src/core/test)
 
 #-- render --
 add_subdirectory(src/render)
+add_subdirectory(src/render/shader_compiler)
 
 #-- engine
 add_subdirectory(src/engine)

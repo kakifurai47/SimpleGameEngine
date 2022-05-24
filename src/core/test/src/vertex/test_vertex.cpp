@@ -75,15 +75,13 @@ public:
 
 
 	void create_layout() {
-		
 		VertexLayout layout;
-
-		layout.set(VertexLib::PosTexCol::SlotList{});
+		layout.set(VertexLib::PosTexCol{});
 		
-		for (const auto& elm : layout.elements) {
-			printElement(elm);
-			SGE_LOG("----------------");
-		}
+		//for (const auto& elm : layout.elements) {
+		//	printElement(elm);
+		//	SGE_LOG("----------------");
+		//}
 	}
 
 };

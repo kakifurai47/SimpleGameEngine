@@ -9,22 +9,12 @@ namespace sge {
 		using Base = NativeUIWindow;
 		 
 		virtual void MainWin::onCreate() override {
-			//Base::onCreate();
-			//{
-			//	RenderContext::CreateDesc desc;
-			//	desc.window = this;
-			//	m_ctx.reset(RenderContext::create(desc));
-			//}
-
+			Base::onCreate();
 			{
-
-
-
-
-
+				RenderContext::CreateDesc desc;
+				desc.window = this;
+				m_ctx.reset(RenderContext::create(desc));
 			}
-
-
 		}
 
 		virtual void MainWin::onPaint() override {
@@ -32,6 +22,12 @@ namespace sge {
 			auto* c0 = m_buffer.addCmd<RenderCmd_SetViewport>();
 			auto* c1 = m_buffer.addCmd<RenderCmd_Clear>();
 			c1->color = Color4f(0, 0, 0.5f, 1);
+
+
+
+
+
+
 
 			if (m_ctx) {
 				m_ctx->render(m_buffer);

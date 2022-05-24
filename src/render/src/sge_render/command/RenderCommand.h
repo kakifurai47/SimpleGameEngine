@@ -31,9 +31,7 @@ namespace sge
 	class RenderCmd_SetViewport : public RenderCmdBase {
 		RenderCmd_Construct(SetViewport)
 	public:
-
 		int test_setVP = 0;
-
 	};
 
 	class RenderCmd_Clear : public RenderCmdBase {
