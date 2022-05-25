@@ -3,16 +3,12 @@
 
 namespace sge {
 
-	
-
-	void NativeUIApp_Base::run()
-	{
+	void NativeUIApp_Base::run() {
 		onCreate();
 		onRun();
 	}
 
-	void NativeUIApp_Base::quit()
-	{
+	void NativeUIApp_Base::quit() {
 		onQuit();
 	}
 

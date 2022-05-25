@@ -1,8 +1,10 @@
 #pragma once
 
+#include <sge_core/app/AppBase.h>
+
 namespace sge {
 
-	class NativeUIApp_Base : public NonCopyable {
+	class NativeUIApp_Base : public AppBase {
 	public:		
 		void run  ();
 		void quit ();

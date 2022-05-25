@@ -4,7 +4,13 @@ Shader {
 		Vec4f	test2 = {0,0,0,1}
 		
 		[DisplayName="Color Test"]
-		Color4f	color = {1,1,1,1}
+		Color4f	color
+		
+		
+		
+		
+		
+		 = {1,1,1,1}
 	}
 	
 	Pass {

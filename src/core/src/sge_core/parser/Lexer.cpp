@@ -2,18 +2,6 @@
 #include <functional>
 
 namespace sge {
-
-	const char* Lexer::_type2char(Type type) {
-		switch (type) {
-		case Type::Identifier:		return "Identifier";
-		case Type::Separator:		return "Separator";
-		case Type::Operator:		return "Operator";
-		case Type::Literal:			return "Literal";
-		case Type::Command:			return "Command";
-		default:					return "None";
-		}
-	}
-
 	bool _match(char v, StrView match) {
 		for (auto i : match) { if (i == v) return true; }
 		return false;
@@ -31,14 +19,14 @@ namespace sge {
 	}
 
 	void Lexer::_resetToken(StrView src) {
-		m_token.value = { &src[m_offset], 0 };
+		m_tok.value = { &src[m_off], 0 };
 	}
 
 	void Lexer::_advance(StrView src, size_t len, bool consume) {
-		SGE_ASSERT(m_offset + len <= src.size());
-		m_offset += len;
+		SGE_ASSERT(m_off + len <= src.size());
+		m_off += len;
 		if (consume) {
-			m_token.value = { m_token.value.begin(), m_token.value.size() + len };
+			m_tok.value = { m_tok.value.begin(), m_tok.value.size() + len };
 		}
 		else {
 			_resetToken(src);
@@ -46,13 +34,13 @@ namespace sge {
 	}
 
 	template<class FUNC>
-	bool sge::Lexer::_findMatch(StrView src, Type type, bool consume, FUNC&& startPred, size_t searchLen) {
-		if (m_offset + searchLen > src.size() ||
-					   m_offset == src.size()) {
+	bool sge::Lexer::_findMatch(StrView src, TokenType type, bool consume, FUNC&& startPred, size_t searchLen) {
+		if (m_off + searchLen >= src.size() ||
+					    m_off == src.size()) {
 			return false;
 		}
-		if (startPred(src, m_offset)) {
-			m_token.type = type;
+		if (startPred(src, m_off)) {
+			m_tok.type = type;
 			_advance(src, searchLen, consume);
 			return true;
 		}
@@ -63,16 +51,16 @@ namespace sge {
 	bool sge::Lexer::_scanUntil(StrView src, bool skip, FUNC&& endPred, size_t searchLen) {
 		size_t count = 0;
 		for (;;) {
-			auto o = m_offset + count;
-			if (o + searchLen > src.size() ||
-						   o == src.size()) {
+			auto o = m_off + count;
+			if (o + searchLen >= src.size()) {
+					 m_off == src.size();
 				return false;
 			}
 			if (endPred(src, o)) {
 				_advance(src, count, true);
 				
 				if (skip) {
-					m_offset += searchLen;
+					m_off += searchLen;
 				}
 				return true;
 			}
@@ -82,58 +70,102 @@ namespace sge {
 		return false;
 	}
 
-	void Lexer::retrieve(Type& outType, String& outVal) {
-		outType = m_token.type;
-		outVal  = m_token.value;
+	void Lexer::retrieve(String& outVal) {
+		outVal = m_tok.value;
 	}
 
-	bool Lexer::nextToken(StrView src) {
-		if (m_offset >= src.size()) {
+	void Lexer::throwUnexpected() {
+		throw SGE_ERROR( "unexpected token: {} {}", m_tok.type, m_tok.value);
+	}
+
+	bool Lexer::tryNext(StrView src, TokenType type, StrView val) {
+		auto tok = m_tok;
+		auto off = m_off;
+		next(src);
+
+		if (tokCheck(type, val)) 
+			return true;
+				
+		m_tok = tok;
+		m_off = off;
+		return false;
+	}
+
+	void Lexer::ensureNext(StrView src, TokenType type, StrView val) {
+		next(src);
+		if (!tokCheck(type, val)) throwUnexpected();
+	}
+
+	void Lexer::retrieveNext(StrView& src, TokenType type, String& out) {
+		next(src);
+		if (m_tok.type != type) throwUnexpected();
+		retrieve(out);
+	}
+
+	bool Lexer::reset(StrView src) {
+		if (src == nullptr) {
+			throw SGE_ERROR("");
+		}
+		m_off = 0;
+		_resetToken(src);
+	}
+
+	bool Lexer::next(StrView src) {
+		if (m_off >= src.size()) {
 			return false;
 		}
 		_resetToken(src);
-		{//White space
-			auto whitespace = [](StrView s, size_t i) { return _match(s[i], " \n\t");  };
-			if (_findMatch(src, Type::None, true, whitespace, 1)) { _scanUntil(src, false, std::not_fn(whitespace), 1); }
 
-			if (m_offset >= src.size()) {
-				return false;
+		for (;;) {
+			{//White space
+				auto whitespace = [](StrView s, size_t i) { return _match(s[i], " \n\t\r");  };
+				if (_findMatch(src, TokenType::None, true, whitespace, 1)) { _scanUntil(src, false, std::not_fn(whitespace), 1); }
+
+				if (m_off >= src.size()) {
+					return false;
+				}
+				_resetToken(src);
 			}
-			_resetToken(src);
-		}
-		{//Command
-			auto doubleSlash   = [](StrView s, size_t i) { return s[i] == '/' && s[i + 1] == '/';  };
-			auto lineFeed	   = [](StrView s, size_t i) { return s[i] == '\n'; };
-			auto slashAsterisk = [](StrView s, size_t i) { return s[i] == '/' && s[i + 1] == '*';  };
-			auto asteriskSlash = [](StrView s, size_t i) { return s[i] == '*' && s[i + 1] == '/';  };
 
-			if (_findMatch(src, Type::Command, false, doubleSlash,	  2)) { return _scanUntil(src, true, lineFeed,	    1); }
-			if (_findMatch(src, Type::Command, false, slashAsterisk,  2)) { return _scanUntil(src, true, asteriskSlash, 2); }
+			auto parseCmd = false;
+			{//Command
+				auto doubleSlash   = [](StrView s, size_t i) { return s[i] == '/' && s[i + 1] == '/';  };
+				auto lineFeed	   = [](StrView s, size_t i) { return s[i] == '\n'; };
+				auto slashAsterisk = [](StrView s, size_t i) { return s[i] == '/' && s[i + 1] == '*';  };
+				auto asteriskSlash = [](StrView s, size_t i) { return s[i] == '*' && s[i + 1] == '/';  };
+
+				if (_findMatch(src, TokenType::Cmd, false, doubleSlash,	   2)) { _scanUntil(src, true, lineFeed,	  1); parseCmd = true; }
+				if (_findMatch(src, TokenType::Cmd, false, slashAsterisk,  2)) { _scanUntil(src, true, asteriskSlash, 2); parseCmd = true; }
+			}
+			if (!parseCmd) {
+				break;
+			}
 		}
 		{//Literal
 			auto doubleQuote = [](StrView s, size_t i) { return s[i] == '\"';	};
 			auto digit		 = [](StrView s, size_t i) { return _isDigit(s[i]); };
-			auto digicont	 = [](StrView s, size_t i) { return _isDigit(s[i]) || _match(s[i], ",."); };
-			if (_findMatch(src, Type::Literal, false, doubleQuote, 1)) { return _scanUntil(src, true,  doubleQuote, 1);			  };
-			if (_findMatch(src, Type::Literal, true,  digit,	   1)) { return _scanUntil(src, false, std::not_fn(digicont), 1); };
+			auto digicont	 = [](StrView s, size_t i) { return _isDigit(s[i]) || _match(s[i], "."); };
+
+			if (_findMatch(src, TokenType::Lit, false, doubleQuote, 1)) { return _scanUntil(src, true,  doubleQuote, 1);		   };
+			if (_findMatch(src, TokenType::Lit, true,  digit,	    1)) { return _scanUntil(src, false, std::not_fn(digicont), 1); };
 		}
 		{//Identifiers
 			auto alphabet = [](StrView s, size_t i) { return _isAlphabetic(s[i]); };
-			auto idenSymb = [](StrView s, size_t i) { char c = s[i];    return _isAlphabetic(c) || _isDigit(c) || c == '_';	     };
-			if (_findMatch(src, Type::Identifier, true, alphabet, 1)) { return _scanUntil(src, false, std::not_fn(idenSymb), 1); };
+			auto idenSymb = [](StrView s, size_t i) { char c = s[i];  return _isAlphabetic(c) || _isDigit(c) || c == '_';	   };
+			if (_findMatch(src, TokenType::Idr, true, alphabet, 1)) { return _scanUntil(src, false, std::not_fn(idenSymb), 1); };
 		}
 		{//Separator
-			auto separator = [](StrView s, size_t i) { return _match(s[i], "[](){};");  };
-			if (_findMatch(src, Type::Separator, true, separator, 1)) { return true;	}
+			auto separator = [](StrView s, size_t i) { return _match(s[i], "[](){};,");	};
+			if (_findMatch(src, TokenType::Sep, true, separator, 1)) { return true;		}
 		}
 		{//Operator
 			auto op = [](StrView s, size_t i) { return _match(s[i], "+-*/%=:."); };
-			if(_findMatch(src, Type::Operator, true, op, 1)) { return true;		 }
+			if(_findMatch(src, TokenType::Opr, true, op, 1)) { return true;		 }
 		}
 
 		SGE_ASSERT(false);
-		//m_offset++;
 		//SGE_LOG("Lexer Warning: Leftover : {}", static_cast<u64>(src[m_offset]));
+		//m_offset++;
 		return true;
 	}
 }

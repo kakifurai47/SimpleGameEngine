@@ -1,6 +1,6 @@
 #include <sge_core/base/UnitTest.h>
 #include <sge_core/parser/Lexer.h>
-#include <sge_render/shader/ShaderForm.h>
+#include <sge_render/shader/ShaderInfo.h>
 
 #include <fstream>
 #include <sstream>
@@ -33,34 +33,34 @@ namespace sge {
 		void test_lexer() {
 
 			 
-			String filename(__FILE__);
-			filename.append("_sample.txt");
-
-			std::ifstream inFile(filename.c_str());
-			std::stringstream strStream;
-			strStream << inFile.rdbuf(); //read the file
-			
-			const StringA src = strStream.str().c_str();
-
-			Lexer lex;
-			ShaderForm form;
-
-			Lexer::Type outType{};
-			String outString;
-
-			for (;;) {
-				bool get = lex.nextToken(src);				
-				if (get) {
-					lex.retrieve(outType, outString);
-
-					if (outType == Lexer::Type::Command) {
-						continue;
-					}
-					SGE_LOG("Token [{}]:	 [{}]", Lexer::_type2char(outType), outString);
-				}else {
-					break;
-				}
-			}
+			//String filename(__FILE__);
+			//filename.append("_sample.txt");
+			//
+			//std::ifstream inFile(filename.c_str());
+			//std::stringstream strStream;
+			//strStream << inFile.rdbuf(); //read the file
+			//
+			//const StringA src = strStream.str().c_str();
+			//
+			//Lexer lex;
+			//ShaderForm form;
+			//
+			//Lexer::Type outType{};
+			//String outString;
+			//
+			//for (;;) {
+			//	bool get = lex.nextToken(src);				
+			//	if (get) {
+			//		lex.retrieve(outType, outString);
+			//
+			//		if (outType == Lexer::Type::Command) {
+			//			continue;
+			//		}
+			//		SGE_LOG("Token [{}]:	 [{}]", Lexer::_type2char(outType), outString);
+			//	}else {
+			//		break;
+			//	}
+			//}
 		}
 	};
 }

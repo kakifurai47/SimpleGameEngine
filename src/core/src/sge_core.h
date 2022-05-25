@@ -13,7 +13,9 @@
 #include "sge_core/file/MemMapFile.h"
 #include "sge_core/file/Directory.h"
 
+#include "sge_core/file/FilePath.h"
 
+#include "sge_core/app/ConsoleApp.h"
 
 #include "sge_core/meta/meta_common.h"
 #include "sge_core/meta/vlist.h"
