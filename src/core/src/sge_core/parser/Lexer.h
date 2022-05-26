@@ -6,11 +6,12 @@ namespace sge {
 	class Lexer : public NonCopyable {
 	public:
 		enum class TokenType : u8 {
-			None, Idr, Sep, Opr, Lit, Cmd,
+			None, Wsp, Idr, Sep, Opr, Lit, Cmd,
 		};
 
 		constexpr const char* Lexer::_type2char(TokenType type) {
 			switch (type) {
+			case TokenType::Wsp:	return "WhiteSpace";
 			case TokenType::Idr:	return "Identifier";
 			case TokenType::Sep:	return "Separator";
 			case TokenType::Opr:	return "Operator";
@@ -26,8 +27,8 @@ namespace sge {
 		bool tryNext   (StrView src, TokenType type, StrView val = nullptr);
 		void ensureNext(StrView src, TokenType type, StrView val = nullptr);
 
-		void retrieveNext(StrView& src, TokenType type, String& out);
-		void retrieve	 (String& out);
+		void rtrvNext(StrView& src, TokenType type, String& out);
+		void retrieve(String& out);
 
 		void throwUnexpected();
 

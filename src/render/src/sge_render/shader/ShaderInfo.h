@@ -2,9 +2,13 @@
 namespace sge {
 	struct ShaderInfo : public NonCopyable {
 
+		struct Attribute {
+			String tag;
+			String defval;
+		};
+
 		struct Property {
-			String attTag;
-			String attDefval;
+			Attribute att;
 
 			String dataType;
 			String name;

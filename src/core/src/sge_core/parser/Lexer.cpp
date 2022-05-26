@@ -62,6 +62,7 @@ namespace sge {
 				if (skip) {
 					m_off += searchLen;
 				}
+
 				return true;
 			}
 			count++;
@@ -75,7 +76,7 @@ namespace sge {
 	}
 
 	void Lexer::throwUnexpected() {
-		throw SGE_ERROR( "unexpected token: {} {}", m_tok.type, m_tok.value);
+		throw SGE_ERROR( "unexpected token: {} {}", _type2char(m_tok.type), m_tok.value);
 	}
 
 	bool Lexer::tryNext(StrView src, TokenType type, StrView val) {
@@ -96,7 +97,7 @@ namespace sge {
 		if (!tokCheck(type, val)) throwUnexpected();
 	}
 
-	void Lexer::retrieveNext(StrView& src, TokenType type, String& out) {
+	void Lexer::rtrvNext(StrView& src, TokenType type, String& out) {
 		next(src);
 		if (m_tok.type != type) throwUnexpected();
 		retrieve(out);
@@ -104,7 +105,7 @@ namespace sge {
 
 	bool Lexer::reset(StrView src) {
 		if (src == nullptr) {
-			throw SGE_ERROR("");
+			throw SGE_ERROR("Lexer: reading nothing");
 		}
 		m_off = 0;
 		_resetToken(src);
@@ -119,7 +120,7 @@ namespace sge {
 		for (;;) {
 			{//White space
 				auto whitespace = [](StrView s, size_t i) { return _match(s[i], " \n\t\r");  };
-				if (_findMatch(src, TokenType::None, true, whitespace, 1)) { _scanUntil(src, false, std::not_fn(whitespace), 1); }
+				if (_findMatch(src, TokenType::Wsp, true, whitespace, 1)) { _scanUntil(src, false, std::not_fn(whitespace), 1); }
 
 				if (m_off >= src.size()) {
 					return false;
