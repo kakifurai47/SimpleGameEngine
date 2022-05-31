@@ -1,6 +1,5 @@
 #include "RenderCommand.h"
 
-namespace sge
-{
+namespace sge {
 
 }

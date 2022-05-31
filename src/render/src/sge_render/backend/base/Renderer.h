@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "Render_Common.h"
 
 namespace sge
 {
@@ -13,8 +13,7 @@ namespace sge
 #endif
 	};
 
-	struct Renderer_CreateDesc
-	{
+	struct Renderer_CreateDesc {
 		Renderer_CreateDesc();
 		Render_ApiType	 type;
 		bool multithread  : 1;

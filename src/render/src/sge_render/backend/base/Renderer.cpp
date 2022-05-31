@@ -1,6 +1,6 @@
 
 #include "Renderer.h"
-#include "../d3d11/Renderer_DX11.h"
+#include "../dx11/Renderer_DX11.h"
 
 namespace sge
 {

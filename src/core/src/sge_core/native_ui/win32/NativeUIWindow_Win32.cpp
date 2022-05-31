@@ -64,6 +64,10 @@ namespace sge {
 		PostQuitMessage(0);
 	}
 
+	void NativeUIWindow_Win32::onPaintNeeded() {
+		::InvalidateRect(m_hwmd, nullptr, false);
+	}
+
 	LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 		switch (msg)
@@ -77,10 +81,11 @@ namespace sge {
 			case WM_PAINT: {
 				PAINTSTRUCT ps;
 				HDC hdc = BeginPaint(hwnd, &ps);
-				if (auto* thisObj = s_getThis(hwnd)) {					
+				if (auto* thisObj = s_getThis(hwnd)) {
 					thisObj->onPaint();
 				}
-				EndPaint(hwnd, &ps);				
+				EndPaint(hwnd, &ps);
+				return 0;
 			}break;
 
 			case WM_SIZE: {

@@ -7,7 +7,9 @@ namespace sge {
 	class NativeUIWindow_Base : public NonCopyable
 	{
 	public:
-		void create();		
+		void create();
+		void paintNeeded() { onPaintNeeded(); }
+
 	protected:
 		virtual void onCreate()  {};
 		virtual void onClose()	 {};
@@ -15,6 +17,7 @@ namespace sge {
 
 		virtual void onPaint()	 {};
 		
+		virtual void onPaintNeeded() {};
 
 
 	};

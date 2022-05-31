@@ -1,7 +1,10 @@
 #pragma once
 
-namespace sge
-{
+#include "../vertex/Vertex.h"
+#include "../buffer/RenderGpuBuffer.h"
+//#include "../shader/Shader.h"
+
+namespace sge {
 	class RenderCmdBase : public NonCopyable
 	{
 	public:
@@ -9,6 +12,7 @@ namespace sge
 			None,
 			SetViewport,
 			Clear,
+			SwapBuffer,
 			Draw,
 		};
 
@@ -17,7 +21,7 @@ namespace sge
 		{
 		}
 
-		CmdType type;		
+		CmdType type;
 	};
 
 #define RenderCmd_Construct(T) \
@@ -40,14 +44,22 @@ namespace sge
 		Color4f color;
 	};
 
+	class RenderCmd_SwapBuffer : public RenderCmdBase {
+		RenderCmd_Construct(SwapBuffer)
+	public:
+	};
+
 	class RenderCmd_Draw : public RenderCmdBase {
 		RenderCmd_Construct(Draw)
 	public:
+		//const Shader* shader = nullptr;
 
 		int buffer = 0;
-		int shader = 0;
+		
 		int vertexCnt = 0;
 		int primitiveType = 0;
 		int layout = 0;
 	};
+
+//#undef RenderCmd_Construct;
 }

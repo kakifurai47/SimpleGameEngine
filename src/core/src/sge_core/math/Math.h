@@ -17,5 +17,24 @@ namespace sge
 			v |= v >> 16;
 			return ++v;
 		}
+
+		//Jenkins hash function
+		static u32 hash(StrView src) {
+			size_t i = 0;
+			u32 ret  = 0;			
+
+			for (auto i : src) {
+				ret += src[i];
+				ret += ret << 10;
+				ret ^= ret >> 6;
+			}
+			ret += ret << 3;
+			ret ^= ret >> 11;
+			ret += ret << 15;
+			return ret;
+		}
+
+
+
 	};
 }

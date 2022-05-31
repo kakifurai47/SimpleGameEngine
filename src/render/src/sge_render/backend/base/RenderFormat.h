@@ -29,15 +29,15 @@ namespace sge
 				static_cast<u8>(num);
 	}
 
+//-------------
+
+	enum class Render_FormatType : u8 { //TO DO : delete b in front of comp size
 #define E(T, S, N) T##S##N \
 		 = _set_fmt_type_v(Render_FmtComp_DataType::T,		\
 						   Render_FmtComp_SizeType::##b##S, \
 						   Render_FmtComp_NumType::N)		\
-//-------------
 
-	enum class Render_FormatType : u8 { //TO DO : delete b in front of comp size
 		None = 0,
-
 		E(Float, 08, x1), E(Float, 08, x2), E(Float, 08, x3), E(Float, 08, x4),
 		E(Float, 16, x1), E(Float, 16, x2), E(Float, 16, x3), E(Float, 16, x4),
 		E(Float, 32, x1), E(Float, 32, x2), E(Float, 32, x3), E(Float, 32, x4),
@@ -62,8 +62,9 @@ namespace sge
 		E(SNorm, 16, x1), E(SNorm, 16, x2), E(SNorm, 16, x3), E(SNorm, 16, x4),
 		E(SNorm, 32, x1), E(SNorm, 32, x2), E(SNorm, 32, x3), E(SNorm, 32, x4),
 		E(SNorm, 64, x1), E(SNorm, 64, x2), E(SNorm, 64, x3), E(SNorm, 64, x4),
+
+	#undef E
 	};
-#undef E
 
 	
 	template<Render_FormatType FMT_TYPE> struct Render_DataType;

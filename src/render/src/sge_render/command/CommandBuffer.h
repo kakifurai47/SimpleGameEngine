@@ -14,14 +14,14 @@ namespace sge
 
 		Span<RenderCmdBase*> cmds() { return m_cmds; }
 
-		template<typename T>
-		T* addCmd() {
-			auto s = sizeof(T);
+		template<typename CMD>
+		CMD* addCmd() {
+			auto s = sizeof(CMD);
 			auto a = std::min<size_t>(32, Math::nextPow2(s));
-			auto* c = new(m_alloc.allocate(s, a))T();
-			m_cmds.push_back(c);
+			auto* cmd = new(m_alloc.allocate(s, a))CMD();
+			m_cmds.push_back(cmd);
 
-			return c;
+			return cmd;
 		}
 
 		void clear();

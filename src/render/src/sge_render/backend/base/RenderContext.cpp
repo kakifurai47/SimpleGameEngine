@@ -17,11 +17,11 @@ namespace sge {
 		for (auto* c : cmds) {
 			if (!c) continue;
 
-			switch (c->type)
-			{
+			switch (c->type) {
 			case CmdType::SetViewport:	onSetViewport(static_cast<RenderCmd_SetViewport*>(c)); break;
 			case CmdType::Clear:		onClearBuffer(static_cast<RenderCmd_Clear*>(c));	   break;
 			case CmdType::Draw:			onDraw		 (static_cast<RenderCmd_Draw*>(c));		   break;
+		    case CmdType::SwapBuffer:	onSwapBuffer ();									   break;
 			case CmdType::None:																   break;
 			default:																		   break;
 			}
