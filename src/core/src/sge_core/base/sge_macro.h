@@ -72,3 +72,37 @@
 	SGE_ENUM_ARITHMETIC_OPERATOR(T) \
 	SGE_ENUM_ARITHMETIC_OPERATOR_INT(T) \
 //-------
+
+
+//#define SGE_ENUM_CLASS_DELEGATE(ELE, NAME)		 ELE,
+//#define SGE_ENUM_TRY_PARSE_DELEGATE(ELE, NAME)	 if(str == #ELE) { out = NAME::ELE; return true; }
+//#define SGE_ENUM_STR_DELEGATE(ELE, NAME)		 case NAME::ELE: return #ELE;
+//
+//#define SGE_ENUM_CLASS(NAME, LIST) \
+//	enum class NAME { \
+//		LIST(SGE_ENUM_CLASS_DELEGATE, NAME) \
+//	}; \
+////-------
+//
+//#define SGE_ENUM_TRY_PARSE(NAME, LIST) \
+//	bool enumTryParse(NAME& out, StrView str) { \
+//		LIST(SGE_ENUM_TRY_PARSE_DELEGATE, NAME) \
+//		return false; \
+//	} \
+////-------
+//
+//#define SGE_ENUM_STR(NAME, LIST) \
+//	StrView enumStr(NAME v) { \
+//		switch (v) { \
+//			LIST(SGE_ENUM_STR_DELEGATE, NAME) \
+//		default: return ""; \
+//		} \
+//	} \
+////-------
+//
+//#define SGE_ENUM_STR_CLASS(NAME, LIST) \
+//		SGE_ENUM_CLASS	  (NAME, LIST) \
+//		SGE_ENUM_TRY_PARSE(NAME, LIST) \
+//		SGE_ENUM_STR	  (NAME, LIST) \
+////-------
+
