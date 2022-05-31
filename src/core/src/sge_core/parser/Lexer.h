@@ -20,6 +20,10 @@ namespace sge {
 			default:				return "None";
 			}
 		}
+		size_t line() const	{ return m_line; }
+		StrView getRemainSource() const;
+
+
 
 		bool reset(StrView src);
 
@@ -27,8 +31,8 @@ namespace sge {
 		bool tryNext   (StrView src, TokenType type, StrView val = nullptr);
 		void ensureNext(StrView src, TokenType type, StrView val = nullptr);
 
-		void rtrvNext(StrView& src, TokenType type, String& out);
 		void retrieve(String& out);
+		void rtrvNext(StrView& src, TokenType type, String& out);
 
 		void throwUnexpected();
 
@@ -52,8 +56,9 @@ namespace sge {
 		void _resetToken(StrView src);
 		void _advance	(StrView src, size_t len, bool consume);
 
-		size_t  m_off = 0;
+		StrView m_src;
+		size_t  m_off  = 0;
+		size_t  m_line = 0;
 	};
-
-
 }
+

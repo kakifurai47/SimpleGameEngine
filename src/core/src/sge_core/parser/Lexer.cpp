@@ -22,8 +22,25 @@ namespace sge {
 		m_tok.value = { &src[m_off], 0 };
 	}
 
+	
+	void Lexer::retrieve(String& out) {
+		out = m_tok.value;
+	}
+
+	void Lexer::rtrvNext(StrView& src, TokenType type, String& out) {
+		next(src);
+		if (m_tok.type != type) throwUnexpected();
+		retrieve(out);
+	}
+
 	void Lexer::_advance(StrView src, size_t len, bool consume) {
 		SGE_ASSERT(m_off + len <= src.size());
+
+		for (size_t i = 0; i < len; i++) { //<== temp
+			if (src[m_off + i] != '\n') continue;
+			m_line++;
+		}
+
 		m_off += len;
 		if (consume) {
 			m_tok.value = { m_tok.value.begin(), m_tok.value.size() + len };
@@ -53,7 +70,7 @@ namespace sge {
 		for (;;) {
 			auto o = m_off + count;
 			if (o + searchLen >= src.size()) {
-					 m_off == src.size();
+					    m_off == src.size();
 				return false;
 			}
 			if (endPred(src, o)) {
@@ -71,9 +88,7 @@ namespace sge {
 		return false;
 	}
 
-	void Lexer::retrieve(String& outVal) {
-		outVal = m_tok.value;
-	}
+
 
 	void Lexer::throwUnexpected() {
 		throw SGE_ERROR( "unexpected token: {} {}", _type2char(m_tok.type), m_tok.value);
@@ -97,10 +112,9 @@ namespace sge {
 		if (!tokCheck(type, val)) throwUnexpected();
 	}
 
-	void Lexer::rtrvNext(StrView& src, TokenType type, String& out) {
-		next(src);
-		if (m_tok.type != type) throwUnexpected();
-		retrieve(out);
+	StrView Lexer::getRemainSource() const {
+		if (!m_src[m_off]) return {};
+		return { &m_src[m_off], m_src.size() - m_off };
 	}
 
 	bool Lexer::reset(StrView src) {
@@ -108,6 +122,8 @@ namespace sge {
 			throw SGE_ERROR("Lexer: reading nothing");
 		}
 		m_off = 0;
+		m_line = 0;
+		m_src = src;
 		_resetToken(src);
 	}
 
