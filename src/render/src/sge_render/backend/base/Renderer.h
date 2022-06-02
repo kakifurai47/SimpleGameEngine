@@ -7,35 +7,37 @@ namespace sge
 	class  RenderContext;
 	struct RenderContext_CreateDesc;
 
+	class Material;
+
 	enum class Render_ApiType {
 #if SGE_RENDER_COMP_DX11
 		DX11,
 #endif
 	};
 
-	struct Renderer_CreateDesc {
+	struct Renderer_CreateDesc  {
 		Renderer_CreateDesc();
-		Render_ApiType	 type;
-		bool multithread  : 1;
+		Render_ApiType	 apiType;
+		bool multithread	 : 1;
 	};
 
-
-	class Renderer : public NonCopyable
-	{
+	class Renderer : public NonCopyable {
 	public:
 		using CreateDesc = Renderer_CreateDesc;
 
-		Renderer() = default;
-		virtual ~Renderer() = default;
-
 		static Renderer* current() { return s_current; }
 
-		static Renderer* create(CreateDesc& desc);
+		static Renderer* create	(CreateDesc& desc);
 
-		void destroy();
+				 Renderer();
+		virtual ~Renderer();
 
-		virtual RenderContext* onCreateRenderContext(RenderContext_CreateDesc& desc) = 0;
-		virtual void onDestory() {};
+		RenderContext* createContext (RenderContext_CreateDesc& desc) { return onCreateContext (desc); }
+		Material*	   createMaterial()								  { return onCreateMaterial();	   }
+
+	protected:
+		virtual RenderContext* onCreateContext (RenderContext_CreateDesc& desc) = 0;
+		virtual Material*	   onCreateMaterial() = 0;
 
 	protected:
 		static Renderer* s_current;

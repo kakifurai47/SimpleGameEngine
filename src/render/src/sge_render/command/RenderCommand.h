@@ -2,64 +2,72 @@
 
 #include "../vertex/Vertex.h"
 #include "../buffer/RenderGpuBuffer.h"
-//#include "../shader/Shader.h"
+#include "../shader/Material.h"
 
 namespace sge {
-	class RenderCmdBase : public NonCopyable
-	{
-	public:
-		enum class CmdType : u16 {
-			None,
-			SetViewport,
-			Clear,
-			SwapBuffer,
-			Draw,
-		};
 
-		RenderCmdBase(CmdType type_)
-			: type(type_)
+	enum class RenderCommandType : u8 {
+		None,
+		ClearFrameBuffers,
+		SwapBuffers,
+		DrawCall,
+	};
+
+	class RenderCmd : public NonCopyable {
+	public:
+		using Type = RenderCommandType;
+
+		RenderCmd(Type type) : m_type(type) {}
+		virtual ~RenderCmd() {}
+
+		Type type() const { return m_type; }
+
+#if _DEBUG
+		SrcLoc debugLoc;
+#endif
+	private:
+		Type m_type = Type::None;
+	};
+
+	class RenderCmd_ClearFrameBuffers : public RenderCmd {
+		using Base = RenderCmd;
+		using This = RenderCmd_ClearFrameBuffers;
+	public:
+		RenderCmd_ClearFrameBuffers()
+			: Base(Type::ClearFrameBuffers)
 		{
 		}
 
-		CmdType type;
+		This& setColor(const Color4f& color_) { color = color_; return *this; }
+		This& dontClearColor() { color.reset(); return *this; }
+
+		Opt<Color4f> color = Color4f(1, 1, 1, 1);
+		Opt<float>	 depth = 0;
 	};
 
-#define RenderCmd_Construct(T) \
-	public: \
-		RenderCmd_##T() \
-			: RenderCmdBase(CmdType::T) \
-	{ \
-	} \
-	//------------
-
-	class RenderCmd_SetViewport : public RenderCmdBase {
-		RenderCmd_Construct(SetViewport)
+	class RenderCmd_DrawCall : public RenderCmd {
+		using Base = RenderCmd;
+		using This = RenderCmd_DrawCall;
 	public:
-		int test_setVP = 0;
-	};
+		RenderCmd_DrawCall()
+			:Base(Type::DrawCall)
+		{
+		}
 
-	class RenderCmd_Clear : public RenderCmdBase {
-		RenderCmd_Construct(Clear)
-	public:
-		Color4f color;
-	};
 
-	class RenderCmd_SwapBuffer : public RenderCmdBase {
-		RenderCmd_Construct(SwapBuffer)
-	public:
-	};
-
-	class RenderCmd_Draw : public RenderCmdBase {
-		RenderCmd_Construct(Draw)
-	public:
-		//const Shader* shader = nullptr;
-
-		int buffer = 0;
 		
-		int vertexCnt = 0;
-		int primitiveType = 0;
-		int layout = 0;
+		SPtr<Material> material;
+
+
 	};
 
-//#undef RenderCmd_Construct;
+	class RenderCmd_SwapBuffers : public RenderCmd {
+		using Base = RenderCmd;
+		using This = RenderCmd_SwapBuffers;
+	public:
+		RenderCmd_SwapBuffers()
+			: Base(Type::SwapBuffers)
+		{
+		}
+	};
 }

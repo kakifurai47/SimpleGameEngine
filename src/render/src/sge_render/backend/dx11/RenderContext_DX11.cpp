@@ -1,6 +1,7 @@
 
 #include "RenderContext_DX11.h"
 #include "Renderer_DX11.h"
+#include "Shader_DX11.h"
 
 namespace sge
 {
@@ -43,6 +44,18 @@ namespace sge
 		Util::throwIfError(hr);
 	}
 
+	void RenderContext_DX11::_createRenderTarget() {
+		auto* dev = m_renderer->d3dDevice();
+
+		HRESULT hr = {};
+		ComPtr<ID3D11Texture2D> backBuffer;
+		hr = m_dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.ptrForInit()));
+		Util::throwIfError(hr);
+
+		hr = dev->CreateRenderTargetView(backBuffer, nullptr, m_d3dRenderTargetView.ptrForInit());
+		Util::throwIfError(hr);
+	}
+
 	void RenderContext_DX11::onBeginRender() {
 		auto* ctx = m_renderer->d3dDeviceContext();
 		if (!m_d3dRenderTargetView) {
@@ -50,72 +63,58 @@ namespace sge
 		}
 		DX11_ID3DRenderTargetView* rt[] = { m_d3dRenderTargetView };
 		ctx->OMSetRenderTargets(1, rt, nullptr);
-	}
 
-	void RenderContext_DX11::_createRenderTarget() {
-		auto* dev = m_renderer->d3dDevice();
-
-		HRESULT hr = {};		
-		ComPtr<ID3D11Texture2D> backBuffer;
-		hr = m_dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS (backBuffer.ptrForInit()));
-		Util::throwIfError(hr);
-		
-		hr = dev->CreateRenderTargetView(backBuffer, nullptr, m_d3dRenderTargetView.ptrForInit());
-		Util::throwIfError(hr);
-	}
-
-
-	void RenderContext_DX11::onSetViewport(RenderCmd_SetViewport* cmd) {
-		auto* ctx = m_renderer->d3dDeviceContext();	
-		D3D11_VIEWPORT viewport {};
+		D3D11_VIEWPORT viewport{};
 		viewport.TopLeftX = 0;
 		viewport.TopLeftY = 0;
-		viewport.Width    = 800;
-		viewport.Height   = 600;
+		viewport.Width  = 800;
+		viewport.Height = 600;
 		ctx->RSSetViewports(1, &viewport);
 	}
 
-	void RenderContext_DX11::onClearBuffer(RenderCmd_Clear* cmd) {
+	void RenderContext_DX11::onEndRender()
+	{
+	}
+
+	void RenderContext_DX11::onCmd_ClearFrameBuffers(RenderCmd_ClearFrameBuffers& cmd) {
 		auto* ctx = m_renderer->d3dDeviceContext();
-		if (m_d3dRenderTargetView) {				
-			ctx->ClearRenderTargetView(m_d3dRenderTargetView, cmd->color.data);
+		if (m_d3dRenderTargetView && cmd.color.has_value()) {
+			ctx->ClearRenderTargetView(m_d3dRenderTargetView, cmd.color->data);
 		}
 	}
 
-	void RenderContext_DX11::onDraw(RenderCmd_Draw* cmd) {
+	void RenderContext_DX11::onCmd_SwapBuffers(RenderCmd_SwapBuffers& cmd) {
+		auto hr = m_dxgiSwapChain->Present(0, 0);
+		Util::throwIfError(hr);
+	}
+
+	void RenderContext_DX11::onCmd_DrawCall(RenderCmd_DrawCall& cmd) {
 		HRESULT hr;
-		const wchar_t* shaderFile = L"Assets/Shaders/test.hlsl";
+		//const wchar_t* shaderFile = L"Assets/Shaders/test.hlsl";
+		const wchar_t* shaderFile = L"LocalTemp/Imported/Assets/Shaders/test2.shader/code.hlsl";
 
 		auto* dev = m_renderer->d3dDevice();
 		auto* ctx = m_renderer->d3dDeviceContext();
-
+		
+		auto* shad = static_cast<Shader_DX11*>(cmd.material->shader());
+		if  (!shad) { SGE_ASSERT(false); return; }
+		
+		DX11_ID3DVertexShader* vs = shad->vtxPasses()[0];
+		DX11_ID3DPixelShader*  ps = shad->pxlPasses()[0];
+		
+		ctx->VSSetShader(vs, 0, 0);
+		ctx->PSSetShader(ps, 0, 0);
+		
 		if (!m_testVtxShader) {
 			ComPtr<ID3DBlob>	byteCode;
 			ComPtr<ID3DBlob>	errorMsg;
-
-			hr = D3DCompileFromFile(shaderFile, 0, 0, "vs_main", "vs_4_0", 0, 0, byteCode.ptrForInit(), errorMsg.ptrForInit());
+			
+			hr = D3DCompileFromFile(shaderFile, 0, 0, "vs_main", "vs_5_0", 0, 0, byteCode.ptrForInit(), errorMsg.ptrForInit());
 			Util::throwIfError(hr);
-		
+			
 			m_testVtxShaderByteCode.reset(byteCode.ptr());
-
-			hr = dev->CreateVertexShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, m_testVtxShader.ptrForInit());
-			Util::throwIfError(hr);
 		}
 
-		if (!m_testPxlShader) {
-			ComPtr<ID3DBlob>	byteCode;
-			ComPtr<ID3DBlob>	errorMsg;
-		
-			hr = D3DCompileFromFile(shaderFile, 0, 0, "ps_main", "ps_4_0", 0, 0, byteCode.ptrForInit(), errorMsg.ptrForInit());
-			Util::throwIfError(hr);
-		
-			hr = dev->CreatePixelShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), nullptr, m_testPxlShader.ptrForInit());
-			Util::throwIfError(hr);
-		}
-
-		ctx->VSSetShader(m_testVtxShader, 0, 0);
-		ctx->PSSetShader(m_testPxlShader, 0, 0);
-		
 		D3D11_INPUT_ELEMENT_DESC ied[] =
 		{
 			{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -145,14 +144,14 @@ namespace sge
 			
 			// create the vertex buffer
 			D3D11_BUFFER_DESC bd	{};
-
+		
 			bd.Usage = D3D11_USAGE_DYNAMIC;                // write access access by CPU and GPU
 			bd.ByteWidth = sizeof(VERTEX) * 3;             // size is the VERTEX struct * 3
 			bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
 			bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;    // allow CPU to write in buffer
 			
-
-
+		
+		
 			hr = dev->CreateBuffer(&bd, NULL, m_testVtxBuffer.ptrForInit());       // create the buffer
 			Util::throwIfError(hr);
 			
@@ -164,25 +163,28 @@ namespace sge
 			memcpy(ms.pData, OurVertices, sizeof(OurVertices));                 // copy the data
 			ctx->Unmap(m_testVtxBuffer, NULL);                                      // unmap the buffer			
 		}
-
-
+		
+		
 		DX11_ID3DBuffer* ppVertexBuffers[] = { m_testVtxBuffer.ptr() };
-
+		
 		// select which vertex buffer to display
 		UINT stride = sizeof(VERTEX);
 		UINT offset = 0;
 		ctx->IASetVertexBuffers(0, 1, ppVertexBuffers, &stride, &offset);
-
+		
 		// select which primtive type we are using
 		ctx->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+		
 		// draw the vertex buffer to the back buffer
 		ctx->Draw(3, 0);
 	}
 
-	void RenderContext_DX11::onSwapBuffer() {
-		auto hr = m_dxgiSwapChain->Present(0, 0);
-		Util::throwIfError(hr);
+	void RenderContext_DX11::onCommit(RenderCommandBuffer& cmdBuf) {
+		_dispatch(this, cmdBuf);
 	}
 
+
+
+	//void RenderContext_DX11::onDraw(RenderCmd_Draw* cmd) {
+	//}
 }

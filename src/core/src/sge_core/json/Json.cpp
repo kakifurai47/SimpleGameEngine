@@ -5,7 +5,7 @@
 namespace sge {
 
 	void JsonSerializer::save(StrView filename) {
-		File::writeFileIfChanged(filename, m_json.dump(4).c_str(), true);
+		File::writeFile(filename, m_json.dump(4).c_str(), true);
 	}
 
 	void JsonDeserializer::load(StrView filename) {

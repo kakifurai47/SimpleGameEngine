@@ -3,6 +3,7 @@
 
 #include "Renderer_DX11.h"
 #include "RenderContext_DX11.h"
+#include "Material_DX11.h"
 
 namespace sge
 {
@@ -61,12 +62,14 @@ namespace sge
 		}
 	}
 
-	RenderContext* Renderer_DX11::onCreateRenderContext(RenderContext_CreateDesc& desc) {
+	RenderContext* Renderer_DX11::onCreateContext(RenderContext_CreateDesc& desc) {
 		return new RenderContext_DX11(desc);		
 	}
 
-		
 
+	Material* Renderer_DX11::onCreateMaterial() {
+		return new Material_DX11();
+	}
 }
 #endif
 

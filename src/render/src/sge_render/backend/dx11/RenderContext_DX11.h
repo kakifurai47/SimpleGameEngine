@@ -11,6 +11,11 @@ namespace sge {
 		using Util = DX11Util;
 	public:
 		RenderContext_DX11(CreateDesc& desc);
+
+		void onCmd_ClearFrameBuffers(RenderCmd_ClearFrameBuffers& cmd);
+		void onCmd_SwapBuffers		(RenderCmd_SwapBuffers&		  cmd);
+		void onCmd_DrawCall			(RenderCmd_DrawCall&		  cmd);
+
 	protected:
 		Renderer_DX11* m_renderer = nullptr;
 
@@ -24,13 +29,10 @@ namespace sge {
 
 	protected:
 		void _createRenderTarget();
-
-		virtual void onSetViewport(RenderCmd_SetViewport* cmd) override;
-		virtual void onClearBuffer(RenderCmd_Clear*		  cmd) override;
-		virtual void onDraw		  (RenderCmd_Draw*		  cmd) override;
-		virtual void onSwapBuffer () override;
 		virtual void onBeginRender() override;
+		virtual void onEndRender  () override;
 
+		virtual void onCommit(RenderCommandBuffer& cmdBuf)override;
 	};
 
 
