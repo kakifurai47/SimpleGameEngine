@@ -79,6 +79,7 @@ namespace sge
 	using u16	= uint16_t;
 	using u32	= uint32_t;
 	using u64	= uint64_t;
+	using u128  = uint128_t;
 
 	using i8	= int8_t;
 	using i16	= int16_t;
@@ -104,7 +105,6 @@ namespace sge
 	size_t array_size(const T(&)[N]) { return N; }
 
 	template<class T> using UPtr = eastl::unique_ptr<T>;
-	template<class T> using SPtr = eastl::shared_ptr<T>;
 	template<class T> using WPtr = eastl::weak_ptr<T>;
 
 	template<class T> using Span = eastl::span<T>;
@@ -189,8 +189,7 @@ namespace sge
 		wchar_t toWChar(Char    c) { return static_cast<wchar_t>(c); }
 	};
 
-	class SrcLoc
-	{
+	class SrcLoc {
 	public:
 		SrcLoc() = default;
 		SrcLoc(const char* file_, int line_, const char* func_)
@@ -201,40 +200,7 @@ namespace sge
 		}
 		const char* file = "";
 		const char* func = "";
-		const int	line = 0;
-	};
-
-	template<class T>
-	class ComPtr : NonCopyable
-	{
-	public:
-		ComPtr() = default;
-		ComPtr(const ComPtr& r) { reset(r.m_p);   }
-		~ComPtr() noexcept      { reset(nullptr); }
-
-		T* operator->() noexcept		{ return m_p; }
-		operator T* ()  noexcept		{ return m_p; }
-
-				T* ptr() noexcept		{ return m_p; }
-		const	T* ptr() const noexcept { return m_p; }
-
-		void reset(T* p) {
-			if (p == m_p) return;
-			if (m_p) {
-				m_p->Release();
-				m_p  = nullptr;
-			}
-			m_p = p;
-			if (m_p) {
-				m_p->AddRef();
-			}
-		}
-
-		T** ptrForInit() noexcept { reset(nullptr); return &m_p; }
-		T*  detach() { T* o = m_p;  m_p = nullptr;  return o;	 }
-
-	private:
-		T* m_p = nullptr;		
+		int	line = 0;
 	};
 
 	class NonCopyable
@@ -244,9 +210,20 @@ namespace sge
 	private:
 		NonCopyable(NonCopyable&&) = delete;
 
-		NonCopyable(const NonCopyable&)	= delete;
-		void operator=(const NonCopyable&) = delete;		
+		NonCopyable	  (const NonCopyable&) = delete;
+		void operator=(const NonCopyable&) = delete;
 	};
+
+	class RefCountBase : public NonCopyable {
+	public:
+		std::atomic_int m_refCount = 0;
+	};
+
+	class Object : public RefCountBase {
+	public:
+		virtual ~Object() = default;
+	};
+
 
 	template<class T> inline void sge_delete(T* p) { delete p; }
 
