@@ -1,0 +1,10 @@
+{
+    "Passes": [
+        {
+            "Name": "",
+            "psFunc": "ps_main",
+            "vsFunc": "vs_main"
+        }
+    ],
+    "Properties": null
+}
