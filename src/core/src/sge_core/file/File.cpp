@@ -85,6 +85,18 @@ namespace sge {
 #pragma mark ================= Windows ====================
 #endif
 
+	u128 File::getId(StrView filename) {
+		FileStream s;
+		s.openRead(filename);
+		FILE_ID_INFO info {};
+		::GetFileInformationByHandleEx(s.nativeFd(), FileIdInfo, &info, sizeof(info));
+		u8* id = info.FileId.Identifier;
+		u64 p0{}, p1{};
+		memcpy(&p0, id + 0, sizeof(p0));
+		memcpy(&p1, id + 8, sizeof(p1));
+		return {p0, p1};
+	}
+
 	bool File::exists(StrView filename) {
 		TempStringW filenameW;
 		UtfUtil::convert(filenameW, filename);

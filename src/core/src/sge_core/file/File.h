@@ -26,6 +26,8 @@ namespace sge {
 	};
 
 	struct File {
+		static u128 getId (StrView filename);
+
 		static bool exists(StrView filename);
 		static void rename(StrView src, StrView dst);
 

@@ -1,24 +1,24 @@
 #pragma once
 #include "Shader.h"
+#include "ShaderManager.h"
 
 namespace sge {
-
-	class Material : public NonCopyable {
+	class Material : public Object {
 	public:
+		virtual ~Material() = default;
 
-		//Material(Shader* shader_) {
-		//	shader = shader_;
-		//}
+		void setShader(StrView shaderPath) { onSetShader(shaderPath); }
+		void create()					   { onCreate(); }
 
+		Shader* shader() const { return constCast(m_shader); }
+		
 		template<class TYPE>
-		void set(StrView propName, TYPE type) {
+		void set(StrView propName, TYPE type) {}
 
-		}
-
-
-
-		const Shader* shader = nullptr;
+	protected:
+		virtual void onSetShader(StrView shaderPath) {};
+		virtual void onCreate	() {};
+	
+		const Shader* m_shader = nullptr;
 	};
-
-
 }

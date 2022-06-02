@@ -96,6 +96,7 @@ namespace sge {
 		se.io(js["Name"],		  prop.name);
 		se.io(js["DefaultValue"], prop.defval);
 		se.io(js["SlotIndex"],	  prop.slotIdx);
+		se.io(js["Offset"],		  prop.offset);
 	}
 }
 

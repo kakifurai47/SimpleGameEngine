@@ -1,6 +1,5 @@
-
 #include <sge_editor.h>
-#include <array>
+#include <fileapi.h>
 
 namespace sge {
 
@@ -10,36 +9,38 @@ namespace sge {
 		 
 		virtual void MainWin::onCreate() override {
 			Base::onCreate();
+
+			auto* renderer = Renderer::current();
 			{
 				RenderContext::CreateDesc desc;
 				desc.window = this;
-				m_ctx.reset(RenderContext::create(desc));
+				m_renderCtx = renderer->createContext(desc);
 			}
 			{
-				//auto* shad = Shader::find("Assets/Shaders/test.shader");
+				m_mat = renderer->createMaterial();
+				m_mat->setShader("Assets/Shaders/test2.shader");
 			}
 		}
 
 		virtual void MainWin::onPaint() override {
 			Base::onPaint();
-			
-			m_buffer.addCmd<RenderCmd_SetViewport>();
-			auto* c1 = m_buffer.addCmd<RenderCmd_Clear>();
-			c1->color = Color4f(0, 0, 0.5f, 1);
-			m_buffer.addCmd<RenderCmd_Draw>();
+			if (!m_renderCtx) return;
 
-			
+			m_renderCtx->beginRender();
 
+			m_cmdBuf.reset();
+			m_cmdBuf.clearFrameBuffers()->setColor({ 1, 1, 0.5f, 1 });
+			m_cmdBuf.drawMesh(SGE_LOC, *m_mat);
+			m_cmdBuf.swapBuffers();
+			m_renderCtx->commit(m_cmdBuf);
 
-			if (m_ctx) {
-				m_ctx->render(m_buffer);
-			}
+			m_renderCtx->endRneder();
 			paintNeeded();
 		}
 
-		UPtr<RenderContext> m_ctx = nullptr;
-		CommandBuffer m_buffer;
-		EditMesh editMesh;
+		SPtr<RenderContext> m_renderCtx;
+		RenderCommandBuffer	m_cmdBuf;
+		SPtr<Material>		m_mat;
 	};
 	
 	class EditorApp : public NativeUIApp 
@@ -57,13 +58,10 @@ namespace sge {
 				auto dir = Directory::getCurrent();
 				SGE_LOG("dir = {}", dir);
 			}
-			{
-			}
+
 			Base::onCreate();
-			
 			{
 				Renderer::CreateDesc desc;
-				desc.type = Render_ApiType::DX11;
 				Renderer::create(desc);
 			}
 			{

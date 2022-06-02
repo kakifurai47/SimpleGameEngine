@@ -99,6 +99,11 @@ namespace sge
 		}
 		static StrView  toStrView(ID3DBlob* blob) { return StrView_make(toSpan(blob)); }
 
+		static LPVOID toBufferPtr(ByteSpan span) {
+			return reinterpret_cast<LPVOID>(constCast(span.data()));
+		}
+
+
 		static void throwIfError(HRESULT hr) {
 			if (FAILED(hr)) {
 				SGE_ERROR("HRESULT = {}", hr);
