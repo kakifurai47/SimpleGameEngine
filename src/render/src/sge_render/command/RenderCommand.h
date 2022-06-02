@@ -33,10 +33,7 @@ namespace sge {
 		using Base = RenderCmd;
 		using This = RenderCmd_ClearFrameBuffers;
 	public:
-		RenderCmd_ClearFrameBuffers()
-			: Base(Type::ClearFrameBuffers)
-		{
-		}
+		RenderCmd_ClearFrameBuffers() : Base(Type::ClearFrameBuffers) {}
 
 		This& setColor(const Color4f& color_) { color = color_; return *this; }
 		This& dontClearColor() { color.reset(); return *this; }
@@ -49,25 +46,17 @@ namespace sge {
 		using Base = RenderCmd;
 		using This = RenderCmd_DrawCall;
 	public:
-		RenderCmd_DrawCall()
-			:Base(Type::DrawCall)
-		{
-		}
+		RenderCmd_DrawCall() :Base(Type::DrawCall) {}
 
+		const VertexLayout* vertexLayout = nullptr;
 
-		
 		SPtr<Material> material;
-
-
 	};
 
 	class RenderCmd_SwapBuffers : public RenderCmd {
 		using Base = RenderCmd;
 		using This = RenderCmd_SwapBuffers;
 	public:
-		RenderCmd_SwapBuffers()
-			: Base(Type::SwapBuffers)
-		{
-		}
+		RenderCmd_SwapBuffers() : Base(Type::SwapBuffers) {}
 	};
 }

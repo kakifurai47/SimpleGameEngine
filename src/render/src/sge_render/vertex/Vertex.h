@@ -110,7 +110,7 @@ namespace sge {
 		template<ST SMT_TYPE, size_t SMT_IDX, class SLOT_LIST> static constexpr
 		auto getSlotIdx(SLOT_LIST) noexcept { return _getSlotIdx<SMT_TYPE, SMT_IDX> (SLOT_LIST{}); }
 
-		template<class  SLOT_LIST> using VtxData = decltype(		_makeVtxDataType(SLOT_LIST{})  );
+		template<class SLOT_LIST> using VtxData = decltype(_makeVtxDataType(SLOT_LIST{}));
 	};
 
 	struct VertexType {
@@ -220,7 +220,7 @@ namespace sge {
 
 		template<class VERTEX> constexpr 
 		void set(VERTEX) {
-			type = VERTEX::kType();
+			type  = VERTEX::kType();
 			stride = sizeof(VERTEX);
 			_set(VERTEX::SlotList{});
 		}

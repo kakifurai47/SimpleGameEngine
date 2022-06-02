@@ -53,71 +53,150 @@ namespace sge
 	using DX11_ShaderReflectionType				= ID3D11ShaderReflectionType;
 
 	struct DX11Util {
-
 		DX11Util() = delete;
 
-		inline static
-		const char* DX11Util::getDxStageProfile(ShaderStage s) {
-			switch (s) {
-			case ShaderStage::Vertex:	return "vs_5_0";
-			case ShaderStage::Pixel:	return "ps_5_0";
-			default: return "";
-			}
-		}
+		static void throwIfError(HRESULT hr, ID3DBlob* errorMsg = nullptr);
 
-		inline static 
-		ShaderPropType getPropType(D3D_SHADER_VARIABLE_TYPE type,
-								   size_t rows, size_t cols) 
-		{
-			using SRC = D3D_SHADER_VARIABLE_TYPE;
-			using DST = ShaderPropType;
+		static const char* DX11Util::getDxStageProfile(ShaderStage s);
 
-			switch (type) {
-			case SRC::D3D10_SVT_INT: {
-				if (rows == 1 && cols == 1) return DST::Int;
-			}
-			case SRC::D3D_SVT_FLOAT: {
-				if (rows == 1 && cols == 1) return DST::Float;
-				if (rows == 1 && cols == 2) return DST::Vec2f;
-				if (rows == 1 && cols == 3) return DST::Vec3f;
-				if (rows == 1 && cols == 4) return DST::Vec4f;
-				if (rows == 4 && cols == 4) return DST::Matrix;
-			}
-			case SRC::D3D_SVT_DOUBLE: {
-				if (rows == 1 && cols == 1) return DST::Double;
-			}
-			default: throw SGE_ERROR(
-				"unsupported D3D_SHADER_VARIABLE_TYPE: {} rows: {} cols:{}",
-				type, rows, cols);
-			}
-		}
+		static ShaderPropType getPropType(D3D_SHADER_VARIABLE_TYPE type, size_t rows, size_t cols);
 
-		static ByteSpan toSpan(ID3DBlob* blob) {
-			if (!blob) return {};
-			return ByteSpan(reinterpret_cast<const u8*>(blob->GetBufferPointer()),
-							static_cast<size_t>(blob->GetBufferSize()));
-		}
-		static StrView  toStrView(ID3DBlob* blob) { return StrView_make(toSpan(blob)); }
-
-		static LPVOID toBufferPtr(ByteSpan span) {
-			return reinterpret_cast<LPVOID>(constCast(span.data()));
-		}
+		static DXGI_FORMAT getDxFormat(Render_FormatType v);
 
 
-		static void throwIfError(HRESULT hr) {
-			if (FAILED(hr)) {
-				SGE_ERROR("HRESULT = {}", hr);
-			}
-		}
-
-		static void throwIfError(HRESULT hr, ID3DBlob* errorMsg) {
-			if (FAILED(hr)) {
-				throw SGE_ERROR("HRESULT={}\n Error Message: {}", hr, toStrView(errorMsg));
-			}
-		}
-
-
+		static ByteSpan toSpan	   (ID3DBlob* blob);
+		static StrView  toStrView  (ID3DBlob* blob) { return StrView_make(toSpan(blob)); }
+		static LPVOID   toBufferPtr(ByteSpan  span) { return reinterpret_cast<LPVOID>(constCast(span.data())); }
+		static UINT		castUINT   (size_t v)		{ SGE_ASSERT(v < UINT_MAX);  return static_cast<UINT>(v);  }
 	};
+
+	inline
+	void DX11Util::throwIfError(HRESULT hr, ID3DBlob* errorMsg) {
+		if (FAILED(hr)) {
+			throw SGE_ERROR("HRESULT={}\n Error Message: {}",
+				hr, errorMsg != nullptr ? toStrView(errorMsg) : "None");
+		}
+	}
+
+	inline
+	const char* DX11Util::getDxStageProfile(ShaderStage s) {
+		switch (s) {
+		case ShaderStage::Vertex:	return "vs_5_0";
+		case ShaderStage::Pixel:	return "ps_5_0";
+		default: return "";
+		}
+	}
+
+	inline
+	ShaderPropType DX11Util::getPropType(D3D_SHADER_VARIABLE_TYPE type, size_t rows, size_t cols) {
+		using SRC = D3D_SHADER_VARIABLE_TYPE;
+		using DST = ShaderPropType;
+		switch (type) {
+		case SRC::D3D10_SVT_INT: {
+			if (rows == 1 && cols == 1) return DST::Int;
+		}
+		case SRC::D3D_SVT_FLOAT: {
+			if (rows == 1 && cols == 1) return DST::Float;
+			if (rows == 1 && cols == 2) return DST::Vec2f;
+			if (rows == 1 && cols == 3) return DST::Vec3f;
+			if (rows == 1 && cols == 4) return DST::Vec4f;
+			if (rows == 4 && cols == 4) return DST::Matrix;
+		}
+		case SRC::D3D_SVT_DOUBLE: {
+			if (rows == 1 && cols == 1) return DST::Double;
+		}
+		default: throw SGE_ERROR(
+			"unsupported D3D_SHADER_VARIABLE_TYPE: {} rows: {} cols:{}",
+			type, rows, cols);
+		}
+	}
+
+	inline
+	ByteSpan DX11Util::toSpan(ID3DBlob* blob) {
+		if (!blob) return {};
+		return ByteSpan(reinterpret_cast<const u8*>(blob->GetBufferPointer()),
+						static_cast<size_t>(blob->GetBufferSize()));
+	}
+
+	inline
+	DXGI_FORMAT DX11Util::getDxFormat(Render_FormatType v) {
+	using SRC = Render_FormatType;
+	switch (v) {
+		case SRC::SInt08x1:		return DXGI_FORMAT_R8_SINT; break;
+		case SRC::SInt08x2:		return DXGI_FORMAT_R8G8_SINT; break;
+//		case SRC::Int8x3:		return DXGI_FORMAT_R8G8B8_SINT; break; //does not support in DX11
+		case SRC::SInt08x3:		return DXGI_FORMAT_R8G8B8A8_SINT; break;
+
+		case SRC::UInt08x1:		return DXGI_FORMAT_R8_UINT; break;
+		case SRC::UInt08x2:		return DXGI_FORMAT_R8G8_UINT; break;
+//		case SRC::UInt8x3:		return DXGI_FORMAT_R8G8B8_UINT; break; //does not support in DX11
+		case SRC::UInt08x4:		return DXGI_FORMAT_R8G8B8A8_UINT; break;
+
+		case SRC::SNorm08x1:	return DXGI_FORMAT_R8_SNORM; break;
+		case SRC::SNorm08x2:	return DXGI_FORMAT_R8G8_SNORM; break;
+//		case SRC::SNorm8x3:		return DXGI_FORMAT_R8G8B8_SNORM; break; //does not support in DX11
+		case SRC::SNorm08x4:	return DXGI_FORMAT_R8G8B8A8_SNORM; break;
+
+		case SRC::UNorm08x1:	return DXGI_FORMAT_R8_UNORM; break;
+		case SRC::UNorm08x2:	return DXGI_FORMAT_R8G8_UNORM; break;
+//		case SRC::UNorm8x3:		return DXGI_FORMAT_R8G8B8_UNORM; break; //does not support in DX11
+		case SRC::UNorm08x4:	return DXGI_FORMAT_R8G8B8A8_UNORM; break;
+
+		case SRC::SInt16x1:		return DXGI_FORMAT_R16_SINT; break;
+		case SRC::SInt16x2:		return DXGI_FORMAT_R16G16_SINT; break;
+//		case SRC::Int16x3:		return DXGI_FORMAT_R16G16B16_SINT; break; //does not support in DX11
+		case SRC::SInt16x4:		return DXGI_FORMAT_R16G16B16A16_SINT; break;
+
+		case SRC::UInt16x1:		return DXGI_FORMAT_R16_UINT; break;
+		case SRC::UInt16x2:		return DXGI_FORMAT_R16G16_UINT; break;
+//		case SRC::UInt16x3:		return DXGI_FORMAT_R16G16B16_UINT; break; //does not support in DX11
+		case SRC::UInt16x4:		return DXGI_FORMAT_R16G16B16A16_UINT; break;
+
+		case SRC::SNorm16x1:	return DXGI_FORMAT_R16_SNORM; break;
+		case SRC::SNorm16x2:	return DXGI_FORMAT_R16G16_SNORM; break;
+//		case SRC::SNorm16x3:	return DXGI_FORMAT_R16G16B16_SNORM; break; //does not support in DX11
+		case SRC::SNorm16x4:	return DXGI_FORMAT_R16G16B16A16_SNORM; break;
+
+		case SRC::UNorm16x1:	return DXGI_FORMAT_R16_UNORM; break;
+		case SRC::UNorm16x2:	return DXGI_FORMAT_R16G16_UNORM; break;
+//		case SRC::UNorm16x3:	return DXGI_FORMAT_R16G16B16_UNORM; break; //does not support in DX11
+		case SRC::UNorm16x4:	return DXGI_FORMAT_R16G16B16A16_UNORM; break;
+
+		case SRC::SInt32x1:		return DXGI_FORMAT_R32_SINT; break;
+		case SRC::SInt32x2:		return DXGI_FORMAT_R32G32_SINT; break;
+//		case SRC::Int32x3:		return DXGI_FORMAT_R32G32B32_SINT; break; //does not support in DX11
+		case SRC::SInt32x4:		return DXGI_FORMAT_R32G32B32A32_SINT; break;
+
+		case SRC::UInt32x1:		return DXGI_FORMAT_R32_UINT; break;
+		case SRC::UInt32x2:		return DXGI_FORMAT_R32G32_UINT; break;
+//		case SRC::UInt32x3:		return DXGI_FORMAT_R32G32B32_UINT; break; //does not support in DX11
+		case SRC::UInt32x4:		return DXGI_FORMAT_R32G32B32A32_UINT; break;
+
+//		case SRC::SNorm32:		return DXGI_FORMAT_R32_SNORM; break;
+//		case SRC::SNorm32x2:	return DXGI_FORMAT_R32G32_SNORM; break;
+//		case SRC::SNorm32x3:	return DXGI_FORMAT_R32G32B32_SNORM; break; //does not support in DX11
+//		case SRC::SNorm32x4:	return DXGI_FORMAT_R32G32B32A32_SNORM; break;
+
+//		case SRC::UNorm32:		return DXGI_FORMAT_R32_UNORM; break;
+//		case SRC::UNorm32x2:	return DXGI_FORMAT_R32G32_UNORM; break;
+//		case SRC::UNorm32x3:	return DXGI_FORMAT_R32G32B32_UNORM; break; //does not support in DX11
+//		case SRC::UNorm32x4:	return DXGI_FORMAT_R32G32B32A32_UNORM; break;
+
+	//--
+		case SRC::Float16x1:	return DXGI_FORMAT_R16_FLOAT; break;
+		case SRC::Float16x2:	return DXGI_FORMAT_R16G16_FLOAT; break;
+//		case SRC::Float16x3:	return DXGI_FORMAT_R16G16B16_FLOAT; break; //does not support in DX11
+		case SRC::Float16x4:	return DXGI_FORMAT_R16G16B16A16_FLOAT; break;
+	//---
+		case SRC::Float32x1:	return DXGI_FORMAT_R32_FLOAT; break;
+		case SRC::Float32x2:	return DXGI_FORMAT_R32G32_FLOAT; break;
+		case SRC::Float32x3:	return DXGI_FORMAT_R32G32B32_FLOAT; break;
+		case SRC::Float32x4:	return DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+	//---
+		default: throw SGE_ERROR("unsupported RenderDataType");
+		}
+	}
+
 
 
 

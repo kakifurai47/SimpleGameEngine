@@ -28,11 +28,11 @@ namespace sge {
 		switch (stage) {
 		case ShaderStage::Vertex: {
 			hr = dev->CreateVertexShader(DX11Util::toBufferPtr(byteCode), byteCode.size(),
-										 nullptr, &m_vtxShads.emplace_back());
+										 nullptr, &m_d3dVtxShads.emplace_back());
 		} break;
 		case ShaderStage::Pixel: {
 			hr = dev->CreatePixelShader(DX11Util::toBufferPtr(byteCode), byteCode.size(),
-										nullptr, &m_pxlShads.emplace_back());
+										nullptr, &m_d3dPxlShads.emplace_back());
 		}break;
 			default: throw SGE_ERROR("Unhandled ShaderStage");
 		}

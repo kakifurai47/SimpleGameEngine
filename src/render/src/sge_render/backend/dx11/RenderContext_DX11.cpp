@@ -99,8 +99,8 @@ namespace sge
 		auto* shad = static_cast<Shader_DX11*>(cmd.material->shader());
 		if  (!shad) { SGE_ASSERT(false); return; }
 		
-		DX11_ID3DVertexShader* vs = shad->vtxPasses()[0];
-		DX11_ID3DPixelShader*  ps = shad->pxlPasses()[0];
+		auto* vs = shad->d3dVtxShads()[0];
+		auto* ps = shad->d3dPxlShads()[0];
 		
 		ctx->VSSetShader(vs, 0, 0);
 		ctx->PSSetShader(ps, 0, 0);
