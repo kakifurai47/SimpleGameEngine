@@ -65,14 +65,28 @@ namespace sge {
 			String psFunc;
 		};
 
+		struct ConstBufInfo {
+			size_t size    = 0;
+			size_t slotIdx = 0;
+		};
+
 		Vector_<Prop, 4> properties;
 		Vector_<Pass, 1> passes;
+
+		Vector_<ConstBufInfo, 1> constBufInfos;
 	};
 
 	template<class SE> inline
 	void jsonIO(SE& se, ShaderInfo& info, Json& js) {
-		se.io(js["Properties"], info.properties);
-		se.io(js["Passes"],		info.passes);
+		se.io(js["Properties"],		info.properties);
+		se.io(js["Passes"],			info.passes);
+		se.io(js["ConstBufInfo"],	info.constBufInfos);
+	}
+
+	template<class SE> inline
+	void jsonIO(SE& se, ShaderInfo::ConstBufInfo& info, Json& js) {
+		se.io(js["Size"],	   info.size);
+		se.io(js["SlotIndex"], info.slotIdx);
 	}
 
 	template<class SE> inline
@@ -98,6 +112,9 @@ namespace sge {
 		se.io(js["SlotIndex"],	  prop.slotIdx);
 		se.io(js["Offset"],		  prop.offset);
 	}
+
+
+
 }
 
 SGE_FORMATTER_ENUM(sge::ShaderPropType)

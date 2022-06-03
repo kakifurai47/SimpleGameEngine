@@ -14,10 +14,10 @@ namespace sge {
 
 		Type	type = Type::None;
 		size_t	bufferSize	= 0;
-		size_t	stride		= 0;
+		size_t	stride		= 16;
 	};
 
-	class RenderGpuBuffer : public NonCopyable {
+	class RenderGpuBuffer : public Object {
 	public:
 		using Type		 = RenderGpuBufferType;
 		using CreateDesc = RenderGpuBuffer_CreateDesc;

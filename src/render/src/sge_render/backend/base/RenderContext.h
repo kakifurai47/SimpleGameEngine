@@ -23,12 +23,10 @@ namespace sge  {
 
 		void commit(RenderCommandBuffer& cmdBuf) { onCommit(cmdBuf); }
 
-		//void render(RenderCommandBuffer& buffer);
 	protected:
 		virtual void onBeginRender() {}
 		virtual void onEndRender  () {}
-		virtual void onCommit(RenderCommandBuffer& cmdBuf){}
-		
+		virtual void onCommit(RenderCommandBuffer& cmdBuf){}		
 
 		template<class IMPL>
 		void _dispatch(IMPL* impl, RenderCommandBuffer& cmdBuf) {

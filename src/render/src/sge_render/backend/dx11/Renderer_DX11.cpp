@@ -3,6 +3,7 @@
 
 #include "Renderer_DX11.h"
 #include "RenderContext_DX11.h"
+#include "RenderGpuBuffer_DX11.h"
 #include "Material_DX11.h"
 
 namespace sge
@@ -66,6 +67,10 @@ namespace sge
 		return new RenderContext_DX11(desc);		
 	}
 
+
+	RenderGpuBuffer* Renderer_DX11::onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) {
+		return new RenderGpuBuffer_DX11(desc);
+	}
 
 	Material* Renderer_DX11::onCreateMaterial() {
 		return new Material_DX11();

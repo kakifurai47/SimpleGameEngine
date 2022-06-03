@@ -7,6 +7,9 @@ namespace sge
 	class  RenderContext;
 	struct RenderContext_CreateDesc;
 
+	class  RenderGpuBuffer;
+	struct RenderGpuBuffer_CreateDesc;
+
 	class Material;
 
 	enum class Render_ApiType {
@@ -32,12 +35,15 @@ namespace sge
 				 Renderer();
 		virtual ~Renderer();
 
-		RenderContext* createContext (RenderContext_CreateDesc& desc) { return onCreateContext (desc); }
-		Material*	   createMaterial()								  { return onCreateMaterial();	   }
+		Material*		 createMaterial ()								   { return onCreateMaterial();		 }
+		RenderContext*	 createContext  (RenderContext_CreateDesc&	 desc) { return onCreateContext (desc);  }
+		RenderGpuBuffer* createGpuBuffer(RenderGpuBuffer_CreateDesc& desc) { return onCreateGpuBuffer(desc); }
 
 	protected:
-		virtual RenderContext* onCreateContext (RenderContext_CreateDesc& desc) = 0;
-		virtual Material*	   onCreateMaterial() = 0;
+		virtual Material*		 onCreateMaterial () = 0;
+		virtual RenderContext*	 onCreateContext  (RenderContext_CreateDesc&   desc) = 0;
+		virtual RenderGpuBuffer* onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) = 0;
+
 
 	protected:
 		static Renderer* s_current;

@@ -2,6 +2,7 @@
 #include "RenderContext_DX11.h"
 #include "Renderer_DX11.h"
 #include "Shader_DX11.h"
+#include "RenderGpuBuffer_DX11.h"
 
 namespace sge
 {
@@ -91,7 +92,7 @@ namespace sge
 	void RenderContext_DX11::onCmd_DrawCall(RenderCmd_DrawCall& cmd) {
 		HRESULT hr;
 		//const wchar_t* shaderFile = L"Assets/Shaders/test.hlsl";
-		const wchar_t* shaderFile = L"LocalTemp/Imported/Assets/Shaders/test2.shader/code.hlsl";
+		const wchar_t* shaderFile = L"LocalTemp/Imported/Assets/Shaders/test.shader/code.hlsl";
 
 		auto* dev = m_renderer->d3dDevice();
 		auto* ctx = m_renderer->d3dDeviceContext();
@@ -104,7 +105,21 @@ namespace sge
 		
 		ctx->VSSetShader(vs, 0, 0);
 		ctx->PSSetShader(ps, 0, 0);
+
+		auto* buf = static_cast<RenderGpuBuffer_DX11*>( cmd.material->buffers()[0].ptr() );
+		DX11_ID3DBuffer* ppConstBuffers[] = { buf->d3dBuf() };
+		ctx->PSSetConstantBuffers1(0, 1, ppConstBuffers, nullptr, nullptr);
+
+		//============
 		
+		//  TODO Vertex Buffer,
+		//  IndexBuffer,
+		//  Inputlayout,
+		//  multiple pass,
+		//  setting constant buffer at its corresponding stage
+
+		//============
+
 		if (!m_testVtxShader) {
 			ComPtr<ID3DBlob>	byteCode;
 			ComPtr<ID3DBlob>	errorMsg;
@@ -114,6 +129,8 @@ namespace sge
 			
 			m_testVtxShaderByteCode.reset(byteCode.ptr());
 		}
+
+		
 
 		D3D11_INPUT_ELEMENT_DESC ied[] =
 		{

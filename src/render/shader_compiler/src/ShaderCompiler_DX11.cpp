@@ -70,6 +70,10 @@ namespace sge {
 			hr = shadReflect->GetResourceBindingDesc(i, &bindDesc);
 			Util::throwIfError(hr);
 
+			auto& constBufInfo	 = outInfo.constBufInfos.emplace_back();
+			constBufInfo.size	 = bufDesc.Size;
+			constBufInfo.slotIdx = bindDesc.BindPoint;
+
 			for (size_t j = 0; j < bufDesc.Variables; j++) {
 				DX11_ShaderReflectionVariable*	varReflect	= bufReflect->GetVariableByIndex(j);
 				DX11_ShaderReflectionType*		typeReflect = varReflect->GetType();

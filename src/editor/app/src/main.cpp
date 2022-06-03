@@ -18,13 +18,17 @@ namespace sge {
 			}
 			{
 				m_mat = renderer->createMaterial();
-				m_mat->setShader("Assets/Shaders/test2.shader");
+				m_mat->setShader("Assets/Shaders/test.shader");
+				m_mat->set("x", 1.f);
 			}
 		}
 
 		virtual void MainWin::onPaint() override {
 			Base::onPaint();
 			if (!m_renderCtx) return;
+
+			alpha = alpha < 1 ? alpha + 0.005 : 0;
+			m_mat->set("x", alpha);
 
 			m_renderCtx->beginRender();
 
@@ -38,6 +42,7 @@ namespace sge {
 			paintNeeded();
 		}
 
+		float alpha = 0;
 		SPtr<RenderContext> m_renderCtx;
 		RenderCommandBuffer	m_cmdBuf;
 		SPtr<Material>		m_mat;
