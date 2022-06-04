@@ -21,8 +21,8 @@ namespace sge {
 	}
 
 	void RenderCommandBuffer::reset() {
+		for (auto& c : m_cmds) { c->~RenderCmd(); }
 		m_cmds.clear();
 		m_alloc.free();
 	}
-
 }

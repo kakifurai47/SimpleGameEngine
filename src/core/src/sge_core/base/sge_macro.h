@@ -73,36 +73,30 @@
 	SGE_ENUM_ARITHMETIC_OPERATOR_INT(T) \
 //-------
 
+#define SGE_ENUM_STR__CASE(V) case E::V: return #V;
 
-//#define SGE_ENUM_CLASS_DELEGATE(ELE, NAME)		 ELE,
-//#define SGE_ENUM_TRY_PARSE_DELEGATE(ELE, NAME)	 if(str == #ELE) { out = NAME::ELE; return true; }
-//#define SGE_ENUM_STR_DELEGATE(ELE, NAME)		 case NAME::ELE: return #ELE;
-//
-//#define SGE_ENUM_CLASS(NAME, LIST) \
-//	enum class NAME { \
-//		LIST(SGE_ENUM_CLASS_DELEGATE, NAME) \
-//	}; \
-////-------
-//
-//#define SGE_ENUM_TRY_PARSE(NAME, LIST) \
-//	bool enumTryParse(NAME& out, StrView str) { \
-//		LIST(SGE_ENUM_TRY_PARSE_DELEGATE, NAME) \
-//		return false; \
-//	} \
-////-------
-//
-//#define SGE_ENUM_STR(NAME, LIST) \
-//	StrView enumStr(NAME v) { \
-//		switch (v) { \
-//			LIST(SGE_ENUM_STR_DELEGATE, NAME) \
-//		default: return ""; \
-//		} \
-//	} \
-////-------
-//
-//#define SGE_ENUM_STR_CLASS(NAME, LIST) \
-//		SGE_ENUM_CLASS	  (NAME, LIST) \
-//		SGE_ENUM_TRY_PARSE(NAME, LIST) \
-//		SGE_ENUM_STR	  (NAME, LIST) \
-////-------
+#define SGE_ENUM_STR(T) \
+	inline const char* enumStr(const T& v) { \
+		using E = T; \
+		switch (v) { \
+			T##_ENUM_LIST(SGE_ENUM_STR__CASE) \
+			default: return nullptr; \
+		} \
+	} \
+//----
 
+#define SGE_ENUM_TRY_PARSE__CASE(V) if (str == #V) { outValue = E::V; return true; }
+
+#define SGE_ENUM_TRY_PARSE(T) \
+	inline bool enumTryParse(T& outValue, StrView str) { \
+		using E = T; \
+		T##_ENUM_LIST(SGE_ENUM_TRY_PARSE__CASE) \
+		return false; \
+	} \
+//----
+
+#define SGE_ENUM_STR_UTIL(T) \
+	SGE_ENUM_STR(T) \
+	SGE_ENUM_TRY_PARSE(T) \
+	SGE_FORMATTER_ENUM(T) \
+//----

@@ -3,43 +3,30 @@
 #include <sge_core/json/Json.h>
 
 namespace sge {
-
-#define SGE_SHADER_PROP_TYPE \
-	E(None) \
-	E(Int) \
-	E(Float) \
-	E(Vec2f) \
-	E(Vec3f) \
-	E(Vec4f) \
-	E(Color4f) \
-	E(Matrix) \
-	E(Double) \
-//==========
-
 	enum class ShaderPropType : u8 {
-#define E(T) T,	
-		SGE_SHADER_PROP_TYPE
-#undef	E
+		None,
+		Int,
+		Float,
+		Vec2f,
+		Vec3f,
+		Vec4f,
+		Color4f,
+		Matrix,
+		Double,
 	};
 
-	inline
-	bool enumTryParse(ShaderPropType& out, StrView str) {
-#define E(T) if (str == #T) { out = ShaderPropType::T; return true; }
-		SGE_SHADER_PROP_TYPE
-		return false;
-#undef	E
-	}
+#define ShaderPropType_ENUM_LIST(E) \
+		E(Int) \
+		E(Float) \
+		E(Vec2f) \
+		E(Vec3f) \
+		E(Vec4f) \
+		E(Color4f) \
+		E(Matrix) \
+		E(Double) \
+//------
 
-	inline
-	StrView enumStr(ShaderPropType v) {
-#define E(T) case ShaderPropType::T: return #T;
-		switch (v) {
-			SGE_SHADER_PROP_TYPE
-		default: return "";
-		}
-#undef	E
-	}
-#undef SGE_SHADER_PROP_TYPE
+	SGE_ENUM_STR_UTIL(ShaderPropType)
 
 	struct ShaderInfo : public NonCopyable {
 		struct Attr {
@@ -112,9 +99,4 @@ namespace sge {
 		se.io(js["SlotIndex"],	  prop.slotIdx);
 		se.io(js["Offset"],		  prop.offset);
 	}
-
-
-
 }
-
-SGE_FORMATTER_ENUM(sge::ShaderPropType)
