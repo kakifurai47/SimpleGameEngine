@@ -2,10 +2,6 @@
 
 namespace sge  {
 namespace meta {
-
-	struct null_type {};
-	template<class T> constexpr bool is_null(T) noexcept { return std::is_same_v<null_type, T>; }
-
 	template<class... Ts> struct tlist {};
 	using		  empty_tlist  = tlist <>;
 

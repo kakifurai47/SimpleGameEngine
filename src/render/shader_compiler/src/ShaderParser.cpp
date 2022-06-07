@@ -44,18 +44,18 @@ namespace sge {
 		for (; ; ) {
 			if (tryNext(src, TokenType::Sep, "}")) break;
 			
-			auto& p = out.properties.emplace_back();
+			auto& p = out.props.emplace_back();
 			if (tryNext(src, TokenType::Sep, "["))
-				_readAtt(p.attr, src);
+				_readAtt(p.attribute, src);
 			
 			ensureNext(src, TokenType::Idr);
-			if (!enumTryParse(p.type, m_tok.value))
+			if (!enumTryParse(p.propType, m_tok.value))
 				throwUnexpected();
 			
 			rtrvNext(src, TokenType::Idr, p.name);
 	
 			if (tryNext(src, TokenType::Opr, "="))
-				_readDefVal(p.defval, src);			
+				_readDefVal(p.defaultValue, src);
 		}
 	}
 	
@@ -63,7 +63,7 @@ namespace sge {
 		rtrvNext(src, TokenType::Idr, out.tag);
 	
 		if (tryNext (src, TokenType::Opr, "=")) {
-			rtrvNext(src, TokenType::Lit, out.defVal);
+			rtrvNext(src, TokenType::Lit, out.defaultValue);
 		}
 		ensureNext(src, TokenType::Sep, "]");
 	}

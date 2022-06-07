@@ -25,3 +25,5 @@
 #include "sge_core/meta/meta_common.h"
 #include "sge_core/meta/vlist.h"
 #include "sge_core/meta/tlist.h"
+#include "sge_core/meta/type_trait.h"
+

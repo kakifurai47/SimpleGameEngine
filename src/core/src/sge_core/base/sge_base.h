@@ -27,14 +27,14 @@
 #include <cstdint>
 #include <atomic>
 
+#include <nlohmann/json.hpp>
+
 #include <EASTL/vector.h>
 #include <EASTL/fixed_vector.h>
 #include <EASTL/string.h>
 #include <EASTL/fixed_string.h>
 #include <EASTL/string_view.h>
 #include <EASTL/span.h>
-
-#include <EASTL/optional.h>
 
 #include <EASTL/map.h>
 #include <EASTL/hash_map.h>
@@ -104,6 +104,8 @@ namespace sge
 	template<class T, size_t N> constexpr
 	size_t array_size(const T(&)[N]) { return N; }
 
+	using Json = nlohmann::json;
+
 	template<class T> using UPtr = eastl::unique_ptr<T>;
 	template<class T> using WPtr = eastl::weak_ptr<T>;
 
@@ -119,10 +121,11 @@ namespace sge
 	template<class T, size_t N, bool bEnableOverflow = true> using Vector_ = eastl::fixed_vector<T, N, bEnableOverflow>;
 	template<class T> using Vector = eastl::vector<T>;
 
+	template<class T>			inline Span<T> makeSpan(Vector<T>&	 v)	  { return { v.data(), v.size() }; }
+	template<class T, size_t N> inline Span<T> makeSpan(Vector_<T, N>& v) { return { v.data(), v.size() }; }
+
 	template<class KEY, class VALUE> using Map = eastl::map<KEY, VALUE>;
 	template<class KEY, class VALUE> using VectorMap = eastl::vector_map<KEY, VALUE>;
-
-	template<class T> using Opt = eastl::optional<T>;
 
 	template<class T> using StrViewT = eastl::basic_string_view<T>;
 	using StrViewA = StrViewT<char>;

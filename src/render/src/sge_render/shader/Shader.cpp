@@ -1,5 +1,4 @@
-#include <sge_core/json/Json.h>
-
+#include <sge_core/serializer/json/JsonUtil.h>
 #include "Shader.h"
 
 namespace sge {
@@ -7,10 +6,7 @@ namespace sge {
 		auto compiledPath = Fmt("LocalTemp/Imported/{}", filename);
 		auto infoFilename = Fmt("{}/info.json", compiledPath);
 
-		JsonDeserializer   se;
-		se.load(infoFilename);
-		se.read(m_info);
-
+		JsonUtil::readFile(infoFilename, m_info);
 		onCreate(compiledPath);
 	}
 }

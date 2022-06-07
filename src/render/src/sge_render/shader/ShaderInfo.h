@@ -1,6 +1,5 @@
 #pragma once
 #include <sge_core/base/sge_base.h>
-#include <sge_core/json/Json.h>
 
 namespace sge {
 	enum class ShaderPropType : u8 {
@@ -28,22 +27,18 @@ namespace sge {
 
 	SGE_ENUM_STR_UTIL(ShaderPropType)
 
-	struct ShaderInfo : public NonCopyable {
+	class ShaderInfo : public NonCopyable {
+	public:
 		struct Attr {
 			String tag;
-			String defVal;
+			String defaultValue;
 		};
 
 		struct Prop {
-			bool isDefined = false;
-
-			ShaderPropType type = ShaderPropType::None;
-			Attr	attr;
-			String	name;
-			String	defval;
-
-			size_t	offset	= 0;
-			size_t	slotIdx	= 0;
+			ShaderPropType propType = ShaderPropType::None;
+			Attr		   attribute;
+			String		   name;
+			String		   defaultValue;
 		};
 
 		struct Pass {
@@ -52,51 +47,48 @@ namespace sge {
 			String psFunc;
 		};
 
-		struct ConstBufInfo {
-			size_t size    = 0;
-			size_t slotIdx = 0;
-		};
-
-		Vector_<Prop, 4> properties;
-		Vector_<Pass, 1> passes;
-
-		Vector_<ConstBufInfo, 1> constBufInfos;
+		Vector_<Prop, 8>	props;
+		Vector_<Pass, 1>	passes;
 	};
 
+	class ShaderStageInfo : public NonCopyable {
+	public:
+
+
+
+
+	};
+
+
+
+
+
 	template<class SE> inline
-	void jsonIO(SE& se, ShaderInfo& info, Json& js) {
-		se.io(js["Properties"],		info.properties);
-		se.io(js["Passes"],			info.passes);
-		se.io(js["ConstBufInfo"],	info.constBufInfos);
+	void onSerDes(SE& se, ShaderInfo& info) {
+		SGE_SERDES_IO(se, info, props);
+		SGE_SERDES_IO(se, info, passes);
 	}
 
 	template<class SE> inline
-	void jsonIO(SE& se, ShaderInfo::ConstBufInfo& info, Json& js) {
-		se.io(js["Size"],	   info.size);
-		se.io(js["SlotIndex"], info.slotIdx);
+	void onSerDes(SE& se, ShaderInfo::Attr& attr) {
+		SGE_SERDES_IO(se, attr, tag);
+		SGE_SERDES_IO(se, attr, defaultValue);
 	}
 
 	template<class SE> inline
-	void jsonIO(SE& se, ShaderInfo::Pass& pass, Json& js) {
-		se.io(js["Name"],	pass.name);
-		se.io(js["vsFunc"], pass.vsFunc);
-		se.io(js["psFunc"], pass.psFunc);
+	void onSerDes(SE& se, ShaderInfo::Prop& prop) {
+		SGE_SERDES_IO(se, prop, propType);
+		SGE_SERDES_IO(se, prop, attribute);
+		SGE_SERDES_IO(se, prop, name);
+		SGE_SERDES_IO(se, prop, defaultValue);
 	}
 
 	template<class SE> inline
-	void jsonIO(SE& se, ShaderInfo::Attr& attr, Json& js) {
-		se.io(js["Tag"],		  attr.tag);
-		se.io(js["DefaultValue"], attr.defVal);
+	void onSerDes(SE& se, ShaderInfo::Pass& pass) {
+		SGE_SERDES_IO(se, pass, name);
+		SGE_SERDES_IO(se, pass, vsFunc);
+		SGE_SERDES_IO(se, pass, psFunc);
 	}
 
-	template<class SE> inline
-	void jsonIO(SE& se, ShaderInfo::Prop& prop, Json& js) {
-		se.io(js["IsDefined"],	  prop.isDefined);
-		se.io(js["Type"],		  prop.type);
-		se.io(js["Attribute"],	  prop.attr);
-		se.io(js["Name"],		  prop.name);
-		se.io(js["DefaultValue"], prop.defval);
-		se.io(js["SlotIndex"],	  prop.slotIdx);
-		se.io(js["Offset"],		  prop.offset);
-	}
+
 }

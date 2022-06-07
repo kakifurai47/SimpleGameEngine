@@ -38,8 +38,8 @@ namespace sge {
 		This& setColor(const Color4f& color_) { color = color_; return *this; }
 		This& dontClearColor() { color.reset(); return *this; }
 
-		Opt<Color4f> color = Color4f(1, 1, 1, 1);
-		Opt<float>	 depth = 0;
+		meta::opt<Color4f> color = Color4f(1, 1, 1, 1);
+		meta::opt<float>   depth = 0;
 	};
 
 	class RenderCmd_DrawCall : public RenderCmd {
@@ -48,7 +48,7 @@ namespace sge {
 	public:
 		RenderCmd_DrawCall() :Base(Type::DrawCall) {}
 
-		const VertexLayout* vertexLayout = nullptr;
+		//const VertexLayout* vertexLayout = nullptr;
 
 		SPtr<Material> material;
 	};
