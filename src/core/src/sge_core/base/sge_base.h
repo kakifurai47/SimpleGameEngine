@@ -29,6 +29,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include <EASTL/sort.h>
+
 #include <EASTL/vector.h>
 #include <EASTL/fixed_vector.h>
 #include <EASTL/string.h>

@@ -2,113 +2,99 @@
 
 #include <sge_core/base/sge_base.h>
 
-namespace sge
-{
-	enum class Render_FmtComp_DataType : u8 { None = 0, Float, UInt, SInt, UNorm, SNorm };
-	enum class Render_FmtComp_SizeType : u8 { b08 = 0, b16, b32, b64 };
-	enum class Render_FmtComp_NumType  : u8 { x1 = 0, x2, x3, x4 };
+namespace sge {
+	enum class RenderFormatType : u8 {
+		None,
+		Int08x1,	Int08x2,	Int08x3,	Int08x4,
+		Int16x1,	Int16x2,	Int16x3,	Int16x4,
+		Int32x1,	Int32x2,	Int32x3,	Int32x4,
+		Int64x1,	Int64x2,	Int64x3,	Int64x4,
 
-	template<Render_FmtComp_SizeType CS> constexpr size_t get_comp_fmt_size();
-	template<> static constexpr size_t get_comp_fmt_size<Render_FmtComp_SizeType::b08>() { return  8; }
-	template<> static constexpr size_t get_comp_fmt_size<Render_FmtComp_SizeType::b16>() { return 16; }
-	template<> static constexpr size_t get_comp_fmt_size<Render_FmtComp_SizeType::b32>() { return 32; }
-	template<> static constexpr size_t get_comp_fmt_size<Render_FmtComp_SizeType::b64>() { return 64; }
+		UInt08x1,	UInt08x2,	UInt08x3,	UInt08x4,
+		UInt16x1,	UInt16x2,	UInt16x3,	UInt16x4,
+		UInt32x1,	UInt32x2,	UInt32x3,	UInt32x4,
+		UInt64x1,	UInt64x2,	UInt64x3,	UInt64x4,
 
-	template<Render_FmtComp_NumType CS> constexpr size_t get_comp_fmt_num();
-	template<> static constexpr size_t get_comp_fmt_num<Render_FmtComp_NumType::x1>()	 { return  1; }
-	template<> static constexpr size_t get_comp_fmt_num<Render_FmtComp_NumType::x2>()	 { return  2; }
-	template<> static constexpr size_t get_comp_fmt_num<Render_FmtComp_NumType::x3>()	 { return  3; }
-	template<> static constexpr size_t get_comp_fmt_num<Render_FmtComp_NumType::x4>()	 { return  4; }
+		Float16x1,	Float16x2,	Float16x3,	Float16x4,
+		Float32x1,	Float32x2,	Float32x3,	Float32x4,
+		Float64x1,	Float64x2,	Float64x3,	Float64x4,
 
-	//fmt bit : tttt_ss_cc
-	static constexpr u8 _set_fmt_type_v(Render_FmtComp_DataType type,
-										Render_FmtComp_SizeType size,
-										Render_FmtComp_NumType  num) {
-		return	static_cast<u8>(type) << 4 |
-				static_cast<u8>(size) << 2 |
-				static_cast<u8>(num);
-	}
+		SNorm08x1,	SNorm08x2,	SNorm08x3,	SNorm08x4,
+		SNorm16x1,	SNorm16x2,	SNorm16x3,	SNorm16x4,
+		SNorm32x1,	SNorm32x2,	SNorm32x3,	SNorm32x4,
 
-//-------------
+		UNorm08x1,	UNorm08x2,	UNorm08x3,	UNorm08x4,
+		UNorm16x1,	UNorm16x2,	UNorm16x3,	UNorm16x4,
+		UNorm32x1,	UNorm32x2,	UNorm32x3,	UNorm32x4,
 
-	enum class Render_FormatType : u8 { //TO DO : delete b in front of comp size
-#define E(T, S, N) T##S##N \
-		 = _set_fmt_type_v(Render_FmtComp_DataType::T,		\
-						   Render_FmtComp_SizeType::##b##S, \
-						   Render_FmtComp_NumType::N)		\
-
-		None = 0,
-		E(Float, 08, x1), E(Float, 08, x2), E(Float, 08, x3), E(Float, 08, x4),
-		E(Float, 16, x1), E(Float, 16, x2), E(Float, 16, x3), E(Float, 16, x4),
-		E(Float, 32, x1), E(Float, 32, x2), E(Float, 32, x3), E(Float, 32, x4),
-		E(Float, 64, x1), E(Float, 64, x2), E(Float, 64, x3), E(Float, 64, x4),
-
-		E(UInt, 08, x1), E(UInt, 08, x2), E(UInt, 08, x3), E(UInt, 08, x4),
-		E(UInt, 16, x1), E(UInt, 16, x2), E(UInt, 16, x3), E(UInt, 16, x4),
-		E(UInt, 32, x1), E(UInt, 32, x2), E(UInt, 32, x3), E(UInt, 32, x4),
-		E(UInt, 64, x1), E(UInt, 64, x2), E(UInt, 64, x3), E(UInt, 64, x4),
-
-		E(SInt, 08, x1), E(SInt, 08, x2), E(SInt, 08, x3), E(SInt, 08, x4),
-		E(SInt, 16, x1), E(SInt, 16, x2), E(SInt, 16, x3), E(SInt, 16, x4),
-		E(SInt, 32, x1), E(SInt, 32, x2), E(SInt, 32, x3), E(SInt, 32, x4),
-		E(SInt, 64, x1), E(SInt, 64, x2), E(SInt, 64, x3), E(SInt, 64, x4),
-
-		E(UNorm, 08, x1), E(UNorm, 08, x2), E(UNorm, 08, x3), E(UNorm, 08, x4),
-		E(UNorm, 16, x1), E(UNorm, 16, x2), E(UNorm, 16, x3), E(UNorm, 16, x4),
-		E(UNorm, 32, x1), E(UNorm, 32, x2), E(UNorm, 32, x3), E(UNorm, 32, x4),
-		E(UNorm, 64, x1), E(UNorm, 64, x2), E(UNorm, 64, x3), E(UNorm, 64, x4),
-
-		E(SNorm, 08, x1), E(SNorm, 08, x2), E(SNorm, 08, x3), E(SNorm, 08, x4),
-		E(SNorm, 16, x1), E(SNorm, 16, x2), E(SNorm, 16, x3), E(SNorm, 16, x4),
-		E(SNorm, 32, x1), E(SNorm, 32, x2), E(SNorm, 32, x3), E(SNorm, 32, x4),
-		E(SNorm, 64, x1), E(SNorm, 64, x2), E(SNorm, 64, x3), E(SNorm, 64, x4),
-
-	#undef E
+		Texture1D,		Texture2D,		Texture3D,		TextureCube,
+		Texture1DArray, Texture2DArray, Texture3DArray, TextureCubeArray,
 	};
 
-	
-	template<Render_FormatType FMT_TYPE> struct Render_DataType;
+#define RenderFormatType_ENUM_LIST(E) \
+	E(None) \
+	\
+	E(Int08x1)		E(Int08x2)		E(Int08x3)		E(Int08x4)		\
+	E(Int16x1)		E(Int16x2)		E(Int16x3)		E(Int16x4)		\
+	E(Int32x1)		E(Int32x2)		E(Int32x3)		E(Int32x4)		\
+	E(Int64x1)		E(Int64x2)		E(Int64x3)		E(Int64x4)		\
+	\
+	E(UInt08x1)		E(UInt08x2)		E(UInt08x3)		E(UInt08x4)		\
+	E(UInt16x1)		E(UInt16x2)		E(UInt16x3)		E(UInt16x4)		\
+	E(UInt32x1)		E(UInt32x2)		E(UInt32x3)		E(UInt32x4)		\
+	E(UInt64x1)		E(UInt64x2)		E(UInt64x3)		E(UInt64x4)		\
+	\
+	E(Float16x1)	E(Float16x2)	E(Float16x3)	E(Float16x4)	\
+	E(Float32x1)	E(Float32x2)	E(Float32x3)	E(Float32x4)	\
+	E(Float64x1)	E(Float64x2)	E(Float64x3)	E(Float64x4)	\
+	\
+	E(SNorm08x1)	E(SNorm08x2)	E(SNorm08x3)	E(SNorm08x4)	\
+	E(SNorm16x1)	E(SNorm16x2)	E(SNorm16x3)	E(SNorm16x4)	\
+	E(SNorm32x1)	E(SNorm32x2)	E(SNorm32x3)	E(SNorm32x4)	\
+	\
+	E(UNorm08x1)	E(UNorm08x2)	E(UNorm08x3)	E(UNorm08x4)	\
+	E(UNorm16x1)	E(UNorm16x2)	E(UNorm16x3)	E(UNorm16x4)	\
+	E(UNorm32x1)	E(UNorm32x2)	E(UNorm32x3)	E(UNorm32x4)	\
+	\
+	E(Texture1D)	  E(Texture2D)		E(Texture3D)	  E(TextureCube)		\
+	E(Texture1DArray) E(Texture2DArray) E(Texture3DArray) E(TextureCubeArray)	\
+//----
 
-	//maybe dynamic tuple to avoid this;
-	template<> struct Render_DataType<Render_FormatType::Float32x1> { using type = f32; };
-	template<> struct Render_DataType<Render_FormatType::Float32x2> { using type = Tuple2f; };
-	template<> struct Render_DataType<Render_FormatType::Float32x3> { using type = Tuple3f; };
-	template<> struct Render_DataType<Render_FormatType::Float32x4> { using type = Tuple4f; };
 
-	template<> struct Render_DataType<Render_FormatType::Float64x1> { using type = f64; };
-	template<> struct Render_DataType<Render_FormatType::Float64x2> { using type = Tuple2d; };
-	template<> struct Render_DataType<Render_FormatType::Float64x3> { using type = Tuple3d; };
-	template<> struct Render_DataType<Render_FormatType::Float64x4> { using type = Tuple4d; };
 
-	template<> struct Render_DataType<Render_FormatType::SInt08x1> { using type = i8; };
-	template<> struct Render_DataType<Render_FormatType::SInt16x1> { using type = i16; };
-	template<> struct Render_DataType<Render_FormatType::SInt32x1> { using type = i32; };
-	template<> struct Render_DataType<Render_FormatType::SInt64x1> { using type = i64; };
 
-	template<> struct Render_DataType<Render_FormatType::UInt08x1> { using type = u8; };
-	template<> struct Render_DataType<Render_FormatType::UInt16x1> { using type = u16; };
-	template<> struct Render_DataType<Render_FormatType::UInt32x1> { using type = u32; };
-	template<> struct Render_DataType<Render_FormatType::UInt64x1> { using type = u64; };
+	SGE_ENUM_STR_UTIL(RenderFormatType)
+	SGE_ENUM_ALL_OPERATOR(RenderFormatType)
 
-	template<> struct Render_DataType<Render_FormatType::UNorm08x4> { using type = Tuple4<u8>; };
+	struct RenderFormatTypeUtil {
+		RenderFormatTypeUtil() = delete;
+		using Type = RenderFormatType;
+		template<class T> static constexpr Type get();
 
-	template<Render_FormatType FMT_TYPE>
-	struct Render_FormatDesc : public NonCopyable {
-	private:
-		using CompDataType = Render_FmtComp_DataType;
-		using CompSizeType = Render_FmtComp_SizeType;
-		using CompNumType  = Render_FmtComp_NumType;
-	public:
-		static const CompDataType compDataType = static_cast<CompDataType>((static_cast<u8>(FMT_TYPE) >> 4	& 0xFu));
-		static const CompSizeType compSizeType = static_cast<CompSizeType>((static_cast<u8>(FMT_TYPE) >> 2	& 0x3u));
-		static const CompNumType  compNumType  = static_cast<CompNumType> ((static_cast<u8>(FMT_TYPE)		& 0x3u));
+		template<> static constexpr Type get<void>()	{ return Type::None;		}
 
-		static const size_t compSize = get_comp_fmt_size<compSizeType>();
-		static const size_t comNum   = get_comp_fmt_num <compNumType> ();
+		template<> static constexpr Type get<i8 >()		{ return Type::Int08x1;		}
+		template<> static constexpr Type get<i16>()		{ return Type::Int16x1;		}
+		template<> static constexpr Type get<i32>()		{ return Type::Int32x1;		}
+		template<> static constexpr Type get<i64>()		{ return Type::Int64x1;		}
 
-		static constexpr size_t size = compSize * comNum;
+		template<> static constexpr Type get<u8 >()		{ return Type::UInt08x1;	}
+		template<> static constexpr Type get<u16>()		{ return Type::UInt16x1;	}
+		template<> static constexpr Type get<u32>()		{ return Type::UInt32x1;	}
+		template<> static constexpr Type get<u64>()		{ return Type::UInt64x1;	}
 
-		using CompatableType = Render_DataType<FMT_TYPE>;//ERRROR: when ::Type
+		template<> static constexpr Type get<f32>()		{ return Type::Float32x1;	}
+		template<> static constexpr Type get<f64>()		{ return Type::Float64x1;	}
+
+		template<> static constexpr Type get<Tuple2f>()	{ return Type::Float32x2;	}
+		template<> static constexpr Type get<Tuple2d>()	{ return Type::Float64x2;	}
+
+		template<> static constexpr Type get<Tuple3f>()	{ return Type::Float32x3;	}
+		template<> static constexpr Type get<Tuple3d>()	{ return Type::Float64x3;	}
+
+		template<> static constexpr Type get<Tuple4f>()	{ return Type::Float32x4;	}
+		template<> static constexpr Type get<Tuple4d>()	{ return Type::Float64x4;	}
+
+		template<> static constexpr Type get<Color4b>()	{ return Type::UNorm08x4;	}
 	};
 }
-

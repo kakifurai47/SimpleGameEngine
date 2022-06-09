@@ -7,6 +7,7 @@
 #include "sge_core/base/ByteOrder.h"
 
 #include "sge_core/math/Math.h"
+#include "sge_core/math/sort/Sort.h"
 
 #include "sge_core/math/Color.h"
 #include "sge_core/math/Vec.h"
