@@ -34,9 +34,9 @@ namespace sge {
 			meta::print_list( list{} );
 			SGE_LOG("---------------");
 			
-			using V0 = Vertex<d0, d1, d2, d2, d3, d4, d5>;
+			using V0 = Vertex<d0, d1, d2, d2, d2, d3, d4, d5, d1>;
 			meta::print_list( V0::DescList{} );
-			SGE_LOG("---------------");
+			SGE_LOG("^^^-------------");
 
 			V0 v0;
 			v0.color   <0>() = {2,3,4,5};

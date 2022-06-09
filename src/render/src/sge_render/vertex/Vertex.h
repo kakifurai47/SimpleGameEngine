@@ -204,7 +204,7 @@ namespace sge {
 				using prev = decltype ( meta::front	(rest{}) );
 				static constexpr u8 smt_idx = prev::semantic_t() == DESC::semantic_t() ? SMT_IDX + 1 : 0;
 				return meta::push_front(_setIndex<smt_idx>(rest{}),
-										VertexElmDesc <DESC::semantic_t(), decltype(DESC::format()), smt_idx> {});
+										VertexElmDesc <DESC::semantic_t(), decltype(DESC::format()), SMT_IDX> {});
 			}
 		}
 
