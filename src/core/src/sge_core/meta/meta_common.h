@@ -13,8 +13,8 @@ namespace meta {
 	struct null_type  {};
 	struct null_value {};
 
-	template<class T> constexpr bool is_null  (T) noexcept { return std::is_same_v<null_type,  T>; }
-	template<class T> constexpr bool has_value(T) noexcept { return std::is_same_v<null_value, T>; }
+	template<class T> constexpr bool is_null  (T) noexcept { return  std::is_same_v<null_type,  T>; }
+	template<class T> constexpr bool has_value(T) noexcept { return !std::is_same_v<null_value, T>; }
 
 	template<class T> using opt	= eastl::optional<T>;
 	using nullopt = eastl::nullopt_t;

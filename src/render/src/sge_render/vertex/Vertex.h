@@ -149,7 +149,7 @@ namespace sge {
 		void set(VERTEX) {
 			type	 = VERTEX::kType();
 			stride	 = sizeof (VERTEX);
-			_set(VERTEX::DescList{});
+			_set( VERTEX::DescList{} );
 		}
 
 	private:
@@ -204,7 +204,7 @@ namespace sge {
 				using prev = decltype ( meta::front	(rest{}) );
 				static constexpr u8 smt_idx = prev::semantic_t() == DESC::semantic_t() ? SMT_IDX + 1 : 0;
 				return meta::push_front(_setIndex<smt_idx>(rest{}),
-										VertexElmDesc<DESC::semantic_t(), decltype(DESC::format()), smt_idx> {});
+										VertexElmDesc <DESC::semantic_t(), decltype(DESC::format()), smt_idx> {});
 			}
 		}
 
@@ -253,9 +253,9 @@ namespace sge {
 		decltype(auto) _data() {
 			using index = typename Slot::Data<SMT_TYPE, SMT_IDX>::index;
 			if constexpr (meta::has_value(index{})) {
-				static_assert(false, "invalid vertex idx");
-			} else {
 				return eastl::get< meta::get_value(index{}) >(m_storage);
+			} else {
+				static_assert(false, "invalid vertex idx");
 			}
 		}
 		Storage m_storage;
@@ -283,4 +283,6 @@ namespace sge {
 		using PosTex	= Vertex<DL::pos_tup3f_c1, DL::tex_tup2f_c1>;
 		using PosColTex = Vertex<DL::pos_tup3f_c1, DL::col_col4b_c1, DL::tex_tup2f_c1>;
 	};
+
+
 }
