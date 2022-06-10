@@ -60,11 +60,7 @@ namespace sge {
 	E(Texture1DArray) E(Texture2DArray) E(Texture3DArray) E(TextureCubeArray)	\
 //----
 
-
-
-
 	SGE_ENUM_STR_UTIL(RenderFormatType)
-	SGE_ENUM_ALL_OPERATOR(RenderFormatType)
 
 	struct RenderFormatTypeUtil {
 		RenderFormatTypeUtil() = delete;
