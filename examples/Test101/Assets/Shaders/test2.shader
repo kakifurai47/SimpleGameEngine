@@ -1,10 +1,11 @@
+#if 0
 Shader {
 	Pass {
 		VsFunc		vs_main
 		PsFunc		ps_main
 	}
 }
-
+#endif
 
 struct VOut
 {
