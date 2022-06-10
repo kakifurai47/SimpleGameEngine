@@ -1,9 +1,10 @@
 #pragma once
 
 #ifdef SGE_RENDER_COMP_DX11
-#include "../base/Render_Common.h"
-#include "../../vertex/Vertex.h"
-#include "../../shader/Shader.h"
+
+#include <sge_render/backend/base/Render_Common.h>
+#include <sge_render/vertex/Vertex.h>
+#include <sge_render/shader/Shader.h>
 
 #include <d3d11.h>
 #include <d3d11_4.h>
@@ -57,9 +58,9 @@ namespace sge
 
 		static void throwIfError(HRESULT hr, ID3DBlob* errorMsg = nullptr);
 
-		static const char* DX11Util::getDxStageProfile(ShaderStage s);
+		static const char* DX11Util::getDxStageProfile(ShaderStageMask s);
 
-		static ShaderPropType getPropType(D3D_SHADER_VARIABLE_TYPE type, size_t rows, size_t cols);
+		static VertexSemanticType parseDxSemanticName(StrView s);
 
 		//static DXGI_FORMAT getDxFormat(Render_FormatType v);
 
@@ -79,37 +80,14 @@ namespace sge
 	}
 
 	inline
-	const char* DX11Util::getDxStageProfile(ShaderStage s) {
+	const char* DX11Util::getDxStageProfile(ShaderStageMask s) {
 		switch (s) {
-		case ShaderStage::Vertex:	return "vs_5_0";
-		case ShaderStage::Pixel:	return "ps_5_0";
+		case ShaderStageMask::Vertex:	return "vs_5_0";
+		case ShaderStageMask::Pixel:	return "ps_5_0";
 		default: return "";
 		}
 	}
 
-	inline
-	ShaderPropType DX11Util::getPropType(D3D_SHADER_VARIABLE_TYPE type, size_t rows, size_t cols) {
-		using SRC = D3D_SHADER_VARIABLE_TYPE;
-		using DST = ShaderPropType;
-		switch (type) {
-		case SRC::D3D10_SVT_INT: {
-			if (rows == 1 && cols == 1) return DST::Int;
-		}
-		case SRC::D3D_SVT_FLOAT: {
-			if (rows == 1 && cols == 1) return DST::Float;
-			if (rows == 1 && cols == 2) return DST::Vec2f;
-			if (rows == 1 && cols == 3) return DST::Vec3f;
-			if (rows == 1 && cols == 4) return DST::Vec4f;
-			if (rows == 4 && cols == 4) return DST::Matrix;
-		}
-		case SRC::D3D_SVT_DOUBLE: {
-			if (rows == 1 && cols == 1) return DST::Double;
-		}
-		default: throw SGE_ERROR(
-			"unsupported D3D_SHADER_VARIABLE_TYPE: {} rows: {} cols:{}",
-			type, rows, cols);
-		}
-	}
 
 	inline
 	ByteSpan DX11Util::toSpan(ID3DBlob* blob) {

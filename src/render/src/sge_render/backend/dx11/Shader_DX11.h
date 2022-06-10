@@ -17,6 +17,6 @@ namespace sge {
 		Vector_<DX11_ID3DVertexShader*, 1> m_d3dVtxShads;
 		Vector_<DX11_ID3DPixelShader*,  1> m_d3dPxlShads;
 
-		void _onCreateShad(StrView passPath, ShaderStage stage, StrView funcName);
+		void _onCreateShad(StrView passPath, ShaderStageMask stage, StrView funcName);
 	};
 }

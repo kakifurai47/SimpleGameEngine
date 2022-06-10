@@ -10,11 +10,12 @@ namespace sge {
 		RenderGpuBuffer_CreateDesc desc;
 		desc.type = RenderGpuBufferType::Const;
 
-		m_constBuf.reserve(info.constBufInfos.size());
-		for (const auto& c : info.constBufInfos) {
-			auto& buf = m_constBuf.emplace_back();
-			desc.bufferSize = c.size;
-			buf = renderer->createGpuBuffer(desc);
-		}
+		//FIX
+		//m_constBuf.reserve(info.constBufInfos.size());
+		//for (const auto& c : info.constBufInfos) {
+		//	auto& buf = m_constBuf.emplace_back();
+		//	desc.bufferSize = c.size;
+		//	buf = renderer->createGpuBuffer(desc);
+		//}
 	}
 }

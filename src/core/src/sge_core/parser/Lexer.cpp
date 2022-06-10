@@ -69,8 +69,8 @@ namespace sge {
 		size_t count = 0;
 		for (;;) {
 			auto o = m_off + count;
-			if (o + searchLen >= src.size()) {
-					    m_off == src.size();
+			if (o + searchLen >= src.size()	||
+					    m_off == src.size()) {
 				return false;
 			}
 			if (endPred(src, o)) {
@@ -117,7 +117,7 @@ namespace sge {
 		return { &m_src[m_off], m_src.size() - m_off };
 	}
 
-	bool Lexer::reset(StrView src) {
+	void Lexer::reset(StrView src) {
 		if (src == nullptr) {
 			throw SGE_ERROR("Lexer: reading nothing");
 		}
@@ -145,14 +145,16 @@ namespace sge {
 			}
 
 			auto parseCmd = false;
-			{//Command
+			{//Command				
+				auto pound		   = [](StrView s, size_t i) { return s[i] == '#';	};
 				auto doubleSlash   = [](StrView s, size_t i) { return s[i] == '/' && s[i + 1] == '/';  };
-				auto lineFeed	   = [](StrView s, size_t i) { return s[i] == '\n'; };
+				auto lineFeed	   = [](StrView s, size_t i) { return s[i] == '\n';	};
 				auto slashAsterisk = [](StrView s, size_t i) { return s[i] == '/' && s[i + 1] == '*';  };
 				auto asteriskSlash = [](StrView s, size_t i) { return s[i] == '*' && s[i + 1] == '/';  };
 
 				if (_findMatch(src, TokenType::Cmd, false, doubleSlash,	   2)) { _scanUntil(src, true, lineFeed,	  1); parseCmd = true; }
 				if (_findMatch(src, TokenType::Cmd, false, slashAsterisk,  2)) { _scanUntil(src, true, asteriskSlash, 2); parseCmd = true; }
+				if (_findMatch(src, TokenType::Cmd, false, pound,		   1)) { _scanUntil(src, true, lineFeed,	  1); parseCmd = true; }
 			}
 			if (!parseCmd) {
 				break;

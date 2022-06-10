@@ -1,15 +1,17 @@
 #include "ShaderCompiler_DX11.h"
+#include <sge_core/serializer/json/JsonUtil.h>
 
 namespace sge {
 
-	void ShaderCompiler_DX11::compile(StrView outPath,	   ShaderStage stage,
-									  StrView srcFileName, StrView entryFunc) {
+	void ShaderCompiler_DX11::compile(StrView outPath, ShaderStageMask stage,
+									  StrView srcFileName, StrView entryFunc) 
+	{
 		TempStringA entryPt = entryFunc;
 
-		MemMapFile memmap;
-		memmap.open(srcFileName);
+		MemMapFile mm;
+		mm.open(srcFileName);
 
-		auto hlsl = memmap.span();
+		auto hlsl = mm.span();
 
 		UINT flags1 = 0;
 		UINT flags2 = 0;
@@ -19,89 +21,173 @@ namespace sge {
 #endif
 		HRESULT hr {};
 
-		ComPtr<ID3DBlob>	byteCode;
+		ComPtr<ID3DBlob>	bytecode;
 		ComPtr<ID3DBlob>	errorMsg;
 
 		auto profile = Util::getDxStageProfile(stage);
 
-		hr = D3DCompile2(hlsl.data(), hlsl.size(), memmap.filename().c_str(),
-						 nullptr, nullptr,
-						 entryPt.c_str(),
-						 profile,
-						 flags1, flags2, 0, nullptr, 0,
-						 byteCode.ptrForInit(),
-						 errorMsg.ptrForInit());
-
+		hr = D3DCompile2(	hlsl.data(), hlsl.size(), mm.filename().c_str(),
+							nullptr, nullptr,
+							entryPt.c_str(),
+							profile,
+							flags1, flags2, 0, nullptr, 0,
+							bytecode.ptrForInit(),
+							errorMsg.ptrForInit());
 		Util::throwIfError(hr, errorMsg);
 
-		Directory::create(outPath);
+		auto bytecodeSpan = Util::toSpan(bytecode);
+		auto outFilename  = Fmt("{}/{}.bin", outPath, profile);
+		File::writeFileIfChanged(outFilename, bytecodeSpan, false);
 
-		auto outFilename = Fmt("{}/{}.bin", outPath, profile);
-		File::writeFile(outFilename, Util::toSpan(byteCode), false);
+		_reflect(outFilename, bytecodeSpan, stage, profile);
 	}
 
-	void ShaderCompiler_DX11::reflect(StrView outPath, ShaderStage stage, ShaderInfo& outInfo) {
-		auto profile	 = Util::getDxStageProfile(stage);
-		auto outFilename = Fmt("{}/{}.bin", outPath, profile);
-
-		MemMapFile memmap;
-		memmap.open(outFilename);
-		auto byteCode = memmap.span();
-
-		HRESULT hr{};
-		ComPtr<DX11_ID3DShaderReflection> shadReflect;
-		hr = D3DReflect(byteCode.data(),
-						byteCode.size(),
-						IID_ID3D11ShaderReflection,
-						reinterpret_cast<void**>(shadReflect.ptrForInit()));
+	void ShaderCompiler_DX11::_reflect(StrView outFilename, ByteSpan bytecode,
+									   ShaderStageMask stage, StrView profile)
+	{
+		HRESULT hr {};
+		ComPtr<DX11_ID3DShaderReflection> reflect;
+		hr = D3DReflect(bytecode.data(), bytecode.size(), IID_PPV_ARGS(reflect.ptrForInit()));
 		Util::throwIfError(hr);
 
-		D3D11_SHADER_DESC shadDesc{};
-		hr = shadReflect->GetDesc(&shadDesc);
+		D3D11_SHADER_DESC desc {};
+		hr = reflect->GetDesc(&desc);
 		Util::throwIfError(hr);
 
-		for (size_t i = 0; i < shadDesc.ConstantBuffers; i++) {
-			DX11_ShaderReflectionConstantBuffer* bufReflect = shadReflect->GetConstantBufferByIndex(i);
+		ShaderStageInfo outInfo;
+		outInfo.profile = profile;
+		outInfo.stage	= stage;
 
-			D3D11_SHADER_BUFFER_DESC	 bufDesc {};
-			D3D11_SHADER_INPUT_BIND_DESC bindDesc{};
+		{
+			_reflect_inputs			(outInfo, reflect, desc);
+			_reflect_constBuffers	(outInfo, reflect, desc);
+			_reflect_textures		(outInfo, reflect, desc);
+			_reflect_samplers		(outInfo, reflect, desc);
+		}
 
-			bufReflect->GetDesc(&bufDesc);
-			hr = shadReflect->GetResourceBindingDesc(i, &bindDesc);
+		auto jsonFilename = Fmt("{}.json", outFilename);
+		JsonUtil::writeFileIfChanged(jsonFilename, outInfo, false);
+	}
+
+	void ShaderCompiler_DX11::_reflect_inputs(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc)
+	{
+		HRESULT hr {};
+		outInfo.inputs.reserve(desc.InputParameters);
+
+		for (UINT i = 0; i < desc.InputParameters; i++) {
+			auto& outInputs = outInfo.inputs.emplace_back();
+
+			D3D11_SIGNATURE_PARAMETER_DESC paramDesc {};
+			hr = reflect->GetInputParameterDesc(i, &paramDesc);
 			Util::throwIfError(hr);
 
-			auto& constBufInfo	 = outInfo.constBufInfos.emplace_back();
-			constBufInfo.size	 = bufDesc.Size;
-			constBufInfo.slotIdx = bindDesc.BindPoint;
+			VertexSemanticType semanticType;
+			semanticType = Util::parseDxSemanticName(paramDesc.SemanticName);
+			
+			outInputs.semantic = VertexSemanticUtil::make(semanticType, static_cast<VertexSemanticIndex>(paramDesc.SemanticIndex));
 
-			for (size_t j = 0; j < bufDesc.Variables; j++) {
-				DX11_ShaderReflectionVariable*	varReflect	= bufReflect->GetVariableByIndex(j);
-				DX11_ShaderReflectionType*		typeReflect = varReflect->GetType();
+			TempString formatType;
 
-				D3D11_SHADER_TYPE_DESC		typeDesc{};
-				D3D11_SHADER_VARIABLE_DESC	 varDesc{};
+			switch (paramDesc.ComponentType) {
+				case D3D_REGISTER_COMPONENT_UINT32:		formatType.append("UInt08");	break;
+				case D3D_REGISTER_COMPONENT_SINT32:		formatType.append("Int32");		break;
+				case D3D_REGISTER_COMPONENT_FLOAT32:	formatType.append("Float32");	break;
+				default: throw SGE_ERROR("unspported component type {}", paramDesc.ComponentType);
+			}
 
-				varReflect->GetDesc(&varDesc);
-				typeReflect->GetDesc(&typeDesc);
+			auto compCount = BitUtil::count1(paramDesc.Mask);
+			if (compCount < 1 || compCount > 4) {
+				throw SGE_ERROR("invalid componenet Count {}", compCount);
+			}
 
-				ShaderInfo::Prop* prop = nullptr;
+			FmtTo(formatType, "x{}", compCount);
 
-				for (auto& p : outInfo.properties) {
-					if (p.name != varDesc.Name) continue;
-					prop = &p;
-					break;
-				}
-				if (!prop) {
-					 prop = &outInfo.properties.emplace_back();
-					 prop->name = varDesc.Name;
-					 prop->type = Util::getPropType(typeDesc.Type,
-								  typeDesc.Rows, typeDesc.Columns);
-				}
-				prop->isDefined = true;
-				prop->offset	= varDesc.StartOffset;
-				prop->slotIdx	= bindDesc.BindPoint;
+			if (!enumTryParse(outInputs.formatType, formatType)) {
+				throw SGE_ERROR("cannot parse Render FormatType enum {}", formatType);
 			}
 		}
+	}
+
+	void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc)
+	{
+		HRESULT hr {};
+		outInfo.constBuffers.reserve(desc.BoundResources);
+
+		for (UINT i = 0; i < desc.BoundResources; i++) {
+			D3D11_SHADER_INPUT_BIND_DESC resDesc {};
+			hr = reflect->GetResourceBindingDesc(i, &resDesc);
+
+			if(resDesc.Type != D3D_SIT_CBUFFER) continue;
+
+			auto& outCB = outInfo.constBuffers.emplace_back();
+
+			D3D11_SHADER_BUFFER_DESC bufDesc {};
+			auto* cb = reflect->GetConstantBufferByName(resDesc.Name);
+			hr = cb->GetDesc(&bufDesc);
+			Util::throwIfError(hr);
+
+			outCB.name		= bufDesc.Name;
+			outCB.bindPoint = static_cast<i16>(resDesc.BindPoint);
+			outCB.bindCount = static_cast<i16>(resDesc.BindCount);
+			outCB.dataSize	= bufDesc.Size;
+
+			{
+				outCB.variables.reserve(bufDesc.Variables);
+				for (UINT j = 0; j < bufDesc.Variables; j++) {
+					auto* cbv = cb->GetVariableByIndex(j);
+					D3D11_SHADER_VARIABLE_DESC varDesc {};
+					hr = cbv->GetDesc(&varDesc);
+					Util::throwIfError(hr);
+
+					D3D11_SHADER_TYPE_DESC varType {};
+					hr = cbv->GetType()->GetDesc(&varType);
+					Util::throwIfError(hr);
+
+					if (0 == (varDesc.uFlags & D3D_SVF_USED)) continue;
+
+					auto& outVar  = outCB.variables.emplace_back();
+					outVar.name   = varDesc.Name;
+					outVar.offset = varDesc.StartOffset;
+					
+					TempString  formatType;
+					switch (varType.Type) {
+					case D3D_SVT_BOOL:		formatType.append("Bool");		break;
+					case D3D_SVT_INT:		formatType.append("Int32");		break;
+					case D3D_SVT_UINT8:		formatType.append("UInt08");	break;
+					case D3D_SVT_UINT:		formatType.append("UInt16");	break;
+					case D3D_SVT_FLOAT:		formatType.append("Float32");	break;
+					case D3D_SVT_DOUBLE:	formatType.append("Float64");	break;
+						default: throw SGE_ERROR("unsupported type {}", varType.Type);
+					}
+					switch (varType.Class) {
+					
+					case D3D_SVC_SCALAR:		 FmtTo(formatType, "x{}",				   varType.Columns); break;
+					case D3D_SVC_VECTOR:		 FmtTo(formatType, "x{}",				   varType.Columns); break;
+					case D3D_SVC_MATRIX_COLUMNS: FmtTo(formatType, "_{}x{}", varType.Rows, varType.Columns); break;
+					case D3D_SVC_MATRIX_ROWS:	 FmtTo(formatType, "_{}x{}", varType.Rows, varType.Columns); break;
+					default: throw SGE_ERROR("unsupported class {}", varType.Class);
+					}
+
+					if (!enumTryParse(outVar.formatType, formatType)) {
+						throw SGE_ERROR("cannot parse format type {}", formatType);
+					}
+
+					if (outVar.formatType == FormatType::None) {
+						throw SGE_ERROR("format type is None");
+					}
+				}
+
+			}
+
+		}
+	}
+
+	void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
+		SGE_LOG("TODO: Implement _reflect_textures");
+	}
+
+	void ShaderCompiler_DX11::_reflect_samplers(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
+		SGE_LOG("TODO: Implement _reflect_samplers");
 	}
 }
 

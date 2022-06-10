@@ -1,7 +1,15 @@
 #pragma once
 #include <sge_core/base/sge_base.h>
+#include <sge_render/vertex/Vertex.h>
+
 
 namespace sge {
+	enum class ShaderStageMask {
+		None,
+		Vertex  = 1 << 0,
+		Pixel	= 1 << 1,
+	};
+
 	enum class ShaderPropType : u8 {
 		None,
 		Int,
@@ -27,6 +35,21 @@ namespace sge {
 
 	SGE_ENUM_STR_UTIL(ShaderPropType)
 
+	struct ShaderPropTypeUtil {
+		ShaderPropTypeUtil() = delete;
+		
+		using Type = ShaderPropType;
+
+		template<class T> static constexpr Type get();
+
+		template<> static constexpr	Type get<i32>()		{ return Type::Int;		}
+		template<> static constexpr	Type get<f32>()		{ return Type::Float;	}
+		template<> static constexpr	Type get<Vec2f>()	{ return Type::Vec2f;	}
+	//	template<> static constexpr	Type get<Vec3f>()	{ return Type::Vec3f;	}
+	//	template<> static constexpr	Type get<Vec4f>()	{ return Type::Vec4f;	}
+		template<> static constexpr	Type get<Color4f>()	{ return Type::Color4f; }
+	};
+
 	class ShaderInfo : public NonCopyable {
 	public:
 		struct Attr {
@@ -50,18 +73,6 @@ namespace sge {
 		Vector_<Prop, 8>	props;
 		Vector_<Pass, 1>	passes;
 	};
-
-	class ShaderStageInfo : public NonCopyable {
-	public:
-
-
-
-
-	};
-
-
-
-
 
 	template<class SE> inline
 	void onSerDes(SE& se, ShaderInfo& info) {
@@ -90,5 +101,121 @@ namespace sge {
 		SGE_SERDES_IO(se, pass, psFunc);
 	}
 
+	class ShaderStageInfo : public NonCopyable {
+	public:
+		using FormatType = RenderFormatType;
+		using Semantic	 = VertexSemantic;
+		
+		String	filename;
+		String	profile;
+		ShaderStageMask stage = ShaderStageMask::None;
+		
+		struct Param {
+			String	   name;
+			FormatType formatType;
+			i16 bindPoint = 0;
+			i16 bindCount = 0;
+		};
+		
+		struct Input {
+			String		name;
+			Semantic	semantic   = Semantic::None;
+			FormatType	formatType = FormatType::None;
+		};
 
+		struct Variable {
+			String		name;
+			FormatType	formatType = FormatType::None;
+			size_t		offset	   = 0;
+			bool		rowMajor   = true;
+		};
+
+		struct ConstBuffer {
+			String	 name;
+			i16		 bindPoint = 0;
+			i16		 bindCount = 0;
+			size_t	 dataSize  = 0;
+
+			Vector_<Variable, 4> variables;
+		};
+
+		struct Texture {
+			String		name;
+			i16			bindPoint  = 0;
+			i16			bindCount  = 0;
+			FormatType	formatType = FormatType::None;
+		};
+
+		struct Sampler {
+			String		name;
+			i16			bindPoint	= 0;
+			i16			bindCount	= 0;
+			FormatType	formatType  = FormatType::None;
+		};
+
+		Vector_<Input, 8>		inputs;
+		Vector_<Param, 8>		params;
+		Vector_<ConstBuffer, 8>	constBuffers;
+
+		Vector_<Texture, 8>		textures;
+		Vector_<Sampler, 8>		samplers;
+	};
+
+	template<class SE> inline
+	void onSerDes(SE& se, ShaderStageInfo& stageInfo) {
+		SGE_SERDES_IO(se, stageInfo, profile);
+		SGE_SERDES_IO(se, stageInfo, inputs);
+		SGE_SERDES_IO(se, stageInfo, params);
+		SGE_SERDES_IO(se, stageInfo, constBuffers);
+		SGE_SERDES_IO(se, stageInfo, textures);
+		SGE_SERDES_IO(se, stageInfo, samplers);
+	}
+
+	template<class SE> inline
+	void onSerDes(SE& se, ShaderStageInfo::Param& param) {
+		SGE_SERDES_IO(se, param, name);
+		SGE_SERDES_IO(se, param, formatType);
+		SGE_SERDES_IO(se, param, bindPoint);
+		SGE_SERDES_IO(se, param, bindCount);
+	}
+
+	template<class SE> inline
+	void onSerDes(SE& se, ShaderStageInfo::Input& input) {
+		SGE_SERDES_IO(se, input, name);
+		SGE_SERDES_IO(se, input, semantic);
+		SGE_SERDES_IO(se, input, formatType);
+	}
+
+	template<class SE> inline
+	void onSerDes(SE& se, ShaderStageInfo::Variable& variable) {
+		SGE_SERDES_IO(se, variable, name);
+		SGE_SERDES_IO(se, variable, formatType);
+		SGE_SERDES_IO(se, variable, offset);
+		SGE_SERDES_IO(se, variable, rowMajor);
+	}
+
+	template<class SE> inline
+	void onSerDes(SE& se, ShaderStageInfo::ConstBuffer& constBuf) {
+		SGE_SERDES_IO(se, constBuf, name);
+		SGE_SERDES_IO(se, constBuf, bindPoint);
+		SGE_SERDES_IO(se, constBuf, bindCount);
+		SGE_SERDES_IO(se, constBuf, dataSize);
+		SGE_SERDES_IO(se, constBuf, variables);
+	}
+
+	template<class SE> inline
+	void onSerDes(SE& se, ShaderStageInfo::Texture& texture) {
+		SGE_SERDES_IO(se, texture, name);
+		SGE_SERDES_IO(se, texture, bindPoint);
+		SGE_SERDES_IO(se, texture, bindCount);
+		SGE_SERDES_IO(se, texture, formatType);
+	}
+
+	template<class SE> inline
+		void onSerDes(SE& se, ShaderStageInfo::Sampler& sampler) {
+		SGE_SERDES_IO(se, sampler, name);
+		SGE_SERDES_IO(se, sampler, bindPoint);
+		SGE_SERDES_IO(se, sampler, bindCount);
+		SGE_SERDES_IO(se, sampler, formatType);
+	}
 }

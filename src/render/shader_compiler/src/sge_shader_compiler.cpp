@@ -1,6 +1,6 @@
 
 #include <sge_core/app/ConsoleApp.h>
-#include <sge_core/json/Json.h>
+#include <sge_core/serializer/json/JsonUtil.h>
 
 #include "ShaderCompiler_DX11.h"
 #include "ShaderParser.h"
@@ -9,60 +9,46 @@ namespace sge {
 	class ShaderCompiler : public ConsoleApp {
 	protected:
 		virtual void onRun() {
-			{
-				String file = getExecutableFileName();
-				String path = FilePath::dirname(file);
-				path.append("/../../../../../../examples/Test101");
-				Directory::setCurrent(path);
+			
+			String file = getExecutableFileName();
+			String path = FilePath::dirname(file);
+			path.append("/../../../../../../examples/Test101");
 
-				auto dir = Directory::getCurrent();
-				SGE_LOG("dir = {}", dir);
-			}
+			auto* proj = ProjectSettings::instance();
+			proj->setProjectRoot(path);
+			//---------
 
 			ShaderInfo info;
 			StrView shaderFilename = "Assets/Shaders/test.shader";
 			
-			String outputPath = Fmt("LocalTemp/Imported/{}", shaderFilename);
+			String outputPath = Fmt("{}/{}", proj->importedPath(), shaderFilename);
 			Directory::create(outputPath);
 			
-			TempString code;
-			auto codeFilename = Fmt("{}/code.hlsl", outputPath);
-			auto infoFilename = Fmt("{}/info.json", outputPath);
 			{
 				ShaderParser parser;
 				parser.readFile(info, shaderFilename);
-				
-				for (size_t i = 0; i < parser.line(); i++) {
-					code += "//\n";
-				}
-				auto remain = parser.getRemainSource();
-				code += remain;
-				
-				File::writeFileIfChanged(codeFilename, code, true);
+
+				auto jsonFilename = Fmt("{}/info.json", outputPath);
+				JsonUtil::writeFile(jsonFilename, info, false);
 			}
-			{
+
+			{ // DX11
 				size_t passIndex = 0;
 				for (auto& pass : info.passes) {
 					auto passOutPath = Fmt("{}/dx11/pass{}", outputPath, passIndex);
-				
+
 					if (pass.vsFunc.size()) {
 						ShaderCompiler_DX11 c;
-						c.compile(passOutPath, ShaderStage::Vertex, codeFilename, pass.vsFunc);
-						c.reflect(passOutPath, ShaderStage::Vertex, info);
+						c.compile(passOutPath, ShaderStageMask::Vertex, shaderFilename, pass.vsFunc);
 					}
 					if (pass.psFunc.size()) {
 						ShaderCompiler_DX11 c;
-						c.compile(passOutPath, ShaderStage::Pixel, codeFilename, pass.psFunc);
-						c.reflect(passOutPath, ShaderStage::Pixel, info);
+						c.compile(passOutPath, ShaderStageMask::Pixel, shaderFilename, pass.psFunc);
 					}
+
 					passIndex++;
 				}
 			}
-
-			JsonSerializer se;
-			se.write(info);
-			se.save (infoFilename);
-
 			SGE_LOG("----------end------------");
 		}
 	};

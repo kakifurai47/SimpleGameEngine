@@ -8,13 +8,13 @@ namespace sge {
 		for (const auto& p : m_info.passes) {
 			auto passPath   = Fmt("{}/dx11/pass{}",compiledPath, passIndex);
 	
-			if (p.vsFunc.size()) _onCreateShad(passPath, ShaderStage::Vertex, p.vsFunc);
-			if (p.psFunc.size()) _onCreateShad(passPath, ShaderStage::Pixel,  p.psFunc);
+			if (p.vsFunc.size()) _onCreateShad(passPath, ShaderStageMask::Vertex, p.vsFunc);
+			if (p.psFunc.size()) _onCreateShad(passPath, ShaderStageMask::Pixel,  p.psFunc);
 			passIndex++;
 		}
 	}
 	
-	void Shader_DX11::_onCreateShad(StrView passPath, ShaderStage stage, StrView funcName) {
+	void Shader_DX11::_onCreateShad(StrView passPath, ShaderStageMask stage, StrView funcName) {
 		auto profile  =  DX11Util::getDxStageProfile(stage);
 		auto filename = Fmt("{}/{}.bin", passPath, profile);
 	
@@ -26,11 +26,11 @@ namespace sge {
 
 		HRESULT hr{};
 		switch (stage) {
-		case ShaderStage::Vertex: {
+		case ShaderStageMask::Vertex: {
 			hr = dev->CreateVertexShader(DX11Util::toBufferPtr(byteCode), byteCode.size(),
 										 nullptr, &m_d3dVtxShads.emplace_back());
 		} break;
-		case ShaderStage::Pixel: {
+		case ShaderStageMask::Pixel: {
 			hr = dev->CreatePixelShader(DX11Util::toBufferPtr(byteCode), byteCode.size(),
 										nullptr, &m_d3dPxlShads.emplace_back());
 		}break;

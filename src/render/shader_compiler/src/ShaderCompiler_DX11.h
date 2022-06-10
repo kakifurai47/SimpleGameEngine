@@ -7,9 +7,17 @@ namespace sge {
 
 	class ShaderCompiler_DX11 : public NonCopyable {
 		using Util = DX11Util;
+		using FormatType = RenderFormatType;
 	public:
-		void compile(StrView outPath, ShaderStage stage, StrView srcFileName, StrView entryFunc);
-		void reflect(StrView outPath, ShaderStage stage, ShaderInfo& outInfo);
-	};
+		void compile(StrView outPath, ShaderStageMask stage, StrView srcFileName, StrView entryFunc);
+		
 
+	private:
+		void _reflect(StrView outFilename, ByteSpan bytecode, ShaderStageMask stage, StrView profile);
+
+		void _reflect_inputs		(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc);
+		void _reflect_constBuffers	(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc);
+		void _reflect_textures		(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc);
+		void _reflect_samplers		(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc);
+	};
 }

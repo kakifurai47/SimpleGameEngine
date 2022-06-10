@@ -25,7 +25,7 @@ namespace sge {
 
 
 
-		bool reset(StrView src);
+		void reset(StrView src);
 
 		bool next	   (StrView src);
 		bool tryNext   (StrView src, TokenType type, StrView val = nullptr);
