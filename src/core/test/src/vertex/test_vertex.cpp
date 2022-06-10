@@ -27,22 +27,22 @@ namespace sge {
 			using d4 = EL::tan_tup3f_c1;
 			using d5 = EL::bnm_tup3f_c1;
 			
-			using slots		= VertexSlots<d5, d4, d2, d3, d2, d1, d0>;
-			using list		= slots::descList;
+			using slots		= VertexSlotUtil<d5, d4, d2, d3, d2, d1, d0>;
+			using list		= slots::slotList;
 			using storage	= slots::storage;
 			
 			meta::print_list( list{} );
 			SGE_LOG("---------------");
 			
 			using V0 = Vertex<d0, d1, d2, d2, d2, d3, d4, d5, d1>;
-			meta::print_list( V0::DescList{} );
+			meta::print_list( V0::SlotList{} );
 			SGE_LOG("^^^-------------");
-
+			
 			V0 v0;
 			v0.color   <0>() = {2,3,4,5};
 			v0.texcoord<1>() = {2,3};
 			v0.binormal<0>() = {1,2,3};
-
+			
 			print_VertexType(V0::kType());
 			SGE_LOG("----------");
 			
@@ -50,25 +50,24 @@ namespace sge {
 			print_VertexType(type);
 			SGE_LOG("----------");
 			
-			auto type2 = VertexType::make(	ST::Binormal, FT::Float16x4,		1,
-											ST::Position, FT::Float16x4,		1,
-											ST::Texcoord, FT::Float64x2,		2,
-											ST::Texcoord, FT::TextureCubeArray, 1,
-											ST::Texcoord, FT::Int16x2,			1);
+			auto type2 = VertexType::make(	ST::BINORMAL, FT::Float16x4,		1,
+											ST::POSITION, FT::Float16x4,		1,
+											ST::TEXCOORD, FT::Float64x2,		2,
+											ST::TEXCOORD, FT::TextureCubeArray, 1,
+											ST::TEXCOORD, FT::Int16x2,			1);
 			print_VertexType(type2);
 			SGE_LOG("----------");
-
+			
 			VertexLayout layout;
 			layout.set(V0{});
-
+			
 			SGE_DUMP_VAR(layout.stride);
-
+			
 			auto& elms = layout.elements;
-
+			
 			for (const auto& e : elms) {
-				SGE_DUMP_VAR(e.fmtType);
-				SGE_DUMP_VAR(e.smtType);
-				SGE_DUMP_VAR(e.smtIdx);
+				SGE_DUMP_VAR(e.formatType);
+				SGE_DUMP_VAR(e.semantic);
 				SGE_DUMP_VAR(e.offset);
 			}
 
