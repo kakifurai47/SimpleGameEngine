@@ -1,9 +1,9 @@
 #pragma once
 
-namespace sge {
-
+namespace sge  {
+namespace Sort {
 	template<class T>
-	void InsertionSort(T t) {
+	void InsertionSort(T& t) {
 		eastl::insertion_sort(eastl::begin(t), eastl::end(t));
 	}
 
@@ -11,7 +11,5 @@ namespace sge {
 	void InsertionSort(T(&t)[N]) {
 		eastl::insertion_sort(eastl::begin(t), eastl::end(t));
 	}
-
-
-
+}
 }

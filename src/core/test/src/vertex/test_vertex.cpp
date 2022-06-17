@@ -20,12 +20,13 @@ namespace sge {
 
 		void test_renderFormat() {
 
-			using d0 = EL::pos_tup3f_c1;
-			using d1 = EL::col_col4b_c1;
-			using d2 = EL::tex_tup2f_c1;
-			using d3 = EL::nrm_tup3f_c1;
-			using d4 = EL::tan_tup3f_c1;
-			using d5 = EL::bnm_tup3f_c1;
+			using d0 = EL::Pos_Tup3f_C1;
+			using d1 = EL::Col_Col4b_C1;
+			using d2 = EL::Tex_Tup2f_C1;
+
+			using d3 = EL::Tan_Tup3f_C1;
+			using d4 = EL::Norm_Tup3f_C1;
+			using d5 = EL::BNorm_tup3f_C1;
 			
 			using slots		= VertexSlotUtil<d5, d4, d2, d3, d2, d1, d0>;
 			using list		= slots::slotList;

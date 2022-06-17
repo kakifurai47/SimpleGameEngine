@@ -1,4 +1,4 @@
-
+#include <sge_core/log/Log.h>
 
 namespace sge  {
 namespace meta {

@@ -170,9 +170,12 @@ namespace sge {
 
 		static constexpr
 		VertexType _add(VertexType&& rhs, SmtType smt, FmtType fmt, size_t count) {
+			if (count <= 0) {
+				return rhs;
+			}
 			auto range = _range(smt);
 			auto start = range.first;
-			auto end   = range.second;
+			auto end = range.second;
 
 			for (size_t i = start; i < end; i++) {
 				if (rhs.formats[i] == FmtType::None) {
@@ -196,8 +199,8 @@ namespace sge {
 		}
 
 		void sort() {
-			InsertionSort(color);
-			InsertionSort(texcoord);
+			Sort::InsertionSort(color);
+			Sort::InsertionSort(texcoord);
 		}
 	};
 
@@ -242,11 +245,9 @@ namespace sge {
 
 	template<class FMT, VertexSemantic SMT>
 	struct VertexSlot {
-	private:
-		using Util = RenderFormatTypeUtil;
 	public:
 		static constexpr auto format  () noexcept { return FMT{}; }
-		static constexpr auto format_t() noexcept { return Util::get<FMT>(); }
+		static constexpr auto format_t() noexcept { return RenderFormatTypeUtil::get<FMT>(); }
 		static constexpr auto semantic() noexcept { return SMT;   }
 	};
 
@@ -347,22 +348,22 @@ namespace sge {
 	private:
 		using ST = VertexSemanticType;
 	public:
-		using pos_tup3f_c1 = VertexElmDesc<ST::POSITION, Tuple3f, 1>;
-		using col_col4b_c1 = VertexElmDesc<ST::COLOR,	 Color4b, 1>;
-		using tex_tup2f_c1 = VertexElmDesc<ST::TEXCOORD, Tuple2f, 1>;
+		using Pos_Tup3f_C1	= VertexElmDesc<ST::POSITION,	Tuple3f, 1>;
+		using Col_Col4b_C1	= VertexElmDesc<ST::COLOR,		Color4b, 1>;
+		using Tex_Tup2f_C1	= VertexElmDesc<ST::TEXCOORD,	Tuple2f, 1>;
 
-		using nrm_tup3f_c1 = VertexElmDesc<ST::NORMAL,   Tuple3f, 1>;
-		using tan_tup3f_c1 = VertexElmDesc<ST::TANGENT,  Tuple3f, 1>;
-		using bnm_tup3f_c1 = VertexElmDesc<ST::BINORMAL, Tuple3f, 1>;
+		using Tan_Tup3f_C1	 = VertexElmDesc<ST::TANGENT,	Tuple3f, 1>;
+		using Norm_Tup3f_C1	 = VertexElmDesc<ST::NORMAL,	Tuple3f, 1>;
+		using BNorm_tup3f_C1 = VertexElmDesc<ST::BINORMAL,	Tuple3f, 1>;
 	};
 
 	struct VertexLib {
 	private:
 		using DL = VertexElmDescLib;
 	public:
-		using Pos		= Vertex<DL::pos_tup3f_c1>;
-		using PosCol	= Vertex<DL::pos_tup3f_c1, DL::col_col4b_c1>;
-		using PosTex	= Vertex<DL::pos_tup3f_c1, DL::tex_tup2f_c1>;
-		using PosColTex = Vertex<DL::pos_tup3f_c1, DL::col_col4b_c1, DL::tex_tup2f_c1>;
+		using Pos		= Vertex<DL::Pos_Tup3f_C1>;
+		using PosCol	= Vertex<DL::Pos_Tup3f_C1, DL::Col_Col4b_C1>;
+		using PosTex	= Vertex<DL::Pos_Tup3f_C1, DL::Tex_Tup2f_C1>;
+		using PosColTex = Vertex<DL::Pos_Tup3f_C1, DL::Col_Col4b_C1, DL::Tex_Tup2f_C1>;
 	};
 }
