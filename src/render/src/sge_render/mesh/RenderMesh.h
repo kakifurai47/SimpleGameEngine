@@ -1,25 +1,16 @@
 #pragma once
 
-#include "../vertex/Vertex.h"
+#include <sge_render/buffer/RenderGpuBuffer.h>
+#include <sge_render/vertex/Vertex.h>
 
-namespace sge
-{
+namespace sge {
 	class EditMesh;
-	class RenderMesh : public NonCopyable
-	{
+	class RenderMesh : public NonCopyable {
 	public:
-		RenderMesh(const EditMesh& mesh);
+		void create(const EditMesh& editMesh);
 
+		SPtr<RenderGpuBuffer> m_vertexBuf;
+		SPtr<RenderGpuBuffer> m_indexBuf;
 
-
-
-
-
-
-
-	private:
-		Vector<u8> m_vtxData;
-		Vector<u8> m_idxData;
-		
 	};
 }

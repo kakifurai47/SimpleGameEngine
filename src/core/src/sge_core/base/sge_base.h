@@ -42,6 +42,7 @@
 #include <EASTL/hash_map.h>
 #include <EASTL/vector_map.h>
 #include <EASTL/string_map.h>
+#include <EASTL/unordered_map.h>
 
 #include <EASTL/unique_ptr.h>
 #include <EASTL/shared_ptr.h>
@@ -95,6 +96,7 @@ namespace sge
 
 	constexpr size_t char_bit() { return CHAR_BIT; }
 	template <typename T> constexpr size_t bit_size(T) { return sizeof(T) * char_bit(); }
+	template <typename T> constexpr size_t bit_size()  { return sizeof(T) * char_bit(); }
 
 	template< class Obj, class Member > constexpr
 	intptr_t memberOffset(Member Obj::* ptrToMember) {
@@ -126,8 +128,10 @@ namespace sge
 	template<class T>			inline Span<T> makeSpan(Vector<T>&	 v)	  { return { v.data(), v.size() }; }
 	template<class T, size_t N> inline Span<T> makeSpan(Vector_<T, N>& v) { return { v.data(), v.size() }; }
 
-	template<class KEY, class VALUE> using Map = eastl::map<KEY, VALUE>;
-	template<class KEY, class VALUE> using VectorMap = eastl::vector_map<KEY, VALUE>;
+	template<class KEY, class VALUE> using Map				 = eastl::map<KEY, VALUE>;
+	template<class KEY, class VALUE> using VectorMap		 = eastl::vector_map<KEY, VALUE>;
+	template<class KEY, class VALUE> using UnorderedMap		 = eastl::unordered_map<KEY, VALUE>;
+	template<class KEY, class VALUE> using UnorderedMultiMap = eastl::unordered_multimap<KEY, VALUE>;
 
 	template<class T> using StrViewT = eastl::basic_string_view<T>;
 	using StrViewA = StrViewT<char>;

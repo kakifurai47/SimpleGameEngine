@@ -4,11 +4,11 @@
 
 namespace sge
 {
-	struct Math
+	namespace Math
 	{
-		inline static constexpr bool isPow2(u64 v) { return v && !(v & (v - 1)); }
+		SGE_INLINE constexpr bool isPow2(u64 v) { return v && !(v & (v - 1)); }
 
-		static constexpr u64 nextPow2(u64 v) {
+		constexpr u64 nextPow2(u64 v) {
 			v--;
 			v |= v >> 1;
 			v |= v >> 2;
@@ -18,28 +18,28 @@ namespace sge
 			return ++v;
 		}
 
-		//Jenkins hash function
-		static u32 hash(StrView src) {
-			size_t i = 0;
-			u32 ret  = 0;			
+		////Jenkins hash function
+		//u32 hash(StrView src) {
+		//	size_t i = 0;
+		//	u32 ret  = 0;			
+		//
+		//	for (auto i : src) {
+		//		ret += src[i];
+		//		ret += ret << 10;
+		//		ret ^= ret >> 6;
+		//	}
+		//	ret += ret << 3;
+		//	ret ^= ret >> 11;
+		//	ret += ret << 15;
+		//	return ret;
+		//}
 
-			for (auto i : src) {
-				ret += src[i];
-				ret += ret << 10;
-				ret ^= ret >> 6;
-			}
-			ret += ret << 3;
-			ret ^= ret >> 11;
-			ret += ret << 15;
-			return ret;
-		}
+		template<class T> SGE_INLINE constexpr T max(const T& a, const T& b) { return a > b ? a : b; }
+		template<class T> SGE_INLINE constexpr T min(const T& a, const T& b) { return a < b ? a : b; }
 
-		template<class T> constexpr T max(const T& a, const T& b) { return a > b ? a : b; }
-		template<class T> constexpr T min(const T& a, const T& b) { return a < b ? a : b; }
-
-		template<class T> constexpr T byteToK(const T& v) { return v / 1024; }
-		template<class T> constexpr T byteToM(const T& v) { return v / (1024 * 1024); }
-		template<class T> constexpr T byteToG(const T& v) { return v / (1024 * 1024 * 1024); }
+		template<class T> SGE_INLINE constexpr T byteToK(const T& v) { return v / 1024; }
+		template<class T> SGE_INLINE constexpr T byteToM(const T& v) { return v / (1024 * 1024); }
+		template<class T> SGE_INLINE constexpr T byteToG(const T& v) { return v / (1024 * 1024 * 1024); }
 
 		struct _Helper {
 			template<class T>
@@ -51,6 +51,14 @@ namespace sge
 			}
 		};
 
-		static constexpr size_t alignTo(size_t n, size_t a) { return _Helper::alignTo_uint(n, a); }
+		SGE_INLINE constexpr size_t alignTo(size_t n, size_t a) { return _Helper::alignTo_uint(n, a); }
+
+		template<class T> SGE_INLINE
+		constexpr T abs(const T& v) {
+			T mask = v >> bit_size<T>() - 1;
+			return (v ^ mask) - mask;
+		}
+
+
 	};
 }
