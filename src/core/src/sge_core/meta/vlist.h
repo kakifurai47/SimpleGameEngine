@@ -1,4 +1,4 @@
-
+#include <sge_core/log/Log.h>
 
 namespace sge  {
 namespace meta {
@@ -18,7 +18,7 @@ namespace meta {
 		else										{ SGE_LOG("print_value: {}", V); }
 	}
 
-	template<auto... V1s, auto... V2s> constexpr auto cocat(vlist<V1s...>, vlist<V2s...>)  noexcept ->vlist<V1s..., V2s...> { return{}; }
+	template<auto... V1s, class... V2s> constexpr auto cocat(vlist<V1s...>, V2s...)  noexcept ->vlist<V1s...> { return{}; }
 	template<auto... V1s, auto... V2s, class... Ts>
 	constexpr auto cocat(vlist<V1s...>, vlist<V2s...>,  Ts  ...)  noexcept
 		->decltype(cocat(vlist<V1s...,		  V2s...>{},Ts{}...)) {

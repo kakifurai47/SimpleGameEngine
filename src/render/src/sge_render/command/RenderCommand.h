@@ -3,6 +3,7 @@
 #include "../vertex/Vertex.h"
 #include "../buffer/RenderGpuBuffer.h"
 #include "../shader/Material.h"
+#include "../mesh/RenderMesh.h"
 
 namespace sge {
 
@@ -48,7 +49,15 @@ namespace sge {
 	public:
 		RenderCmd_DrawCall() :Base(Type::DrawCall) {}
 
-		//const VertexLayout* vertexLayout = nullptr;
+		const VertexLayout* vertexLayout = nullptr;
+
+		RenderFormatType indexFormat = RenderFormatType::None;
+
+		size_t indexCount  = 0;
+		size_t vertexCount = 0;
+
+		SPtr<RenderGpuBuffer> vertexBuffer;
+		SPtr<RenderGpuBuffer> indexBuffer;
 
 		SPtr<Material> material;
 	};

@@ -2,8 +2,8 @@
 #include <sge_core/alllocators/LinearAllocator.h>
 #include "RenderCommand.h"
 
-namespace sge
-{	
+namespace sge {
+	
 	class RenderCommandBuffer : public NonCopyable {
 	public:
 		static const u64 size = 4 * 1024 * 1024;
@@ -21,7 +21,8 @@ namespace sge
 			return addCmd<RenderCmd_SwapBuffers>();
 		}
 
-		void drawMesh(const SrcLoc& debugLoc, Material& mat);
+		void drawMesh	(const SrcLoc& debugLoc, RenderMesh&    mesh, Material& mat);
+		void drawSubMesh(const SrcLoc& debugLoc, RenderSubMesh& mesh, Material& mat);
 
 
 		template<typename CMD>

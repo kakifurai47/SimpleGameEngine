@@ -6,13 +6,6 @@
 
 namespace sge
 {
-	struct VERTEX {
-		FLOAT X, Y, Z;    // position
-		Color4f Color;    // color
-	};
-
-
-
 	RenderContext_DX11::RenderContext_DX11(CreateDesc& desc)
 		: Base(desc)
 	{
@@ -90,35 +83,21 @@ namespace sge
 	}
 
 	void RenderContext_DX11::onCmd_DrawCall(RenderCmd_DrawCall& cmd) {
+
 		HRESULT hr;
-		//const wchar_t* shaderFile = L"Assets/Shaders/test.hlsl";
-		const wchar_t* shaderFile = L"LocalTemp/Imported/Assets/Shaders/test.shader/code.hlsl";
+		const wchar_t* shaderFile = L"Assets/Shaders/test.shader";
 
 		auto* dev = m_renderer->d3dDevice();
 		auto* ctx = m_renderer->d3dDeviceContext();
 		
 		auto* shad = static_cast<Shader_DX11*>(cmd.material->shader());
-		if  (!shad) { SGE_ASSERT(false); return; }
-		
+		SGE_ASSERT(shad != nullptr);
+
 		auto* vs = shad->d3dVtxShads()[0];
 		auto* ps = shad->d3dPxlShads()[0];
 		
 		ctx->VSSetShader(vs, 0, 0);
 		ctx->PSSetShader(ps, 0, 0);
-
-		auto* buf = static_cast<RenderGpuBuffer_DX11*>( cmd.material->buffers()[0].ptr() );
-		DX11_ID3DBuffer* ppConstBuffers[] = { buf->d3dBuf() };
-		ctx->PSSetConstantBuffers1(0, 1, ppConstBuffers, nullptr, nullptr);
-
-		//============
-		
-		//  TODO Vertex Buffer,
-		//  IndexBuffer,
-		//  Inputlayout,
-		//  multiple pass,
-		//  setting constant buffer at its corresponding stage
-
-		//============
 
 		if (!m_testVtxShader) {
 			ComPtr<ID3DBlob>	byteCode;
@@ -130,70 +109,49 @@ namespace sge
 			m_testVtxShaderByteCode.reset(byteCode.ptr());
 		}
 
-		
-
 		D3D11_INPUT_ELEMENT_DESC ied[] =
 		{
 			{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		};
 		
 		ComPtr<DX11_ID3DInputLayout>	outLayout;
-		
+
 		hr = dev->CreateInputLayout(ied, 2,
-							   m_testVtxShaderByteCode->GetBufferPointer(),
-							   m_testVtxShaderByteCode->GetBufferSize(), outLayout.ptrForInit());
-		Util::throwIfError(hr);
-		
+									m_testVtxShaderByteCode->GetBufferPointer(),
+									m_testVtxShaderByteCode->GetBufferSize(), outLayout.ptrForInit());
+		Util::throwIfError(hr);		
 		ctx->IASetInputLayout(outLayout);
+
+		SGE_ASSERT(cmd.vertexLayout != nullptr);
 		
+		auto* vertexBuffer = static_cast<RenderGpuBuffer_DX11*>(cmd.vertexBuffer.ptr());
+		SGE_ASSERT(vertexBuffer != nullptr);
 		
-		if (!m_testVtxBuffer)
-		{
-			// create a triangle using the VERTEX struct
-			VERTEX OurVertices[] =
-			{
-				{0.0f, 0.5f, 0.0f, Color4f(1.0f, 0.0f, 0.0f, 1.0f)},
-				{0.45f, -0.5, 0.0f, Color4f(0.0f, 1.0f, 0.0f, 1.0f)},
-				{-0.45f, -0.5f, 0.0f, Color4f(0.0f, 0.0f, 1.0f, 1.0f)}
-			};
-			
-			
-			// create the vertex buffer
-			D3D11_BUFFER_DESC bd	{};
-		
-			bd.Usage = D3D11_USAGE_DYNAMIC;                // write access access by CPU and GPU
-			bd.ByteWidth = sizeof(VERTEX) * 3;             // size is the VERTEX struct * 3
-			bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;       // use as a vertex buffer
-			bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;    // allow CPU to write in buffer
-			
-		
-		
-			hr = dev->CreateBuffer(&bd, NULL, m_testVtxBuffer.ptrForInit());       // create the buffer
-			Util::throwIfError(hr);
-			
-			
-			// copy the vertices into the buffer
-			D3D11_MAPPED_SUBRESOURCE ms;
-			hr = ctx->Map(m_testVtxBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);    // map the buffer
-			Util::throwIfError(hr);
-			memcpy(ms.pData, OurVertices, sizeof(OurVertices));                 // copy the data
-			ctx->Unmap(m_testVtxBuffer, NULL);                                      // unmap the buffer			
+		RenderGpuBuffer_DX11* indexBuffer = nullptr;
+		if (cmd.indexCount > 0) {
+			indexBuffer = static_cast<RenderGpuBuffer_DX11*>(cmd.indexBuffer.ptr());
+			SGE_ASSERT(indexBuffer != nullptr);
 		}
+
+		ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		
-		
-		DX11_ID3DBuffer* ppVertexBuffers[] = { m_testVtxBuffer.ptr() };
-		
-		// select which vertex buffer to display
-		UINT stride = sizeof(VERTEX);
-		UINT offset = 0;
+		UINT offset		 = 0;
+		UINT stride		 = static_cast<UINT>(cmd.vertexLayout->stride);
+		UINT vertexCount = static_cast<UINT>(cmd.vertexCount);
+		UINT indexCount	 = static_cast<UINT>(cmd.indexCount);
+
+		DX11_ID3DBuffer* ppVertexBuffers[]  = { vertexBuffer->d3dBuf() };
 		ctx->IASetVertexBuffers(0, 1, ppVertexBuffers, &stride, &offset);
 		
-		// select which primtive type we are using
-		ctx->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		
-		// draw the vertex buffer to the back buffer
-		ctx->Draw(3, 0);
+		if (indexCount > 0) {
+			auto indexFormat = Util::getDxFormat(cmd.indexFormat);
+			ctx->IASetIndexBuffer(indexBuffer->d3dBuf(), indexFormat, 0);
+			ctx->DrawIndexed(indexCount, 0, 0);
+		}
+		else {
+			ctx->Draw(vertexCount, 0);
+		}
 	}
 
 	void RenderContext_DX11::onCommit(RenderCommandBuffer& cmdBuf) {

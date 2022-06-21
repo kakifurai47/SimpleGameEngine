@@ -17,6 +17,8 @@ namespace sge {
 		using ST = VertexSemanticType;
 		using FT = RenderFormatType;
 		using EL = VertexElmDescLib;
+		using UT = RenderFormatTypeUtil;
+
 
 		void test_renderFormat() {
 
@@ -47,17 +49,36 @@ namespace sge {
 			print_VertexType(V0::kType());
 			SGE_LOG("----------");
 			
-			auto type = VertexLib::PosColTex::kType();
-			print_VertexType(type);
-			SGE_LOG("----------");
-			
-			auto type2 = VertexType::make(	ST::BINORMAL, FT::Float16x4,		1,
-											ST::POSITION, FT::Float16x4,		1,
-											ST::TEXCOORD, FT::Float64x2,		2,
-											ST::TEXCOORD, FT::TextureCubeArray, 1,
-											ST::TEXCOORD, FT::Int16x2,			1);
-			print_VertexType(type2);
-			SGE_LOG("----------");
+			{
+				auto type = VertexLib::PosColTex::kType();
+				print_VertexType(type);
+				SGE_LOG("----------");
+			}
+			{
+				auto type2 = VertexType::make(	ST::BINORMAL, FT::Float16x4,		1,
+												ST::POSITION, FT::Float16x4,		1,
+												ST::TEXCOORD, FT::Float64x2,		2,
+												ST::TEXCOORD, FT::TextureCubeArray, 1,
+												ST::TEXCOORD, FT::Int16x2,			1);
+				
+				print_VertexType(type2);
+				SGE_LOG("----------");
+			}
+			{
+				auto type = VertexType::make(ST::POSITION,		UT::get<Tuple3f>(), 1,
+											  ST::COLOR,		UT::get<Color4b>(), 0,
+											  ST::TEXCOORD,		UT::get<Tuple2f>(), 0,
+											  ST::NORMAL,		UT::get<Tuple3f>(), 0,
+											  ST::TANGENT,		UT::get<Tuple3f>(), 0,
+											  ST::BINORMAL,		UT::get<Tuple3f>(), 0);
+
+				SGE_LOG("printing this <----------------");
+				SGE_DUMP_VAR(type == VertexType::None());
+				print_VertexType(type);
+				SGE_LOG("----------");
+			}
+
+
 			
 			VertexLayout layout;
 			layout.set(V0{});

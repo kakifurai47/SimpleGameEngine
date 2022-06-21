@@ -139,8 +139,11 @@ namespace sge {
 			struct {
 				FmtType formats[16];
 			};
-			u64 data[2]{};
+			u64 data[2];
 		};
+
+		static VertexType None() { return {}; }
+
 
 		template<class... Ts> static constexpr
 		VertexType make(Ts&&... ts) {
@@ -149,11 +152,16 @@ namespace sge {
 			return ret;
 		}
 
-		bool operator() (const VertexType& lhs, const VertexType& rhs) {
-			return	lhs.data[0] == rhs.data[0] &&
-					lhs.data[1] == rhs.data[1];
+		friend bool operator<(const VertexType& lhs, const VertexType& rhs) {
+			if (lhs.data[1] != rhs.data[1]) { return lhs.data[1] < rhs.data[1]; }
+			return lhs.data[0] < rhs.data[0];
 		}
-	
+
+		friend bool operator ==(const VertexType& lhs, const VertexType& rhs) {
+			return lhs.data[0] == rhs.data[0] &&
+				   lhs.data[1] == rhs.data[1];
+		}
+
 	private:
 		template<auto... Vs> static constexpr
 		VertexType _make(meta::vlist<Vs...>&&) {
@@ -321,8 +329,8 @@ namespace sge {
 		using SlotList	= typename SlotUtil::slotList;
 		using Storage	= typename SlotUtil::storage;
 	
-		static const VertexType kType() {
-			return VertexType::make(meta::cocat( meta::vlist<DESCs::semantic_t(), DESCs::format_t(), DESCs::count()>{}...));
+		static constexpr VertexType kType() {
+			return VertexType::make(meta::cocat(meta::vlist<DESCs::semantic_t(), DESCs::format_t(), DESCs::count()>{}...));
 		}
 		template<u8 SMT_IDX> constexpr inline decltype(auto) position() { return _data<ST::POSITION, SMT_IDX>(); }
 		template<u8 SMT_IDX> constexpr inline decltype(auto) color	 () { return _data<ST::COLOR,	 SMT_IDX>(); }
