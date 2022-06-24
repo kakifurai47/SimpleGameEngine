@@ -14,23 +14,28 @@ namespace sge {
 	}
 
 
-	void RenderCommandBuffer::drawSubMesh(const SrcLoc& debugLoc, RenderSubMesh& mesh, Material& mat) {
-		auto* cmd = addCmd<RenderCmd_DrawCall>();
-#if _DEBUG
-		cmd->debugLoc = debugLoc;
-#endif
-		cmd->vertexLayout	= mesh.vertexLayout();
-		cmd->indexFormat	= mesh.indexFormat ();
+	void RenderCommandBuffer::drawSubMesh(const SrcLoc& debugLoc, RenderSubMesh& subMesh, Material* mat) {
+		SGE_ASSERT(mat != nullptr);
 
-		cmd->indexCount		= mesh.indexCount ();
-		cmd->vertexCount	= mesh.vertexCount();
-
-		cmd->indexBuffer	= mesh.indexBuffer ();
-		cmd->vertexBuffer	= mesh.vertexBuffer();
-		cmd->material = &mat;
+		auto& passes = mat->passes();
+		for (auto& pass : passes) {
+			auto* cmd = addCmd<RenderCmd_DrawCall>();
+	#if _DEBUG
+			cmd->debugLoc = debugLoc;
+	#endif
+			cmd->vertexLayout	= subMesh.vertexLayout();
+			cmd->indexFormat	= subMesh.indexFormat ();
+	
+			cmd->indexCount		= subMesh.indexCount ();
+			cmd->vertexCount	= subMesh.vertexCount();
+	
+			cmd->indexBuffer	= subMesh.indexBuffer ();
+			cmd->vertexBuffer	= subMesh.vertexBuffer();
+			cmd->materialPass	= pass.get();
+		}
 	}
 
-	void RenderCommandBuffer::drawMesh(const SrcLoc& debugLoc, RenderMesh& mesh, Material& mat) {
+	void RenderCommandBuffer::drawMesh(const SrcLoc& debugLoc, RenderMesh& mesh, Material* mat) {
 		auto submeshes = mesh.subMeshes();
 		for (auto& m : submeshes) {
 			drawSubMesh(debugLoc, m, mat);

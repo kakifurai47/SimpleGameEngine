@@ -13,7 +13,6 @@ namespace sge
 #endif
 	}
 
-
 	Renderer* Renderer::create(CreateDesc& desc) {
 		Renderer* p = nullptr;
 		switch (desc.apiType) {
@@ -29,7 +28,7 @@ namespace sge
 	}
 
 	Renderer::~Renderer() {
-		SGE_ASSERT(s_current = this);
+		SGE_ASSERT(s_current == this);
 		s_current = nullptr;
 	}
 }

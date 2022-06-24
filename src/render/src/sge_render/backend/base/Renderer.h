@@ -11,6 +11,7 @@ namespace sge
 	struct RenderGpuBuffer_CreateDesc;
 
 	class Material;
+	class Shader;
 
 	enum class Render_ApiType {
 #if SGE_RENDER_COMP_DX11
@@ -35,17 +36,17 @@ namespace sge
 				 Renderer();
 		virtual ~Renderer();
 
-		Material*		 createMaterial ()								   { return onCreateMaterial();		 }
-		RenderContext*	 createContext  (RenderContext_CreateDesc&	 desc) { return onCreateContext (desc);  }
-		RenderGpuBuffer* createGpuBuffer(RenderGpuBuffer_CreateDesc& desc) { return onCreateGpuBuffer(desc); }
+		Material*		 createMaterial ()									{ return onCreateMaterial();			}
+		Shader*			 createShader	(StrView shadFilename)				{ return onCreateShader(shadFilename);	}
+		RenderContext*	 createContext  (RenderContext_CreateDesc&	 desc)	{ return onCreateContext  (desc);		}
+		RenderGpuBuffer* createGpuBuffer(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc);		}
 
 	protected:
 		virtual Material*		 onCreateMaterial () = 0;
+		virtual Shader*			 onCreateShader	  (StrView shadFilename) = 0;
 		virtual RenderContext*	 onCreateContext  (RenderContext_CreateDesc&   desc) = 0;
 		virtual RenderGpuBuffer* onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) = 0;
 
-
-	protected:
-		static Renderer* s_current;
+		static Renderer*	s_current;
 	};
 }

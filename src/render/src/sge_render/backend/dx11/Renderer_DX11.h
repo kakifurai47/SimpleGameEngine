@@ -19,6 +19,7 @@ namespace sge
 		Renderer_DX11(CreateDesc& desc);
 
 		virtual Material*	     onCreateMaterial() override;
+		virtual Shader*			 onCreateShader   (StrView shadFilename) override;
 		virtual RenderContext*   onCreateContext  (RenderContext_CreateDesc& desc) override;
 		virtual RenderGpuBuffer* onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) override;
 

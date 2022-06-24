@@ -17,12 +17,14 @@ namespace sge {
 				m_renderCtx = renderer->createContext(desc);
 			}
 			{
+				auto* shad = renderer->createShader("Assets/Shaders/test.shader");
+
 				m_mat = renderer->createMaterial();
-				m_mat->setShader("Assets/Shaders/test.shader");
+				m_mat->setShader(shad);
 			}
 			{
 				EditMesh editMesh;
-#if 1
+#if 0
 				editMesh.loadObj("Assets/Mesh/standford_bunny.obj");
 #else
 				auto& positions = editMesh.pos;
@@ -53,11 +55,11 @@ namespace sge {
 			
 			m_cmdBuf.reset();
 			m_cmdBuf.clearFrameBuffers()->setColor({ 1, 1, 0.5f, 1 });
-			m_cmdBuf.drawMesh(SGE_LOC, m_mesh, *m_mat);
+			//m_cmdBuf.drawMesh(SGE_LOC, m_mesh, m_mat);
 			m_cmdBuf.swapBuffers();
 			m_renderCtx->commit(m_cmdBuf);
-			
 			m_renderCtx->endRender();
+
 			paintNeeded();
 		}
 

@@ -105,7 +105,7 @@ namespace sge {
 	public:
 		using FormatType = RenderFormatType;
 		using Semantic	 = VertexSemantic;
-		
+
 		String	filename;
 		String	profile;
 		ShaderStageMask stage = ShaderStageMask::None;

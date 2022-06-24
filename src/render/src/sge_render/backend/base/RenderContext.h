@@ -19,7 +19,7 @@ namespace sge  {
 		virtual ~RenderContext() = default;
 
 		void beginRender() { onBeginRender(); }
-		void endRneder()   { onEndRender();   }
+		void endRender()   { onEndRender();   }
 
 		void commit(RenderCommandBuffer& cmdBuf) { onCommit(cmdBuf); }
 

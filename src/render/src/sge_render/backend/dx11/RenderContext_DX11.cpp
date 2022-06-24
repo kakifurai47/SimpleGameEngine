@@ -89,15 +89,20 @@ namespace sge
 
 		auto* dev = m_renderer->d3dDevice();
 		auto* ctx = m_renderer->d3dDeviceContext();
-		
-		auto* shad = static_cast<Shader_DX11*>(cmd.material->shader());
-		SGE_ASSERT(shad != nullptr);
 
-		auto* vs = shad->d3dVtxShads()[0];
-		auto* ps = shad->d3dPxlShads()[0];
+		if (cmd.materialPass) {
+			cmd.materialPass->bind(this, nullptr);
+			//pass->bind(ctx);
+		}
 		
-		ctx->VSSetShader(vs, 0, 0);
-		ctx->PSSetShader(ps, 0, 0);
+		//auto* shad = static_cast<Shader_DX11*>(cmd.material->shader());
+		//SGE_ASSERT(shad != nullptr);
+
+		//auto* vs = shad->d3dVtxShads()[0];
+		//auto* ps = shad->d3dPxlShads()[0];
+		//
+		//ctx->VSSetShader(vs, 0, 0);
+		//ctx->PSSetShader(ps, 0, 0);
 
 		if (!m_testVtxShader) {
 			ComPtr<ID3DBlob>	byteCode;

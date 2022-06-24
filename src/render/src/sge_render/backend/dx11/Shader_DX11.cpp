@@ -1,41 +1,72 @@
 #include "Shader_DX11.h"
 #include "Renderer_DX11.h"
+#include "RenderContext_DX11.h"
+
+#include <sge_core/serializer/json/JsonUtil.h>
 
 namespace sge {
-	
-	void Shader_DX11::onCreate(StrView compiledPath) {
-		size_t passIndex = 0;
-		for (const auto& p : m_info.passes) {
-			auto passPath   = Fmt("{}/dx11/pass{}",compiledPath, passIndex);
-	
-			if (p.vsFunc.size()) _onCreateShad(passPath, ShaderStageMask::Vertex, p.vsFunc);
-			if (p.psFunc.size()) _onCreateShad(passPath, ShaderStageMask::Pixel,  p.psFunc);
-			passIndex++;
-		}
-	}
-	
-	void Shader_DX11::_onCreateShad(StrView passPath, ShaderStageMask stage, StrView funcName) {
-		auto profile  =  DX11Util::getDxStageProfile(stage);
-		auto filename = Fmt("{}/{}.bin", passPath, profile);
-	
-		MemMapFile memmap;
-		memmap.open(filename);
-		auto byteCode = memmap.span();
-	
-		auto* dev = Renderer_DX11::current()->d3dDevice();
 
-		HRESULT hr{};
-		switch (stage) {
-		case ShaderStageMask::Vertex: {
-			hr = dev->CreateVertexShader(DX11Util::toBufferPtr(byteCode), byteCode.size(),
-										 nullptr, &m_d3dVtxShads.emplace_back());
-		} break;
-		case ShaderStageMask::Pixel: {
-			hr = dev->CreatePixelShader(DX11Util::toBufferPtr(byteCode), byteCode.size(),
-										nullptr, &m_d3dPxlShads.emplace_back());
-		}break;
-			default: throw SGE_ERROR("Unhandled ShaderStage");
-		}
+
+	void ShaderVertexStageBase_DX11::bind(RenderContext_DX11* ctx) {
+		if (!m_d3dVertexShader) throw SGE_ERROR("dx vertex shader is null");
+
+		auto* dc = ctx->renderer()->d3dDeviceContext();
+		dc->VSSetShader(m_d3dVertexShader, 0, 0);
+	}
+
+	void ShaderPixelStageBase_DX11::bind(RenderContext_DX11* ctx) {
+		if (!m_d3dPixelShader) throw SGE_ERROR("dx pixel shader is null");
+
+		auto* dc = ctx->renderer()->d3dDeviceContext();
+		dc->PSSetShader(m_d3dPixelShader, 0, 0);
+	}
+
+	template<>
+	void ShaderStage_DX11_Impl<ShaderVertexStageBase_DX11>::_createShader(DX11_ID3DDevice* dev) {
+		auto hr = dev->CreateVertexShader(Util::toBufferPtr(m_byteCode), m_byteCode.size(), nullptr, m_d3dVertexShader.ptrForInit());
 		DX11Util::throwIfError(hr);
+	}
+
+	template<>
+	void ShaderStage_DX11_Impl<ShaderPixelStageBase_DX11>::_createShader(DX11_ID3DDevice* dev) {
+		auto hr = dev->CreatePixelShader(Util::toBufferPtr(m_byteCode), m_byteCode.size(), nullptr, m_d3dPixelShader.ptrForInit());
+		DX11Util::throwIfError(hr);
+	}
+
+	template<class STAGE_BASE>
+	void ShaderStage_DX11_Impl<STAGE_BASE>::load(StrView passPath, DX11_ID3DDevice* dev) {
+		auto profile = DX11Util::getDxStageProfile( kStageMask() );
+	
+		auto& byteCodeFilename	= Fmt("{}/{}.bin", passPath, profile);
+		File::readFile(byteCodeFilename,  m_byteCode);
+
+		auto& infoFilename = byteCodeFilename.append(".json");	
+		JsonUtil::readFile(infoFilename, m_stageInfo);
+
+		_createShader(dev);
+	}
+
+	template ShaderStage_DX11_Impl<ShaderVertexStageBase_DX11>;
+	template ShaderStage_DX11_Impl< ShaderPixelStageBase_DX11>;
+
+	ShaderPass_DX11::ShaderPass_DX11(StrView passPath, Info& info)
+		:Base(info, m_dx11VertexStage, m_dx11PixelStage)
+	{
+		auto* renderer = Renderer_DX11::current();
+		auto* dev	   = renderer->d3dDevice();
+
+		if (info.vsFunc.size()) { m_dx11VertexStage.load(passPath, dev); }
+		if (info.psFunc.size()) {  m_dx11PixelStage.load(passPath, dev); }
+	}
+
+	void Shader_DX11::onCreate(StrView compiledPath) {
+		size_t n = m_info.passes.size();
+		m_shadPasses.reserve(n);
+
+		for (size_t i = 0; i < n; i++) {
+			auto& passPath = Fmt("{}/dx11/pass{}", compiledPath, i);
+			auto* p = new ShaderPass_DX11(passPath, m_info.passes[i]);
+			m_shadPasses.emplace_back(p);
+		}
 	}
 }

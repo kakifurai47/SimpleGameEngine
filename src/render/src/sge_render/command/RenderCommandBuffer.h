@@ -21,8 +21,8 @@ namespace sge {
 			return addCmd<RenderCmd_SwapBuffers>();
 		}
 
-		void drawMesh	(const SrcLoc& debugLoc, RenderMesh&    mesh, Material& mat);
-		void drawSubMesh(const SrcLoc& debugLoc, RenderSubMesh& mesh, Material& mat);
+		void drawMesh	(const SrcLoc& debugLoc, RenderMesh&    mesh, Material* mat);
+		void drawSubMesh(const SrcLoc& debugLoc, RenderSubMesh& mesh, Material* mat);
 
 
 		template<typename CMD>

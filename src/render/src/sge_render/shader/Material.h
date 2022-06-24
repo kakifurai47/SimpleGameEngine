@@ -4,32 +4,90 @@
 #include "../buffer/RenderGpuBuffer.h"
 
 namespace sge {
-	class Material : public Object {
+
+	class RenderContext;
+	class VertexLayout;
+	class Material;
+
+	class MaterialStage : public NonCopyable {
 	public:
-		virtual ~Material() = default;
+		MaterialStage::MaterialStage(ShaderStage* ss);
 
-		Shader* shader() const { return constCast(m_shader); }
+		struct ConstBuffer {
+			using Info = ShaderStageInfo::ConstBuffer;
 
-		void setShader(StrView shaderPath) { onSetShader(shaderPath); }
+			Vector<u8>				cpuBuffer;
+			SPtr<RenderGpuBuffer>	gpuBuffer;
 
-		Span<SPtr<RenderGpuBuffer>> buffers() { return m_constBuf; }
+			const Info* info() { return m_info; }
+			void create(const Info& info);
 
-		template<class TYPE>
-		void set(StrView propName, TYPE type) {
-			const auto& info = m_shader->info();
-			for (const auto& p : info.props) {
-				//if (!p.isDefined) continue;//TODO : type validation //FIX
-				//if (p.name == propName) {//use id instead of string compare
-				//	ByteSpan data{ reinterpret_cast<u8*>(&type), sizeof(TYPE) };
-				//	m_constBuf[p.slotIdx]->uploadToGpu(data, p.offset);
-				//	break;
-				//}
-			}
-		}
+		private:
+			const Info* m_info	= nullptr;
+			bool		m_dirty = false;
+		};
 
 	protected:
-		virtual void onSetShader(StrView shaderPath) {};
-		Vector_<SPtr<RenderGpuBuffer>, 1> m_constBuf;
-		const Shader* m_shader = nullptr;
+		ShaderStage* m_shadStage = nullptr;
+		Vector_<SPtr<ConstBuffer>, 4> m_constBufs;
+	};
+
+	class MaterialVertexStage : public MaterialStage  {
+	public:
+		using ShaderStage = ShaderVertexStage;
+		MaterialVertexStage(ShaderVertexStage* ss) : MaterialStage(ss)
+		{
+		}
+	};
+	class MaterialPixelStage  : public MaterialStage {
+	public:
+		using ShaderStage = ShaderPixelStage;
+		MaterialPixelStage (ShaderPixelStage* ss) : MaterialStage(ss) 
+		{
+		}
+	};
+
+	class MaterialPass : public RefCountBase {
+	public:
+		using VertexStage	= MaterialVertexStage;
+		using PixelStage	= MaterialPixelStage;
+
+		MaterialPass::MaterialPass(Material* material, ShaderPass* shadPass,
+								VertexStage& vtxStage, PixelStage& pxlStage)
+			: m_material(material), m_shadPass(shadPass)
+			, m_vertexStage(&vtxStage)
+			, m_pixelStage (&pxlStage)
+		{
+		}
+
+		void bind(RenderContext* ctx, const VertexLayout* layout) { onBind(ctx, layout); }
+	protected:
+		virtual void onBind(RenderContext* ctx, const VertexLayout* layout) = 0;
+		
+		ShaderPass*  m_shadPass = nullptr;
+		Material*	 m_material = nullptr;
+
+		VertexStage* m_vertexStage = nullptr;
+		PixelStage*  m_pixelStage  = nullptr;
+	};
+
+	class Material : public RefCountBase {
+	public:
+		using Pass = MaterialPass;
+
+		Span<UPtr<Pass>> passes() { return m_matPasses; }
+		void setShader (Shader* shad);
+	protected:
+		virtual Pass* onCreatePass(ShaderPass* pass) = 0;
+		
+		SPtr<Shader> m_shader;
+		Vector_<UPtr<Pass>, 1> m_matPasses;
+	
+	private:
+		template<class T>
+		void _setParam(T&& value) {
+
+		}
+
 	};
 }

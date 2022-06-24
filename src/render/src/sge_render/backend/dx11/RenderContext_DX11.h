@@ -12,6 +12,8 @@ namespace sge {
 	public:
 		RenderContext_DX11(CreateDesc& desc);
 
+		Renderer_DX11* renderer() { return m_renderer; }
+
 		void onCmd_ClearFrameBuffers(RenderCmd_ClearFrameBuffers& cmd);
 		void onCmd_SwapBuffers		(RenderCmd_SwapBuffers&		  cmd);
 		void onCmd_DrawCall			(RenderCmd_DrawCall&		  cmd);

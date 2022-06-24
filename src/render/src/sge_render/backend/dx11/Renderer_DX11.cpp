@@ -75,6 +75,10 @@ namespace sge
 	Material* Renderer_DX11::onCreateMaterial() {
 		return new Material_DX11();
 	}
+
+	Shader* Renderer_DX11::onCreateShader (StrView shadFilename) {
+		return ShaderManager_DX11::current()->find(shadFilename);
+	}
 }
 #endif
 

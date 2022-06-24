@@ -10,14 +10,14 @@ namespace sge {
 	}
 
 	template<class SHADER>
-	const SHADER* ShaderManager<SHADER>::find(StrView filename) {
+	SHADER* ShaderManager<SHADER>::find(StrView filename) {
 		auto id = File::getId(filename);
 
-		auto it = m_table.find(id);
-		if (it != m_table.end()) {
+		auto it = m_shaders.find(id);
+		if (it != m_shaders.end()) {
 			return &it->second;
 		}
-		auto*  shad = &m_table[id];
+		auto*  shad = &m_shaders[id];
 		shad->create(filename);
 		return shad;
 	}

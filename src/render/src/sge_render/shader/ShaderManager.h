@@ -6,9 +6,9 @@ namespace sge {
 		using This = ShaderManager<SHADER>;
 	public:
 		static  This* current();
-		const SHADER* find(StrView filename);
+		SHADER* find(StrView filename);
 	private:
-		Map<u128, SHADER> m_table;
+		Map<u128, SHADER> m_shaders;
 	};
 
 	class Shader_DX11;
