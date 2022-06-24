@@ -12,22 +12,14 @@ namespace sge {
 		size_t cbCount = cbInfos.size();
 		m_constBufs.reserve(cbCount);
 
-		if (cbCount >= 1) {
-			auto* p1 = &cbInfos[0];
-			auto* p2 = &shaderStage->info()->constBuffers[0];
-			SGE_DUMP_VAR(p1 == p2);
-		}
-
-
-
-		for (size_t i = 0; i < cbCount; i++) {
+		for (auto& i : cbInfos) {
 			auto& cb = m_constBufs.emplace_back();
-			cb->create(cbInfos[i]);
+			cb.create(i);
 		}
 	}
 
 	void MaterialStage::ConstBuffer::create(const Info& info) {
-		m_info = &info; //ERROR;
+		m_info = &info;
 		m_dirty = true;
 
 		cpuBuffer.resize(info.dataSize);
@@ -54,7 +46,5 @@ namespace sge {
 			m_matPasses.emplace_back(mp);
 		}
 	}
-
-
 
 }

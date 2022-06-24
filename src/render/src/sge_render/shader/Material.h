@@ -26,10 +26,9 @@ namespace sge {
 			const Info* m_info	= nullptr;
 			bool		m_dirty = false;
 		};
-
 	protected:
-		ShaderStage* m_shadStage = nullptr;
-		Vector_<SPtr<ConstBuffer>, 4> m_constBufs;
+		ShaderStage* m_shadStage  = nullptr;
+		Vector_<ConstBuffer, 4> m_constBufs;
 	};
 
 	class MaterialVertexStage : public MaterialStage  {
