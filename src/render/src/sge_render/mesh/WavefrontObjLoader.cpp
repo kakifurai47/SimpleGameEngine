@@ -47,11 +47,12 @@ namespace sge {
 	void WavefrontObjLoader::_parse_v() {
 		Tuple4f value { 0,0,0,1 };
 
-		for (size_t i = 0; i < 4; i++) {
+		for (size_t i = 0; ; i++) {
 			nextToken();
-			if (m_token.isNewLine()) {
-				if (i == 3) break;
-				errorUnexpectedToken();
+			if (i == 3 && m_token.isNewLine()) break;
+			if (i == 4) {
+				if(m_token.isNewLine()) break;
+				errorUnexpectedToken(); break;
 			}
 			_parse_number(value[i]);
 		}
@@ -62,8 +63,12 @@ namespace sge {
 
 	void WavefrontObjLoader::_parse_vt() {
 		Tuple2f value{};
-		for (size_t i = 0; i < 2; i++) {
+		for (size_t i = 0; ; i++) {
 			nextToken();
+			if (i == 2) {
+				if(m_token.isNewLine()) break;
+				errorUnexpectedToken(); break;
+			}
 			_parse_number(value[i]);
 		}
 		m_tmpUv.emplace_back(value);
@@ -71,8 +76,12 @@ namespace sge {
 
 	void WavefrontObjLoader::_parse_vn() {
 		Tuple3f value{};
-		for (size_t i = 0; i < 3; i++) {
+		for (size_t i = 0; ; i++) {
 			nextToken();
+			if (i == 3) {
+				if(m_token.isNewLine()) break;
+				errorUnexpectedToken(); break;
+			}
 			_parse_number(value[i]);
 		}
 		m_tmpNormal.emplace_back(value);

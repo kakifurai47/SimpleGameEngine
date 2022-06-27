@@ -106,7 +106,7 @@ namespace sge {
 	}
 
 	void Lexer2::expectOperator(StrView view) {
-		if (!m_token.isOperator("view")) errorUnexpectedToken();
+		if (!m_token.isOperator(view)) errorUnexpectedToken();
 		nextToken();
 	}
 
