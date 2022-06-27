@@ -69,7 +69,12 @@ namespace sge {
 
 		m_vertexLayout = VertexLayoutManager::instance()->getLayout(type);
 		if (!m_vertexLayout) {
-			throw SGE_ERROR("failed finding layout for this mesh");
+			throw SGE_ERROR("failed finding layout for this mesh \n"
+							" colCount:	[{}],\n UvCount:	[{}],\n normCount:	[{}],\n"
+							" tanCount:	[{}],\n bNormCount:	[{}] \n",
+							colorCount, uvCount, normalCount,
+							tangentCount, binormalCount
+			);
 		}
 		setSubMeshCount(1);
 		m_subMeshes[0].create(src);

@@ -11,6 +11,9 @@ namespace sge {
 		using D = VertexLib;
 		registerLayout<D::Pos>();
 		registerLayout<D::PosCol>();
+		registerLayout<D::PosTex>();
+		registerLayout<D::PosColTex>();
+		registerLayout<D::PosColTexNorm>();
 	}
 
 

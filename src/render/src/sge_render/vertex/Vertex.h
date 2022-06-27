@@ -369,9 +369,10 @@ namespace sge {
 	private:
 		using DL = VertexElmDescLib;
 	public:
-		using Pos		= Vertex<DL::Pos_Tup3f_C1>;
-		using PosCol	= Vertex<DL::Pos_Tup3f_C1, DL::Col_Col4b_C1>;
-		using PosTex	= Vertex<DL::Pos_Tup3f_C1, DL::Tex_Tup2f_C1>;
-		using PosColTex = Vertex<DL::Pos_Tup3f_C1, DL::Col_Col4b_C1, DL::Tex_Tup2f_C1>;
+		using Pos			= Vertex<DL::Pos_Tup3f_C1>;
+		using PosCol		= Vertex<DL::Pos_Tup3f_C1, DL::Col_Col4b_C1>;
+		using PosTex		= Vertex<DL::Pos_Tup3f_C1, DL::Tex_Tup2f_C1>;
+		using PosColTex		= Vertex<DL::Pos_Tup3f_C1, DL::Col_Col4b_C1, DL::Tex_Tup2f_C1>;
+		using PosColTexNorm = Vertex<DL::Pos_Tup3f_C1, DL::Col_Col4b_C1, DL::Tex_Tup2f_C1, DL::Norm_Tup3f_C1>;
 	};
 }
