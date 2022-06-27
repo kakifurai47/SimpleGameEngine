@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Render_Common.h"
+#include "RenderContext.h"
 
 namespace sge
 {
@@ -36,10 +37,10 @@ namespace sge
 				 Renderer();
 		virtual ~Renderer();
 
-		Material*		 createMaterial ()									{ return onCreateMaterial();			}
-		Shader*			 createShader	(StrView shadFilename)				{ return onCreateShader(shadFilename);	}
-		RenderContext*	 createContext  (RenderContext_CreateDesc&	 desc)	{ return onCreateContext  (desc);		}
-		RenderGpuBuffer* createGpuBuffer(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc);		}
+		SPtr<Material>			createMaterial	()									{ return onCreateMaterial ();			  }
+		SPtr<Shader>			createShader	(StrView shadFilename)				{ return onCreateShader	  (shadFilename); }
+		SPtr<RenderContext>		createContext	(RenderContext_CreateDesc&	 desc)	{ return onCreateContext  (desc);		  }
+		SPtr<RenderGpuBuffer>	createGpuBuffer	(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc);		  }
 
 	protected:
 		virtual Material*		 onCreateMaterial () = 0;

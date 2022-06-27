@@ -18,8 +18,13 @@ namespace sge {
 			return &it->second;
 		}
 		auto*  shad = &m_shaders[id];
-		shad->create(filename);
+		shad->create(filename, id);
 		return shad;
+	}
+
+	template<class SHADER>
+	void ShaderManager<SHADER>::erase(const u128& key) {
+		m_shaders.erase(key);
 	}
 
 	template ShaderManager<Shader_DX11>;

@@ -6,7 +6,8 @@ namespace sge {
 		using This = ShaderManager<SHADER>;
 	public:
 		static  This* current();
-		SHADER* find(StrView filename);
+		SHADER* find (StrView	 filename);
+		void	erase(const u128&	  key);
 	private:
 		Map<u128, SHADER> m_shaders;
 	};

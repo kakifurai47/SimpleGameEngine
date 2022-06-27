@@ -59,7 +59,8 @@ namespace sge {
 		SPtr<RenderGpuBuffer> vertexBuffer;
 		SPtr<RenderGpuBuffer> indexBuffer;
 
-		SPtr<MaterialPass> materialPass;
+		SPtr<Material> material;
+		size_t		   materialPassIndex;
 	};
 
 	class RenderCmd_SwapBuffers : public RenderCmd {

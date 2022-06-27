@@ -1,6 +1,7 @@
 #pragma once
 #include <sge_core/base/sge_base.h>
 #include <sge_render/vertex/Vertex.h>
+#include <sge_core/math/Vec.h>
 
 
 namespace sge {
@@ -50,7 +51,7 @@ namespace sge {
 		template<> static constexpr	Type get<Color4f>()	{ return Type::Color4f; }
 	};
 
-	class ShaderInfo : public NonCopyable {
+	class ShaderInfo {
 	public:
 		struct Attr {
 			String tag;
@@ -101,7 +102,7 @@ namespace sge {
 		SGE_SERDES_IO(se, pass, psFunc);
 	}
 
-	class ShaderStageInfo : public NonCopyable {
+	class ShaderStageInfo {
 	public:
 		using FormatType = RenderFormatType;
 		using Semantic	 = VertexSemantic;
@@ -137,6 +138,13 @@ namespace sge {
 			size_t	 dataSize  = 0;
 
 			Vector_<Variable, 4> variables;
+
+			const Variable* findVariable(StrView propName) const {
+				for (auto& v : variables) {
+					if (v.name == propName) return &v;
+				}
+				return nullptr;
+			}
 		};
 
 		struct Texture {

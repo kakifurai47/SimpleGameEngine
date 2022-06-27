@@ -8,10 +8,13 @@ namespace sge {
 		using Info = ShaderStageInfo;
 		using Mask = ShaderStageMask;
 
+		ShaderStage() = default;
+		ShaderStage(ShaderStage&& other) noexcept;
+
 		const Info* info() const { return &m_stageInfo; }
 	protected:
 		Info	   m_stageInfo;
-		Vector<u8> m_byteCode;
+		Vector<u8>  m_byteCode;
 	};
 
 	class ShaderVertexStage  : public ShaderStage {
@@ -28,7 +31,7 @@ namespace sge {
 		using Info			= ShaderInfo::Pass;
 		using StageMask		= ShaderStageMask;
 
-		ShaderPass(Info& info, ShaderVertexStage& vtxStage,
+		ShaderPass(Info* info, ShaderVertexStage& vtxStage,
 							   ShaderPixelStage&  pxlStage);
 
 		virtual ~ShaderPass() = default;
@@ -48,18 +51,24 @@ namespace sge {
 
 		virtual ~Shader() = default;
 
-		const ShaderInfo*		info  () const { return &m_info;	  }
-			  Span<UPtr<Pass>>	passes()	   { return m_shadPasses; }
+		const ShaderInfo*	info  () const { return &m_info;	  }
+			  Span<Pass*>	passes()	   { return m_shadPasses; }
+			  u128			key	  ()	   { return m_key;		  }
 
-		void create(StrView filename);
+		void create (StrView filename, const u128& key);
+		void destroy() { onDestroy(); }
 
 	friend class ShaderPass;
 	protected:
-		virtual void onCreate(StrView compiledPath) = 0;
+		virtual void onCreate     (StrView		   compiledPath) = 0;
+		virtual void onResetPasses(Vector_<Pass*, 1>& outPasses) = 0;
+		virtual void onDestroy	  ()							 = 0;
 
 		ShaderInfo	m_info;
 		String		m_filename;
+		u128		m_key;
 
-		Vector_<UPtr<Pass>, 1> m_shadPasses;
+		Vector_<Pass*, 1> m_shadPasses;
 	};
+	template<> inline void sge_release(Shader* s) { s->destroy(); }
 }
