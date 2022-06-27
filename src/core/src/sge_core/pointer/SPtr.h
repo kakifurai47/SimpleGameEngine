@@ -30,7 +30,7 @@ namespace sge {
 			if (m_p) {
 				auto c = --m_p->m_refCount;
 				if (c <= 0) {
-					sge_release(m_p);
+					sge_delete(m_p);
 				}
 			}
 			m_p = p;

@@ -84,7 +84,5 @@ namespace sge {
 
 	void Shader_DX11::onDestroy() {
 		ShaderManager_DX11::current()->erase(m_key);
-		SGE_LOG("destroy");
 	}
-
 }

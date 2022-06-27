@@ -70,5 +70,5 @@ namespace sge {
 
 		Vector_<Pass*, 1> m_shadPasses;
 	};
-	template<> inline void sge_release(Shader* s) { s->destroy(); }
+	template<> inline void sge_delete(Shader* s) { s->destroy(); }
 }
