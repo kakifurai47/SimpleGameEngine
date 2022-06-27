@@ -231,8 +231,7 @@ namespace sge
 		virtual ~Object() = default;
 	};
 
-
-	template<class T> inline void sge_delete(T* p) { delete p; }
-
+	template<class T> inline void sge_delete (T* p) { delete p; }
+	template<class T> inline void sge_release(T* p) { delete p; }
 
 }

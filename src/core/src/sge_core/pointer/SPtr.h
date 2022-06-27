@@ -13,6 +13,8 @@ namespace sge {
 		void operator=(T* p)	 noexcept	 { reset(p); }
 		void operator=(SPtr&& r) noexcept	 { reset(nullptr); m_p = r.m_p; r.m_p = nullptr; }
 
+		~SPtr()					 noexcept	 { reset(nullptr); }
+
 				T* operator->()		  noexcept { return m_p; }
 		const	T* operator->() const noexcept { return m_p; }
 
@@ -28,7 +30,7 @@ namespace sge {
 			if (m_p) {
 				auto c = --m_p->m_refCount;
 				if (c <= 0) {
-					sge_delete(m_p);
+					sge_release(m_p);
 				}
 			}
 			m_p = p;
@@ -40,6 +42,5 @@ namespace sge {
 		T* detach() noexcept { T* o = m_p; m_p = nullptr; return o; }
 	private:
 		T* m_p = nullptr;
-	};
-
+	};	
 }
