@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../sge_core-config.h"
+
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
@@ -232,6 +234,4 @@ namespace sge
 	};
 
 	template<class T> inline void sge_delete (T* p) { delete p; }
-	template<class T> inline void sge_release(T* p) { delete p; }
-
 }
