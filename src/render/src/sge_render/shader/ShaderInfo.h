@@ -1,8 +1,6 @@
 #pragma once
 #include <sge_core/base/sge_base.h>
 #include <sge_render/vertex/Vertex.h>
-#include <sge_core/math/Vec.h>
-
 
 namespace sge {
 	enum class ShaderStageMask {

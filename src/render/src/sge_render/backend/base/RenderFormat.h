@@ -27,6 +27,8 @@ namespace sge {
 		UNorm16x1,	UNorm16x2,	UNorm16x3,	UNorm16x4,
 		UNorm32x1,	UNorm32x2,	UNorm32x3,	UNorm32x4,
 
+		Float32_4x4,
+
 		Texture1D,		Texture2D,		Texture3D,		TextureCube,
 		Texture1DArray, Texture2DArray, Texture3DArray, TextureCubeArray,
 	};
@@ -55,6 +57,8 @@ namespace sge {
 	E(UNorm08x1)	E(UNorm08x2)	E(UNorm08x3)	E(UNorm08x4)	\
 	E(UNorm16x1)	E(UNorm16x2)	E(UNorm16x3)	E(UNorm16x4)	\
 	E(UNorm32x1)	E(UNorm32x2)	E(UNorm32x3)	E(UNorm32x4)	\
+	\
+	E(Float32_4x4)	\
 	\
 	E(Texture1D)	  E(Texture2D)		E(Texture3D)	  E(TextureCube)		\
 	E(Texture1DArray) E(Texture2DArray) E(Texture3DArray) E(TextureCubeArray)	\
@@ -92,5 +96,7 @@ namespace sge {
 		template<> static constexpr Type get<Tuple4d>()	{ return Type::Float64x4;	}
 
 		template<> static constexpr Type get<Color4b>()	{ return Type::UNorm08x4;	}
+
+		template<> static constexpr Type get<Mat4f>()	{ return Type::Float32_4x4;	}
 	};
 }

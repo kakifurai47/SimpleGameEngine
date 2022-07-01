@@ -74,11 +74,12 @@ namespace sge {
 
 		switch (valPtr.type) {
 			using Type = RenderFormatType;
-			case  Type::Float32x1: { _setParam(varInfo, valPtr.asValue<float  >()); break; }
-			case  Type::Float32x2: { _setParam(varInfo, valPtr.asValue<Tuple2f>()); break; }
-			case  Type::Float32x3: { _setParam(varInfo, valPtr.asValue<Tuple3f>()); break; }
-			case  Type::Float32x4: { _setParam(varInfo, valPtr.asValue<Tuple4f>()); break; }
-			default: throw SGE_ERROR("unsupported type: {}", valPtr.type);
+			case  Type::Float32x1:	 { _setParam(varInfo, valPtr.asValue<float  >()); break; }
+			case  Type::Float32x2:	 { _setParam(varInfo, valPtr.asValue<Tuple2f>()); break; }
+			case  Type::Float32x3:	 { _setParam(varInfo, valPtr.asValue<Tuple3f>()); break; }
+			case  Type::Float32x4:	 { _setParam(varInfo, valPtr.asValue<Tuple4f>()); break; }
+			case  Type::Float32_4x4: { _setParam(varInfo, valPtr.asValue<Mat4f>	 ()); break; }
+			default: throw SGE_ERROR("setParam : unsupported type: {}", valPtr.type);
 		}
 	}
 
