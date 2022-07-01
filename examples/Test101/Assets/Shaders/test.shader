@@ -42,7 +42,7 @@ float4 v;
 
 PixelIn vs_main(VertexIn i) {
     PixelIn o;	
-    o.position = i.position;
+    o.position = mul(SGE_MVP, i.position);
     o.color    = i.color;
     return o;
 }
