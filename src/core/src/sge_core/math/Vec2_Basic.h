@@ -52,6 +52,11 @@ namespace sge {
 	
 		bool operator==(const Vec2& r) const { return x == r.x && y == r.y; }
 		bool operator!=(const Vec2& r) const { return x != r.x || y != r.y; }
+
+		SGE_NODISCARD SGE_INLINE T dot(const Vec2& v) const { return (x * v.x) + (y * v.y); }
+		SGE_NODISCARD SGE_INLINE T sqrMagnitude()	  const { return dot(*this); }
+
+
 	
 		Tuple2<T> toTuple() const { return Tuple2<T>(x,y); }
 		operator Tuple2<T>() const { return toTuple(); }

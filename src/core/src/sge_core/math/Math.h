@@ -1,7 +1,5 @@
 #pragma once
 
-#include "sge_core/base/sge_base.h"
-
 namespace sge
 {
 	namespace Math
@@ -50,8 +48,8 @@ namespace sge
 		template<class T> constexpr T	twoPI	()		{ return PI<T>() * 2; }
 		template<class T> constexpr T	halfPI	()		{ return PI<T>() * 0.5; }
 	
-		template<class T> SGE_INLINE T	radians	(T deg) { return deg * (PI<T>() / static_cast<T>(180)); }
-		template<class T> SGE_INLINE T	degrees	(T rad) { return rad * (static_cast<T>(180) / PI<T>()); }
+		template<class T> constexpr T	radians	(T deg) { return deg * (PI<T>() / static_cast<T>(180)); }
+		template<class T> constexpr T	degrees	(T rad) { return rad * (static_cast<T>(180) / PI<T>()); }
 	
 	
 		SGE_INLINE float  sin(float  rad) { return ::sinf(rad); }
