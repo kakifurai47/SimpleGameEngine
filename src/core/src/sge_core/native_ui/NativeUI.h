@@ -16,13 +16,18 @@ namespace sge {
 
 
 namespace sge {
-
-	class NativeUIWindow : public NativeUIWindow_Impl
+	
+	class NativeUIWindow : public NativeUIWindow_Impl 
 	{
 	};
 	
 	class NativeUIApp : public NativeUIApp_Impl
 	{
+	public:
+		static NativeUIApp* current() { return m_current; }
+		NativeUIApp() { m_current = this; }
+	private:
+		static NativeUIApp* m_current;
 	};
 
 }

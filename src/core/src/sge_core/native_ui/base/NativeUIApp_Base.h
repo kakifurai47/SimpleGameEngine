@@ -13,6 +13,8 @@ namespace sge {
 		virtual void onCreate() {};
 		virtual void onRun()    {};
 		virtual void onQuit()   {};
+
+		int m_excitCode = 0;
 	};
 
 }

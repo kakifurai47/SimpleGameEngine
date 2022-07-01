@@ -15,12 +15,16 @@ namespace sge {
 
 		MSG msg;
 
-		while (GetMessage(&msg, nullptr, 0, 0)) {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+		while (::GetMessage(&msg, nullptr, 0, 0)) {
+			::TranslateMessage(&msg);
+			::DispatchMessage(&msg);
 		}
+		Base::quit();
+	}
 
-		onQuit();
+	void NativeUIApp_Win32::onQuit() {
+		Base::onQuit();
+		::PostQuitMessage(m_excitCode);
 	}
 
 }

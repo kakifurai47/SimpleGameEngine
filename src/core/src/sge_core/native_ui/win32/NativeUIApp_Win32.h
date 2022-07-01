@@ -11,9 +11,8 @@ namespace sge {
 
 	protected:
 		virtual void onCreate() override;
-		virtual void onRun() override;
-
-
+		virtual void onRun	 () override;
+		virtual void onQuit	 () override;
 	};
 
 }
