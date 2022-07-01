@@ -25,7 +25,7 @@ namespace sge {
 			else if constexpr (Util::isString	  <T>()) { toString(out);	return; }
 			else if constexpr (Util::isVector	  <T>()) { toVector(out);	return; }
 			else if constexpr (Util::isSerDes	  <T>()) { toObject(out);	return; }
-			SGE_ASSERT(false);
+			else { SGE_ASSERT(false); }
 		}
 	private:
 

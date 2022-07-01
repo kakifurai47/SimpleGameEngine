@@ -6,8 +6,9 @@
 namespace sge {
 
 	class RenderContext;
-	class VertexLayout;
 	class Material;
+
+	struct VertexLayout;
 
 	struct Material_ValuePtr {
 		using Type = RenderFormatType;

@@ -16,9 +16,6 @@ namespace sge {
 	}
 
 	void WavefrontObjLoader::_parseObj(EditMesh& outMesh) {
-		size_t call_v = 0;
-		size_t call_f = 0;
-
 		for(;;) {
 			skipNewlineTokens();
 			if (m_token.isEnd())			{ return; }
@@ -47,7 +44,7 @@ namespace sge {
 	void WavefrontObjLoader::_parse_v() {
 		Tuple4f value { 0,0,0,1 };
 
-		for (size_t i = 0; ; i++) {
+		for (int i = 0; ; i++) {
 			nextToken();
 			if (i == 3 && m_token.isNewLine()) break;
 			if (i == 4) {
@@ -63,7 +60,7 @@ namespace sge {
 
 	void WavefrontObjLoader::_parse_vt() {
 		Tuple2f value{};
-		for (size_t i = 0; ; i++) {
+		for (int i = 0; ; i++) {
 			nextToken();
 			if (i == 2) {
 				if(m_token.isNewLine()) break;
@@ -76,7 +73,7 @@ namespace sge {
 
 	void WavefrontObjLoader::_parse_vn() {
 		Tuple3f value{};
-		for (size_t i = 0; ; i++) {
+		for (int i = 0; ; i++) {
 			nextToken();
 			if (i == 3) {
 				if(m_token.isNewLine()) break;

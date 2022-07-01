@@ -31,13 +31,13 @@ namespace meta {
 		return {};
 	}
 
-	template<size_t N> static constexpr
-	auto make_indexSeqence() noexcept {
-		return _seq_append(make_indexSeqence<N / 2>(), make_indexSeqence<N - N / 2>());
-	}
-
-	template<> static constexpr auto make_indexSeqence<0>() noexcept { return empty_vlist{}; }
-	template<> static constexpr auto make_indexSeqence<1>() noexcept { return vlist<0>{};	 }
+	//template<size_t N> static constexpr
+	//auto make_indexSeqence() noexcept {
+	//	return _seq_append(make_indexSeqence<N / 2>(), make_indexSeqence<N - N / 2>());
+	//}
+	//
+	//template<> static constexpr auto make_indexSeqence<0>() noexcept { return empty_vlist{}; }
+	//template<> static constexpr auto make_indexSeqence<1>() noexcept { return vlist<0>{};	 }
 
 	
 

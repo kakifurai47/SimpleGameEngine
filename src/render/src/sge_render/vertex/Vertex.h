@@ -113,7 +113,7 @@ namespace sge {
 		using SmtType = VertexSemanticType;
 		using FmtType = RenderFormatType;
 
-		using Range = eastl::pair<u8, u8>;
+		using Range = std::pair<int, int>;
 
 		static constexpr Range _range(SmtType semanticType) {
 			switch (semanticType) {

@@ -84,7 +84,7 @@ namespace sge {
 
 				testStruct.myEnum = MyEnum::A;
 
-				float m_f = 32.f;
+				//float m_f = 32.f;
 				
 				Json outjson;
 				JsonSerializer2 se(outjson);

@@ -36,7 +36,7 @@ namespace sge {
 	void ShaderStage_DX11_Impl<STAGE_BASE>::load(StrView passPath, DX11_ID3DDevice* dev) {
 		auto profile = DX11Util::getDxStageProfile( kStageMask() );
 	
-		auto& byteCodeFilename	= Fmt("{}/{}.bin", passPath, profile);
+		auto byteCodeFilename = Fmt("{}/{}.bin", passPath, profile);
 		File::readFile(byteCodeFilename,  m_byteCode);
 
 		auto& infoFilename = byteCodeFilename.append(".json");	
@@ -69,8 +69,8 @@ namespace sge {
 		m_dx11ShadPasses.reserve(n);
 
 		for (size_t i = 0; i < n; i++) {
-			auto& passPath = Fmt("{}/dx11/pass{}", compiledPath, i);
-			auto& dx11Pass = m_dx11ShadPasses.emplace_back(passPath, m_info.passes[i]);
+			auto  passPath  = Fmt("{}/dx11/pass{}", compiledPath, i);
+			m_dx11ShadPasses.emplace_back(passPath, m_info.passes[i]);
 		}
 	}
 

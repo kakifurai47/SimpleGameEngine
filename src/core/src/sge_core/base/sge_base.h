@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../sge_core-config.h"
+#include "sge_core-config.h"
 
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS 1

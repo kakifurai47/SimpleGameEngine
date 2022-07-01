@@ -85,7 +85,6 @@ namespace sge {
 			nextChar();
 			return true;
 		}
-		return false;
 	}
 
 	void Lexer2::trimSpaces() {

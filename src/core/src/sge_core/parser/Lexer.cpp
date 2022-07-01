@@ -84,8 +84,6 @@ namespace sge {
 			}
 			count++;
 		}
-		SGE_ASSERT(false);
-		return false;
 	}
 
 

@@ -6,7 +6,7 @@ namespace sge
 	u8* LinearAllocator::allocate(size_t size, size_t align) {
 		SGE_ASSERT(Math::isPow2(align));
 
-		auto aligned = (m_offset + (align - 1)) & -align;
+		auto aligned = (m_offset + (align - 1)) & (~align + 1);
 
 		if (aligned + size > m_size) {
 			SGE_LOG("allocator is full");

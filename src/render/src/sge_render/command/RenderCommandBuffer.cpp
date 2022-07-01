@@ -17,7 +17,7 @@ namespace sge {
 	void RenderCommandBuffer::drawSubMesh(const SrcLoc& debugLoc, RenderSubMesh& subMesh, Material* mat) {
 		SGE_ASSERT(mat != nullptr);
 
-		auto& passes = mat->passes();
+		auto passes = mat->passes();
 
 		for (size_t i = 0; i < passes.size(); i++) {
 			auto* cmd = addCmd<RenderCmd_DrawCall>();

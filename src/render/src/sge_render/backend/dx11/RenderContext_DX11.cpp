@@ -92,7 +92,7 @@ namespace sge
 
 		if (cmd.material) {
 			auto& idx    = cmd.materialPassIndex ;
-			auto& passes = cmd.material->passes();
+			auto  passes = cmd.material->passes();
 			passes[idx]->bind(this, nullptr);
 		}
 

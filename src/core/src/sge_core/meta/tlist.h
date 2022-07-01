@@ -10,7 +10,7 @@ namespace meta {
 
 	template<class... Ts> constexpr size_t get_size(tlist<Ts...>) noexcept { return sizeof...(Ts); }
 
-	template<class    T > void print_type (T&)			 {  SGE_LOG("print_type: {}", typeid(T).name()); }
+	template<class    T > void print_type (const T&)	 {  SGE_LOG("print_type: {}", typeid(T).name()); }
 	template<class... Ts> void print_list (tlist<Ts...>) { (print_type(Ts{}), ...); }
 
 	template<class... Ts, class	   ELE > constexpr auto push_back (tlist<Ts...>, ELE	) noexcept -> tlist<Ts..., ELE	  > { return {}; }
