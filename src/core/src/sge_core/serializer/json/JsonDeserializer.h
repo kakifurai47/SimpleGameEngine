@@ -6,7 +6,6 @@
 namespace sge {
 
 	class JsonDeserializer2 : public NonCopyable {
-		using Util = meta::TypeTraitUtil;
 	public:
 		JsonDeserializer2(Json& json)
 			: m_json(json) {
@@ -20,11 +19,11 @@ namespace sge {
 
 		template<class T>
 		void io(T& out) {
-			if		constexpr (Util::isEnum		  <T>()) { toEnum  (out);	return; }
-			else if constexpr (Util::isArithmetic <T>()) { toValue (out);	return; }
-			else if constexpr (Util::isString	  <T>()) { toString(out);	return; }
-			else if constexpr (Util::isVector	  <T>()) { toVector(out);	return; }
-			else if constexpr (Util::isSerDes	  <T>()) { toObject(out);	return; }
+			if		constexpr (meta::isEnum		  <T>()) { toEnum  (out);	return; }
+			else if constexpr (meta::isArithmetic <T>()) { toValue (out);	return; }
+			else if constexpr (meta::isString	  <T>()) { toString(out);	return; }
+			else if constexpr (meta::isVector	  <T>()) { toVector(out);	return; }
+			else if constexpr (meta::isSerDes	  <T>()) { toObject(out);	return; }
 			else { SGE_ASSERT(false); }
 		}
 	private:

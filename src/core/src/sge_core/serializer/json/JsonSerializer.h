@@ -5,7 +5,6 @@
 
 namespace sge {
 	class JsonSerializer2 : public NonCopyable {
-		using Util = meta::TypeTraitUtil;
 	public:
 		JsonSerializer2(Json& out)
 			: m_json(out) {
@@ -19,11 +18,11 @@ namespace sge {
 
 		template<class T>
 		void io(T& t) {
-			if		constexpr (Util::isEnum		  <T>()) { toEnum(t);			return; }
-			else if constexpr (Util::isArithmetic <T>()) { toValue(t);			return; }
-			else if constexpr (Util::isString	  <T>()) { toStrView(t.view());	return; }
-			else if constexpr (Util::isVector	  <T>()) { toSpan(makeSpan(t));	return; }
-			else if constexpr (Util::isSerDes	  <T>()) { toObject(t);			return; }
+			if		constexpr (meta::isEnum		  <T>()) { toEnum(t);			return; }
+			else if constexpr (meta::isArithmetic <T>()) { toValue(t);			return; }
+			else if constexpr (meta::isString	  <T>()) { toStrView(t.view());	return; }
+			else if constexpr (meta::isVector	  <T>()) { toSpan(makeSpan(t));	return; }
+			else if constexpr (meta::isSerDes	  <T>()) { toObject(t);			return; }
 			else { SGE_ASSERT(false); }
 		}
 	private:
