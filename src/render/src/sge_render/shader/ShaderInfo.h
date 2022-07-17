@@ -1,6 +1,7 @@
 #pragma once
-#include <sge_core/base/sge_base.h>
+
 #include <sge_render/vertex/Vertex.h>
+#include "RenderState.h"
 
 namespace sge {
 	enum class ShaderStageMask {
@@ -64,9 +65,10 @@ namespace sge {
 		};
 
 		struct Pass {
-			String name;
-			String vsFunc;
-			String psFunc;
+			String		name;
+			RenderState renderState;
+			String		vsFunc;
+			String		psFunc;
 		};
 
 		Vector_<Prop, 8>	props;
@@ -96,6 +98,7 @@ namespace sge {
 	template<class SE> inline
 	void onSerDes(SE& se, ShaderInfo::Pass& pass) {
 		SGE_SERDES_IO(se, pass, name);
+		SGE_SERDES_IO(se, pass, renderState);
 		SGE_SERDES_IO(se, pass, vsFunc);
 		SGE_SERDES_IO(se, pass, psFunc);
 	}

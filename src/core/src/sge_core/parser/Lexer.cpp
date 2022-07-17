@@ -22,17 +22,6 @@ namespace sge {
 		m_tok.value = { &src[m_off], 0 };
 	}
 
-	
-	void Lexer::retrieve(String& out) {
-		out = m_tok.value;
-	}
-
-	void Lexer::rtrvNext(StrView& src, TokenType type, String& out) {
-		next(src);
-		if (m_tok.type != type) throwUnexpected();
-		retrieve(out);
-	}
-
 	void Lexer::_advance(StrView src, size_t len, bool consume) {
 		SGE_ASSERT(m_off + len <= src.size());
 
@@ -89,7 +78,17 @@ namespace sge {
 
 
 	void Lexer::throwUnexpected() {
-		throw SGE_ERROR( "unexpected token: {} {}", _type2char(m_tok.type), m_tok.value);
+		throw SGE_ERROR( "unexpected token: type:[{}], value: [{}]", m_tok.type, m_tok.value);
+	}
+
+	void Lexer::_readString(String& out) {
+		out = m_tok.value;
+	}
+
+	void Lexer::_readBool(bool& out) {
+		if (m_tok.value.compare("true" )) { out = true;  return; }
+		if (m_tok.value.compare("false")) { out = false; return; }
+		throwUnexpected();
 	}
 
 	bool Lexer::tryNext(StrView src, TokenType type, StrView val) {
@@ -97,17 +96,12 @@ namespace sge {
 		auto off = m_off;
 		next(src);
 
-		if (tokCheck(type, val)) 
+		if (checkToken(type, val)) 
 			return true;
 				
 		m_tok = tok;
 		m_off = off;
 		return false;
-	}
-
-	void Lexer::ensureNext(StrView src, TokenType type, StrView val) {
-		next(src);
-		if (!tokCheck(type, val)) throwUnexpected();
 	}
 
 	StrView Lexer::getRemainSource() const {
@@ -134,7 +128,7 @@ namespace sge {
 		for (;;) {
 			{//White space
 				auto whitespace = [](StrView s, size_t i) { return _match(s[i], " \n\t\r");  };
-				if (_findMatch(src, TokenType::Wsp, true, whitespace, 1)) { _scanUntil(src, false, std::not_fn(whitespace), 1); }
+				if (_findMatch(src, TokenType::WhiteSpace, true, whitespace, 1)) { _scanUntil(src, false, std::not_fn(whitespace), 1); }
 
 				if (m_off >= src.size()) {
 					return false;
@@ -150,9 +144,9 @@ namespace sge {
 				auto slashAsterisk = [](StrView s, size_t i) { return s[i] == '/' && s[i + 1] == '*';  };
 				auto asteriskSlash = [](StrView s, size_t i) { return s[i] == '*' && s[i + 1] == '/';  };
 
-				if (_findMatch(src, TokenType::Cmd, false, doubleSlash,	   2)) { _scanUntil(src, true, lineFeed,	  1); parseCmd = true; }
-				if (_findMatch(src, TokenType::Cmd, false, slashAsterisk,  2)) { _scanUntil(src, true, asteriskSlash, 2); parseCmd = true; }
-				if (_findMatch(src, TokenType::Cmd, false, pound,		   1)) { _scanUntil(src, true, lineFeed,	  1); parseCmd = true; }
+				if (_findMatch(src, TokenType::Command, false, doubleSlash,	   2)) { _scanUntil(src, true, lineFeed,	  1); parseCmd = true; }
+				if (_findMatch(src, TokenType::Command, false, slashAsterisk,  2)) { _scanUntil(src, true, asteriskSlash, 2); parseCmd = true; }
+				if (_findMatch(src, TokenType::Command, false, pound,		   1)) { _scanUntil(src, true, lineFeed,	  1); parseCmd = true; }
 			}
 			if (!parseCmd) {
 				break;
@@ -163,21 +157,21 @@ namespace sge {
 			auto digit		 = [](StrView s, size_t i) { return _isDigit(s[i]); };
 			auto digicont	 = [](StrView s, size_t i) { return _isDigit(s[i]) || _match(s[i], "."); };
 
-			if (_findMatch(src, TokenType::Lit, false, doubleQuote, 1)) { return _scanUntil(src, true,  doubleQuote, 1);		   };
-			if (_findMatch(src, TokenType::Lit, true,  digit,	    1)) { return _scanUntil(src, false, std::not_fn(digicont), 1); };
+			if (_findMatch(src, TokenType::Literal, false, doubleQuote, 1)) { return _scanUntil(src, true,  doubleQuote, 1);		   };
+			if (_findMatch(src, TokenType::Literal, true,  digit,	    1)) { return _scanUntil(src, false, std::not_fn(digicont), 1); };
 		}
 		{//Identifiers
 			auto alphabet = [](StrView s, size_t i) { return _isAlphabetic(s[i]); };
 			auto idenSymb = [](StrView s, size_t i) { char c = s[i];  return _isAlphabetic(c) || _isDigit(c) || c == '_';	   };
-			if (_findMatch(src, TokenType::Idr, true, alphabet, 1)) { return _scanUntil(src, false, std::not_fn(idenSymb), 1); };
+			if (_findMatch(src, TokenType::Identifier, true, alphabet, 1)) { return _scanUntil(src, false, std::not_fn(idenSymb), 1); };
 		}
 		{//Separator
 			auto separator = [](StrView s, size_t i) { return _match(s[i], "[](){};,");	};
-			if (_findMatch(src, TokenType::Sep, true, separator, 1)) { return true;		}
+			if (_findMatch(src, TokenType::Separator, true, separator, 1)) { return true;		}
 		}
 		{//Operator
 			auto op = [](StrView s, size_t i) { return _match(s[i], "+-*/%=:."); };
-			if(_findMatch(src, TokenType::Opr, true, op, 1)) { return true;		 }
+			if(_findMatch(src, TokenType::Operator, true, op, 1)) { return true;		 }
 		}
 
 		SGE_ASSERT(false);

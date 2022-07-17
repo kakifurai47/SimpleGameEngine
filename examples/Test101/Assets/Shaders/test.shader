@@ -9,15 +9,13 @@ Shader {
 	}
 	
 	Pass {
-		// Queue	"Transparent"
-		// Cull		None
+		//Queue	"Transparent"
+		Cull		Off
+		BlendRGB 	Add One OneMinusSrcAlpha
+		BlendAlpha	Add One OneMinusSrcAlpha
+		DepthTest	Always
+		DepthWrite	false
 
-		// BlendRGB 	Add One OneMinusSrcAlpha
-		// BlendAlpha	Add One OneMinusSrcAlpha
-
-		// DepthTest	Always
-		// DepthWrite	false
-		
 		VsFunc		vs_main
 		PsFunc		ps_main
 	}

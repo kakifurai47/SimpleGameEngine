@@ -1,43 +1,39 @@
 #pragma once
-#include "sge_core/base/sge_base.h"
+
+#include <sge_core/meta/type_trait.h>
 
 namespace sge {
 
+	#define Lexer_TokenType_ENUM_LIST(E) \
+		E(None,) \
+		E(WhiteSpace,) \
+		E(Identifier,) \
+		E(Separator,) \
+		E(Operator,) \
+		E(Literal,) \
+		E(Command,) \
+//--------
+
+	SGE_ENUM_CLASS(Lexer_TokenType, : u8)
+
 	class Lexer : public NonCopyable {
 	public:
-		enum class TokenType : u8 {
-			None, Wsp, Idr, Sep, Opr, Lit, Cmd,
-		};
+		using TokenType = Lexer_TokenType;
 
-		constexpr const char* Lexer::_type2char(TokenType type) {
-			switch (type) {
-			case TokenType::Wsp:	return "WhiteSpace";
-			case TokenType::Idr:	return "Identifier";
-			case TokenType::Sep:	return "Separator";
-			case TokenType::Opr:	return "Operator";
-			case TokenType::Lit:	return "Literal";
-			case TokenType::Cmd:	return "Command";
-			default:				return "None";
-			}
-		}
 		size_t line() const	{ return m_line; }
 		StrView getRemainSource() const;
 
-
-
 		void reset(StrView src);
 
-		bool next	   (StrView src);
-		bool tryNext   (StrView src, TokenType type, StrView val = nullptr);
-		void ensureNext(StrView src, TokenType type, StrView val = nullptr);
+		void expect		(TokenType type, StrView val = nullptr) { if (!checkToken(type, val)) throwUnexpected(); }
 
-		void retrieve(String& out);
-		void rtrvNext(StrView& src, TokenType type, String& out);
+		bool next		(StrView src);
+		bool tryNext	(StrView src, TokenType type, StrView val = nullptr);
 
 		void throwUnexpected();
 
 		inline
-		bool Lexer::tokCheck(TokenType type, StrView val = nullptr) {
+		bool Lexer::checkToken(TokenType type, StrView val = nullptr) {
 			return val == nullptr ? type == m_tok.type :
 									type == m_tok.type && val.compare(m_tok.value) == 0;
 		}
@@ -48,6 +44,28 @@ namespace sge {
 			StrView	  value = {};
 		};
 		Token m_tok;
+
+		inline bool isIdentifier(StrView value)			  { return checkToken(TokenType::Identifier, value); }
+		inline bool isSeparator (StrView value)			  { return checkToken(TokenType::Separator,  value); }
+		inline bool isLiteral	(StrView value = nullptr) { return checkToken(TokenType::Literal,	 value); }
+
+		template<class T> void readIdentifier(T& out) { expect(TokenType::Identifier); _read(out); }
+		template<class T> void readLiteral	 (T& out) { expect(TokenType::Literal);    _read(out); }
+
+		template<class T> 
+		constexpr void _read(T& out) {
+			if		constexpr (meta::isString<T>()) { _readString(out); }
+			else if constexpr (meta::isBool  <T>()) { _readBool  (out); }
+			else if constexpr (meta::isEnum  <T>()) { _readEnum  (out); }
+			else {
+				static_assert(false, "unexpected type");
+			}
+		}
+
+							 void _readString(String& out);
+							 void _readBool	 (bool&   out);
+		template<class ENUM> void _readEnum	 (ENUM&   out) { if (!enumTryParse(out, m_tok.value)) { throwUnexpected(); }
+		}
 
 	private:
 		template<class FUNC> bool _findMatch(StrView src, TokenType type, bool consume, FUNC&& startPred, size_t searchLen);
