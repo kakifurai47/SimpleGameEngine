@@ -24,6 +24,8 @@ namespace sge {
 	#if _DEBUG
 			cmd->debugLoc = debugLoc;
 	#endif
+			cmd->primitive			= subMesh.primitive();
+
 			cmd->vertexLayout		= subMesh.vertexLayout();
 			cmd->indexFormat		= subMesh.indexFormat ();
 	

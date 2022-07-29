@@ -26,7 +26,8 @@ namespace sge {
 		static const char* findChar(StrView view, StrView charList, bool ignoreCase);
 		static const char* findCharFromEnd(StrView view, StrView charList, bool ignoreCase);
 
-		static bool ignoreCaseCompare(char a, char b) { return tolower(a) == tolower(b); }
+		static bool ignoreCaseCompare(char a, char b) { return tolower(a) - tolower(b); }
+		static int  ignoreCaseCompare(StrView a, StrView b);
 
 		static bool tryParse(StrView view, i8&  outValue);
 		static bool tryParse(StrView view, i16& outValue);

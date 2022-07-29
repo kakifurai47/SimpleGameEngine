@@ -18,9 +18,10 @@ namespace sge
 
 		Renderer_DX11(CreateDesc& desc);
 
-		virtual Material*	     onCreateMaterial() override;
-		virtual Shader*			 onCreateShader   (StrView shadFilename) override;
-		virtual RenderContext*   onCreateContext  (RenderContext_CreateDesc& desc) override;
+		virtual Material*	     onCreateMaterial ()								 override;
+		virtual Shader*			 onCreateShader   (StrView shadFilename)			 override;
+		virtual Texture2D*		 onCreateTexture2D(Texture2D_CreateDesc&	   desc) override;		
+		virtual RenderContext*   onCreateContext  (RenderContext_CreateDesc&   desc) override;
 		virtual RenderGpuBuffer* onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) override;
 
 		DX11_IDXGIDevice*		dxgiDevice()		{ return m_dxgiDevice;		 }

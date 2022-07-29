@@ -2,6 +2,7 @@
 #include "Shader.h"
 #include "ShaderManager.h"
 #include "../buffer/RenderGpuBuffer.h"
+#include "../texture/Texture.h"
 
 namespace sge {
 
@@ -24,9 +25,10 @@ namespace sge {
 		}
 
 		template<class V>
-		const V& asValue() const {
-			if (type != RenderFormatTypeUtil::get<V>())
+		const V&  asValue() const {
+			if (type != RenderFormatTypeUtil::get<V>()) {
 				throw SGE_ERROR("invalid type");
+			}
 			return *reinterpret_cast<const V*>(data);
 		}
 
@@ -48,6 +50,7 @@ namespace sge {
 			SPtr<RenderGpuBuffer>	gpuBuffer;
 
 			const Info* info() { return m_info; }
+
 			void create(const Info& info);
 			void uploadToGpu();
 
@@ -61,11 +64,37 @@ namespace sge {
 			bool		m_dirty = false;
 		};
 
-		void setParam(StrView name, const Material_ValuePtr& valPtr);
+		struct TexParam {
+			using FormatType = ShaderStageInfo::FormatType;
+			using Info		 = ShaderStageInfo::Texture;
+
+			void create(const Info& info) { m_info = &info; }
+
+			Texture* getUpdatedTexture();
+
+			StrView		name	  () const { return m_info->name;		}
+			int			bindPoint () const { return m_info->bindPoint;	}
+			FormatType  formatType() const { return m_info->formatType; }
+
+			void setTexParam(Texture* tex);
+		private:
+
+			SPtr<Texture>		m_tex;
+			const   Info*		m_info = nullptr;
+		};
+
+		const ShaderStageInfo* info() const { return m_shadStage->info(); }
+
+		Span<ConstBuffer> constBufs()		{ return m_constBufs; }
+		Span<TexParam>	  texParams()		{ return m_texParams; }
+		
+		void setParam	(StrView name, const Material_ValuePtr& valPtr);
+		void setTexParam(StrView name, Texture* tex);
 
 	protected:
 		ShaderStage* m_shadStage  = nullptr;
 		Vector_<ConstBuffer, 4> m_constBufs;
+		Vector_<TexParam, 4>	m_texParams;
 	};
 
 	class MaterialVertexStage : public MaterialStage  {
@@ -73,6 +102,7 @@ namespace sge {
 		using ShaderStage = ShaderVertexStage;
 		MaterialVertexStage(ShaderVertexStage* ss) : MaterialStage(ss) {}
 	};
+
 	class MaterialPixelStage  : public MaterialStage {
 	public:
 		using ShaderStage = ShaderPixelStage;
@@ -90,7 +120,9 @@ namespace sge {
 		virtual ~MaterialPass() = default;
 
 		void bind(RenderContext* ctx, const VertexLayout* layout) { onBind(ctx, layout); }
-		void setParam(StrView name, const Material_ValuePtr& valPtr);
+
+		void setParam	(StrView name, const Material_ValuePtr& valPtr);
+		void setTexParam(StrView name, Texture* tex);
 	protected:
 		virtual void onBind(RenderContext* ctx, const VertexLayout* layout) = 0;
 		
@@ -109,10 +141,21 @@ namespace sge {
 
 		Span<Pass*> passes() { return m_matPasses; }
 
+		Pass* getPass(size_t index);
+
 		void setShader(Shader* shad);
-		void setParam (StrView name, const Material_ValuePtr& valPtr);
+
+		void setParam(StrView name, const float&	 value) { _setParam   (name, value); }
+		void setParam(StrView name, const Tuple2f&   value) { _setParam   (name, value); }
+		void setParam(StrView name, const Tuple3f&   value) { _setParam   (name, value); }
+		void setParam(StrView name, const Tuple4f&	 value) { _setParam   (name, value); }
+		void setParam(StrView name, const Mat4f&	 value) { _setParam   (name, value); }
+		void setParam(StrView name,		  Texture2D* value) { _setTexParam(name, value); }
 
 	protected:
+		void _setParam	 (StrView name, const Material_ValuePtr&  valPtr);
+		void _setTexParam(StrView name,	Texture* tex);
+
 		virtual void onSetShader  (Span<ShaderPass*>  shadPasses) = 0;
 		virtual void onResetPasses(Vector_<Pass*, 1>&  outPasses) = 0;	
 		

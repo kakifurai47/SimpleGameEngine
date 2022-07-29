@@ -11,7 +11,9 @@ namespace sge {
 		ShaderStage() = default;
 		ShaderStage(ShaderStage&& other) noexcept;
 
-		const Info* info() const { return &m_stageInfo; }
+		const Info*		info	() const { return &m_stageInfo; }
+			  ByteSpan	byteCode() const { return m_byteCode;	}
+
 	protected:
 		Info	   m_stageInfo;
 		Vector<u8>  m_byteCode;

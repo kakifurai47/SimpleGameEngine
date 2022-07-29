@@ -1,9 +1,13 @@
 #pragma once
 
+#include <sge_core/graph/Color.h>
+#include <sge_render/backend/base/Render_Common.h>
+
 #include "../vertex/Vertex.h"
 #include "../buffer/RenderGpuBuffer.h"
 #include "../shader/Material.h"
 #include "../mesh/RenderMesh.h"
+#include "../texture/Texture.h"
 
 namespace sge {
 
@@ -39,8 +43,8 @@ namespace sge {
 		This& setColor(const Color4f& color_) { color = color_; return *this; }
 		This& dontClearColor() { color.reset(); return *this; }
 
-		meta::opt<Color4f> color = Color4f(1, 1, 1, 1);
-		meta::opt<float>   depth = 0;
+		Opt<Color4f> color = Color4f(1, 1, 1, 1);
+		Opt<float>   depth = 0;
 	};
 
 	class RenderCmd_DrawCall : public RenderCmd {
@@ -49,9 +53,11 @@ namespace sge {
 	public:
 		RenderCmd_DrawCall() :Base(Type::DrawCall) {}
 
-		const VertexLayout* vertexLayout = nullptr;
+		const VertexLayout* vertexLayout	= nullptr;
 
-		RenderFormatType indexFormat = RenderFormatType::None;
+		RenderPrimitiveType primitive		= RenderPrimitiveType::None ;
+		RenderFormatType	indexFormat		= RenderFormatType::UInt16x1;
+
 
 		size_t indexCount  = 0;
 		size_t vertexCount = 0;
@@ -60,7 +66,10 @@ namespace sge {
 		SPtr<RenderGpuBuffer> indexBuffer;
 
 		SPtr<Material> material;
-		size_t		   materialPassIndex;
+		size_t		   materialPassIndex = 0;
+
+		auto getMaterialPass() { return material ? material->getPass(materialPassIndex) : nullptr; }
+
 	};
 
 	class RenderCmd_SwapBuffers : public RenderCmd {

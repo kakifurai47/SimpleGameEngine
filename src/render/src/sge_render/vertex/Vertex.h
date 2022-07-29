@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sge_render/backend/base/RenderFormat.h"
-
+#include <sge_core/graph/Color.h>
 
 namespace sge {
 
@@ -226,12 +226,20 @@ namespace sge {
 		VertexType				type;
 		size_t					stride;
 
+		const Element* find(Semantic semantic) const {
+			for (auto& e : elements) {
+				if (e.semantic == semantic) return &e;
+			}
+			return nullptr;
+		}
+
 		template<class VERTEX> constexpr 
 		void set(VERTEX) {
 			type   = VERTEX::kType();
 			stride = sizeof (VERTEX);
 			_set(VERTEX::SlotList{});
 		}
+
 
 	private:
 		template<class... SLOTs> constexpr 

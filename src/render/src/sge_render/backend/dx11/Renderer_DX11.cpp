@@ -5,6 +5,7 @@
 #include "RenderContext_DX11.h"
 #include "RenderGpuBuffer_DX11.h"
 #include "Material_DX11.h"
+#include "Texture_DX11.h"
 
 namespace sge
 {
@@ -79,6 +80,11 @@ namespace sge
 	Shader* Renderer_DX11::onCreateShader (StrView shadFilename) {
 		return ShaderManager_DX11::current()->find(shadFilename);
 	}
+
+	Texture2D* Renderer_DX11::onCreateTexture2D(Texture2D_CreateDesc& desc) {
+		return new Texture2D_DX11(desc);
+	}
+
 }
 #endif
 

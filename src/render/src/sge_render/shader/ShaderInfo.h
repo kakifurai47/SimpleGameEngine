@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sge_render/vertex/Vertex.h>
+#include <sge_core/graph/Color.h>
 #include "RenderState.h"
 
 namespace sge {

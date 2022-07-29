@@ -9,7 +9,7 @@
 #include <sge_core/math/Math.h>
 #include <sge_core/math/sort/Sort.h>
 
-#include <sge_core/math/Color.h>
+#include <sge_core/graph/Color.h>
 #include <sge_core/math/Tuple.h>
 
 #include <sge_core/math/Mat4.h>

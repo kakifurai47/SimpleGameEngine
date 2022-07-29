@@ -83,55 +83,28 @@ namespace sge
 	}
 
 	void RenderContext_DX11::onCmd_DrawCall(RenderCmd_DrawCall& cmd) {
-
-		HRESULT hr;
-		const wchar_t* shaderFile = L"Assets/Shaders/test.shader";
-
-		auto* dev = m_renderer->d3dDevice();
-		auto* ctx = m_renderer->d3dDeviceContext();
-
-		if (cmd.material) {
-			auto& idx    = cmd.materialPassIndex ;
-			auto  passes = cmd.material->passes();
-			passes[idx]->bind(this, nullptr);
-		}
-
-		if (!m_testVtxShader) {
-			ComPtr<ID3DBlob>	byteCode;
-			ComPtr<ID3DBlob>	errorMsg;
-			
-			hr = D3DCompileFromFile(shaderFile, 0, 0, "vs_main", "vs_5_0", 0, 0, byteCode.ptrForInit(), errorMsg.ptrForInit());
-			Util::throwIfError(hr);
-			
-			m_testVtxShaderByteCode.reset(byteCode.ptr());
-		}
-
-		D3D11_INPUT_ELEMENT_DESC ied[] =
-		{
-			{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		};
-		
-		ComPtr<DX11_ID3DInputLayout>	outLayout;
-
-		hr = dev->CreateInputLayout(ied, 2,
-									m_testVtxShaderByteCode->GetBufferPointer(),
-									m_testVtxShaderByteCode->GetBufferSize(), outLayout.ptrForInit());
-		Util::throwIfError(hr);		
-		ctx->IASetInputLayout(outLayout);
-
 		SGE_ASSERT(cmd.vertexLayout != nullptr);
-		
+
 		auto* vertexBuffer = static_cast<RenderGpuBuffer_DX11*>(cmd.vertexBuffer.ptr());
 		SGE_ASSERT(vertexBuffer != nullptr);
-		
+
+		SGE_ASSERT(cmd.vertexCount > 0);
+		SGE_ASSERT(cmd.primitive != RenderPrimitiveType::None);
+
 		RenderGpuBuffer_DX11* indexBuffer = nullptr;
 		if (cmd.indexCount > 0) {
 			indexBuffer = static_cast<RenderGpuBuffer_DX11*>(cmd.indexBuffer.ptr());
 			SGE_ASSERT(indexBuffer != nullptr);
 		}
 
-		ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		auto* ctx = m_renderer->d3dDeviceContext();
+
+		if (auto* pass = cmd.getMaterialPass()) {
+			pass->bind(this, cmd.vertexLayout);
+		}
+
+		auto primitive = Util::getDxPrimitiveTopology(cmd.primitive);
+		ctx->IASetPrimitiveTopology(primitive);
 		
 		UINT offset		 = 0;
 		UINT stride		 = static_cast<UINT>(cmd.vertexLayout->stride);

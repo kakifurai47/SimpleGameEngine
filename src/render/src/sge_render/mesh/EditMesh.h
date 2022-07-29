@@ -1,5 +1,8 @@
 #pragma once
 
+
+#include <sge_render/backend/base/Render_Common.h>
+
 namespace sge 
 {
 	class EditMesh : public NonCopyable
@@ -7,6 +10,7 @@ namespace sge
 	public:
 		static const u8 kUvCountMax = 4;
 
+		RenderPrimitiveType primitive = RenderPrimitiveType::Triangles;
 		Vector<u32> indicies;
 		
 		Vector<Tuple3f> pos;

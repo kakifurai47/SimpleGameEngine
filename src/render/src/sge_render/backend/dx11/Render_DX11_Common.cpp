@@ -1,6 +1,7 @@
 #include "Render_DX11_Common.h"
 
 namespace sge {
+
 	VertexSemanticType DX11Util::parseDxSemanticName(StrView s) {
 		VertexSemanticType ret;
 
@@ -14,10 +15,12 @@ namespace sge {
 		return ret;
 	}
 
-
-
-
-
-
+	const char* DX11Util::getDxSemanticName(VertexSemanticType t) {
+		const char* s = enumStr(t);
+		if (!s) {
+			throw SGE_ERROR("unknown Vertex Semantic Type : [{}] ", t);
+		}
+		return s;
+	}
 
 }

@@ -2,35 +2,55 @@
 #include <fileapi.h>
 
 #include <sge_core/math/MathCamera3.h>
+#include <sge_render/shader/RenderState.h>
+
+#include <sge_core/graph/Color.h>		// temp delete after finish impl
+#include <sge_render/texture/Texture.h>	// temp delete after finish impl
+
 
 namespace sge {
+
 	class MainWin : public NativeUIWindow {
 	public:
 		using Base = NativeUIWindow;
 		 
 		virtual void MainWin::onCreate() override {
 			Base::onCreate();
-
 			auto* renderer = Renderer::current();
+
 			{
 				RenderContext::CreateDesc desc;
 				desc.window = this;
 				m_renderCtx = renderer->createContext(desc);
 			}
 
-			m_camera.setPos({0, 5, 5});
-			m_camera.setAim({0, 0, 0});
+			m_camera.setPos({0, 10, 10});
+			m_camera.setAim({0,  0,  0});
 
 			{
+				//----
+				Texture2D_CreateDesc desc;
+
+				desc.imageToUpload.emplace();
+				auto& image = desc.imageToUpload.value();
+				image.load("Assets/Textures/banana.png");
+
+				desc.colorType = image.colorType();
+				desc.size = image.size();
+
+				auto tex = renderer->createTexture2D(desc);
+
+				//----
 				auto shad = renderer->createShader("Assets/Shaders/test.shader");
 				m_mat = renderer->createMaterial();
 				m_mat->setShader(shad);
+				m_mat->setParam("mainTex", tex);
 			}
 			{
 				EditMesh editMesh;
 #if 1
-				editMesh.loadObj("Assets/Mesh/standford_bunny.obj");
-//				editMesh.loadObj("Assets/Mesh/monkey.obj");
+//				editMesh.loadObj("Assets/Mesh/standford_bunny.obj");
+				editMesh.loadObj("Assets/Mesh/monkey.obj");
 #else
 				auto& positions = editMesh.pos;
 				positions.emplace_back(   0.0f,  0.5f, 0.0f );
@@ -47,9 +67,8 @@ namespace sge {
 			}
 		}
 
-		virtual void MainWin::onUIMouseEvent(UIMouseEvent& ev) override {
-			
-			
+		virtual void MainWin::onUIMouseEvent(UIMouseEvent& ev) override 
+		{
 			if (ev.isDragging()) {
 				
 				using Modifier  = UIEventModifier;
@@ -58,12 +77,9 @@ namespace sge {
 				switch (ev.initButton) {
 					case (Button::Left):	{ auto d = ev.deltaPos *   0.01f;  m_camera.orbit(d);				} break;
 					case (Button::Middle):  { auto d = ev.deltaPos *   0.01f;  m_camera.move ({ d.x, d.y , 0});	} break;
-					case (Button::Right):	{ auto d = ev.deltaPos * -0.005f;  m_camera.dolly(d.x + d.y);		} break;
-				
-				}
-				
+					case (Button::Right):	{ auto d = ev.deltaPos * -0.005f;  m_camera.dolly(d.x + d.y);		} break;				
+				}				
 			}
-
 		}
 
 		virtual void MainWin::onPaint() override {
@@ -71,10 +87,10 @@ namespace sge {
 			if (!m_renderCtx) return;
 
 			if (m_mat) {
-				alpha = alpha < 1.f ? alpha + 0.005f : 0;
-				m_mat->setParam("x", alpha);
+				//alpha = alpha < 1.f ? alpha + 0.005f : 0;
+				//m_mat->setParam("x", alpha);
 
-				auto m = Mat4f::s_scale(Vec3f::s_one() * 15);
+				auto m = Mat4f::s_identity();
 				auto v = m_camera.viewMat();
 				auto p = m_camera.projMat();
 				m_mat->setParam("SGE_MVP", p *  v * m);
@@ -83,7 +99,7 @@ namespace sge {
 			m_renderCtx->beginRender();
 			
 			m_cmdBuf.reset();
-			m_cmdBuf.clearFrameBuffers()->setColor({ 1, 1, 0.5f, 1 });
+			m_cmdBuf.clearFrameBuffers()->setColor({ 1, 0.45f, 0.5f, 1 });
 			m_cmdBuf.drawMesh(SGE_LOC, m_mesh, m_mat);
 			m_cmdBuf.swapBuffers();
 			m_renderCtx->commit(m_cmdBuf);

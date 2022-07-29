@@ -35,6 +35,8 @@ namespace sge {
 							errorMsg.ptrForInit());
 		Util::throwIfError(hr, errorMsg);
 
+		Directory::create(outPath);
+
 		auto bytecodeSpan = Util::toSpan(bytecode);
 		auto outFilename  = Fmt("{}/{}.bin", outPath, profile);
 		File::writeFileIfChanged(outFilename, bytecodeSpan, false);
@@ -176,18 +178,63 @@ namespace sge {
 						throw SGE_ERROR("format type is None");
 					}
 				}
-
 			}
-
 		}
 	}
 
 	void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
-		SGE_LOG("TODO: Implement _reflect_textures");
+		HRESULT hr {};
+		outInfo.textures.reserve(desc.BoundResources);
+
+		for (UINT i = 0; i < desc.BoundResources; i++) {
+			D3D11_SHADER_INPUT_BIND_DESC resDesc {};
+			hr = reflect->GetResourceBindingDesc(i, &resDesc);
+
+			if (resDesc.Type != D3D_SIT_TEXTURE) {
+				continue;
+			}
+
+			auto& outTex = outInfo.textures.emplace_back();
+			outTex.name = resDesc.Name;
+			outTex.bindPoint = static_cast<i16>(resDesc.BindPoint);
+			outTex.bindCount = static_cast<i16>(resDesc.BindCount);
+			
+			switch (resDesc.Dimension) {
+				using RFT = RenderFormatType;				
+				case D3D_SRV_DIMENSION_TEXTURE1D		: outTex.formatType = RFT::Texture1D;			break;
+				case D3D_SRV_DIMENSION_TEXTURE2D		: outTex.formatType = RFT::Texture2D;			break;
+				case D3D_SRV_DIMENSION_TEXTURE3D		: outTex.formatType = RFT::Texture3D;			break;
+				case D3D_SRV_DIMENSION_TEXTURECUBE		: outTex.formatType = RFT::TextureCube;			break;
+
+				case D3D_SRV_DIMENSION_TEXTURE1DARRAY	: outTex.formatType = RFT::Texture1DArray;		break;
+				case D3D_SRV_DIMENSION_TEXTURE2DARRAY	: outTex.formatType = RFT::Texture2DArray;		break;
+				case D3D_SRV_DIMENSION_TEXTURECUBEARRAY	: outTex.formatType = RFT::TextureCubeArray;	break;			
+
+				case D3D_SRV_DIMENSION_TEXTURE2DMS		: outTex.formatType = RFT::Texture2DMS;			break;
+				case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY	: outTex.formatType = RFT::Texture2DMSArray;	break;
+
+				default: throw SGE_ERROR("unsupported texture dimension : {}", resDesc.Dimension);
+			}
+		}
 	}
 
 	void ShaderCompiler_DX11::_reflect_samplers(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
-		SGE_LOG("TODO: Implement _reflect_samplers");
+		HRESULT hr {};
+		outInfo.samplers.reserve(desc.BoundResources);
+
+		for (UINT i = 0; i < desc.BoundResources; i++) {
+			D3D11_SHADER_INPUT_BIND_DESC resDesc {};
+			hr = reflect->GetResourceBindingDesc(i, &resDesc);
+
+			if (resDesc.Type != D3D_SIT_SAMPLER) {
+				continue;
+			}
+
+			auto& outSampler = outInfo.samplers.emplace_back();
+			outSampler.name		 = resDesc.Name;
+			outSampler.bindPoint = static_cast<i16>(resDesc.BindPoint);
+			outSampler.bindCount = static_cast<i16>(resDesc.BindCount);
+		}
 	}
 }
 
