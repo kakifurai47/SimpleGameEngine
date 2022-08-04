@@ -13,7 +13,7 @@ namespace sge {
 		int		minThreadGroupSize = 1;
 	};
 
-	enum class RenderPrimitiveType {
+	enum class RenderPrimitiveType : u8 {
 		None,
 		Points,
 		Lines,

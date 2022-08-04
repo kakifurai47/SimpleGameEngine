@@ -26,7 +26,7 @@ namespace sge {
 
 		void uploadToGpu(ByteSpan data, size_t offset = 0) {
 			if (data.size() + offset  > m_desc.bufferSize) {
-				throw SGE_ERROR("out of range");
+				throw SGE_ERROR("render buffer : out of range");
 			}
 			onUploadToGpu(data, offset);
 		}

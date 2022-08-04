@@ -195,7 +195,7 @@ namespace sge
 		case SRC::Float32x3:	return DXGI_FORMAT_R32G32B32_FLOAT; break;
 		case SRC::Float32x4:	return DXGI_FORMAT_R32G32B32A32_FLOAT; break;
 	//---
-		default: throw SGE_ERROR("unsupported RenderDataType");
+		default: throw SGE_ERROR("unsupported RenderDataType : [{}]", v);
 		}
 	}
 
