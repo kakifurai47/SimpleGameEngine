@@ -46,39 +46,48 @@ class TextureCube;
 	SGE_ENUM_CLASS(RenderFormatType, : u8)
 
 
-	struct RenderFormatTypeUtil {
+
+#define SGE_RENDER_FMT_TRAIT_PAIRS(E) \
+	E(i8,			RenderFormatType::Int08x1)		\
+	E(i16,			RenderFormatType::Int16x1)		\
+	E(i32,			RenderFormatType::Int32x1)		\
+	E(i64,			RenderFormatType::Int64x1)		\
+	\
+	E(u8 ,			RenderFormatType::UInt08x1)		\
+	E(u16,			RenderFormatType::UInt16x1)		\
+	E(u32,			RenderFormatType::UInt32x1)		\
+	E(u64,			RenderFormatType::UInt64x1)		\
+	\
+	E(f32,			RenderFormatType::Float32x1)	\
+	E(f64,			RenderFormatType::Float64x1)	\
+	\
+	E(Tuple2f,		RenderFormatType::Float32x2)	\
+	E(Tuple2d,		RenderFormatType::Float64x2)	\
+	\
+	E(Tuple3f,		RenderFormatType::Float32x3)	\
+	E(Tuple3d,		RenderFormatType::Float64x3)	\
+	\
+	E(Tuple4f,		RenderFormatType::Float32x4)	\
+	E(Tuple4d,		RenderFormatType::Float64x4)	\
+	\
+	E(Color4b,		RenderFormatType::UNorm08x4)	\
+	\
+	E(Mat4f,		RenderFormatType::Float32_4x4)	\
+	\
+	E(Texture2D,	RenderFormatType::Texture2D)	\
+//----
+
+	struct RenderFormatTypeUtil 
+	{
 		RenderFormatTypeUtil() = delete;
-		using Type = RenderFormatType;
+		using Type  =  RenderFormatType;
 		template<class T> static constexpr Type get();
 
-		template<> static constexpr Type get<void>()		{ return Type::None;		}
+#define SGE_RENDER_FMT_GET_ENUM(CLSS_TYPE, ENUM_TYPE) \
+		template<> static constexpr Type get<CLSS_TYPE>() { return ENUM_TYPE; } \
+//----
+		SGE_RENDER_FMT_TRAIT_PAIRS(SGE_RENDER_FMT_GET_ENUM)
 
-		template<> static constexpr Type get<i8 >()			{ return Type::Int08x1;		}
-		template<> static constexpr Type get<i16>()			{ return Type::Int16x1;		}
-		template<> static constexpr Type get<i32>()			{ return Type::Int32x1;		}
-		template<> static constexpr Type get<i64>()			{ return Type::Int64x1;		}
-
-		template<> static constexpr Type get<u8 >()			{ return Type::UInt08x1;	}
-		template<> static constexpr Type get<u16>()			{ return Type::UInt16x1;	}
-		template<> static constexpr Type get<u32>()			{ return Type::UInt32x1;	}
-		template<> static constexpr Type get<u64>()			{ return Type::UInt64x1;	}
-
-		template<> static constexpr Type get<f32>()			{ return Type::Float32x1;	}
-		template<> static constexpr Type get<f64>()			{ return Type::Float64x1;	}
-
-		template<> static constexpr Type get<Tuple2f>()		{ return Type::Float32x2;	}
-		template<> static constexpr Type get<Tuple2d>()		{ return Type::Float64x2;	}
-
-		template<> static constexpr Type get<Tuple3f>()		{ return Type::Float32x3;	}
-		template<> static constexpr Type get<Tuple3d>()		{ return Type::Float64x3;	}
-
-		template<> static constexpr Type get<Tuple4f>()		{ return Type::Float32x4;	}
-		template<> static constexpr Type get<Tuple4d>()		{ return Type::Float64x4;	}
-
-		template<> static constexpr Type get<Color4b>()		{ return Type::UNorm08x4;	}
-
-		template<> static constexpr Type get<Mat4f>()		{ return Type::Float32_4x4;	}
-
-		template<> static constexpr Type get<Texture2D>()	{ return Type::Texture2D;	}
+#undef  SGE_RENDER_FMT_GET_ENUM
 	};
 }

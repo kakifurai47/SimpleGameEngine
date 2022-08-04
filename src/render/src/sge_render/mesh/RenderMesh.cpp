@@ -1,7 +1,7 @@
 #include "RenderMesh.h"
 #include "EditMesh.h"
+#include "MeshBuilder.h"
 
-#include <memory>
 
 #include <sge_render/vertex/VertexLayoutManager.h>
 #include <sge_render/backend/base/Renderer.h>
@@ -25,23 +25,6 @@ namespace sge {
 				ret += getAttrCount(t[i], vtxCount);
 			}
 			return ret;
-		}
-
-		template<class T>
-		static void copyVertexData(const Vector<T>& src, size_t index, u8* dst, size_t stride, size_t offset, size_t count) {
-			SGE_ASSERT (index == 0);
-
-			u8* p = dst + offset;
-
-			for (size_t i = 0; i < count; i++) {
-				*reinterpret_cast<T*>(p) = src[i];
-				p += stride;
-			}
-		}
-
-		template<class T, size_t N>
-		static void copyVertexData(const Vector<T>(&src)[N], size_t index, u8* dst, size_t stride, size_t offset, size_t count) {
-			return  copyVertexData(src[index], 0, dst, stride, offset, count);
 		}
 	};
 
@@ -72,107 +55,73 @@ namespace sge {
 			throw SGE_ERROR("failed finding layout for this mesh \n"
 							" colCount:	[{}],\n UvCount:	[{}],\n normCount:	[{}],\n"
 							" tanCount:	[{}],\n bNormCount:	[{}] \n",
-							colorCount, uvCount, normalCount,
-							tangentCount, binormalCount
-			);
+							colorCount, uvCount, normalCount, tangentCount, binormalCount);
 		}
+
 		setSubMeshCount(1);
 		m_subMeshes[0].create(src);
 	}
 
 	void RenderMesh::clear() {
-		m_vertexLayout = nullptr;
+		m_primitive		= RenderPrimitiveType::Triangles;
+		m_vertexLayout	= nullptr;
 		m_subMeshes.clear();
 	}
 
 	void RenderMesh::setSubMeshCount(size_t newSize) {
 		size_t oldSize = m_subMeshes.size();
 		m_subMeshes.resize(newSize);
+
 		for (size_t i = oldSize; i < newSize; i++) {
-			m_subMeshes[i].m_mesh = this;
+			auto& sm = m_subMeshes[i];
+
+			sm.m_vertexLayout = m_vertexLayout;
+			sm.m_primitive	  = m_primitive;
 		}
 	}
 
 	void RenderSubMesh::create(const EditMesh& src) {
 		using Helper = RenderMesh_InternalHelper;
-		clear();
+		clear();	
 
-		m_indexCount  = src.indicies.size();
-		m_vertexCount = src.pos.size();
+		MeshBuilder::CreateDesc buildDesc{};
+		buildDesc.layout	  = m_vertexLayout;
+		buildDesc.vertexCount = src.pos.size();
+		buildDesc.indexCount  = src.indicies.size();
 
-		if (m_vertexCount <= 0) {
-			return;
+		MeshBuilder builder{buildDesc};
+
+		if (buildDesc.indexCount > 0) {
+			builder.idx().copy(src.indicies);
 		}
-		auto* vertexLayout = m_mesh->m_vertexLayout;
-		
-		Vector_<u8, 1024> vertexData;
-		vertexData.resize(vertexLayout->stride * m_vertexCount);
 
-		size_t vtxSize	= vertexLayout->stride;
-		size_t vtxCnt	= m_vertexCount;
-
-		u8* pData		= vertexData.data();
-
-		for (auto& e : vertexLayout->elements) {
+		for (auto& e : m_vertexLayout->elements) {
 			using Util		= VertexSemanticUtil;
 			using SmtType	= VertexSemanticType;
 
-			auto smtType  = Util::getType (e.semantic);
-			auto smtIdx   = Util::getIndex(e.semantic);
+			auto t = Util::getType (e.semantic);
+			auto i = Util::getIndex(e.semantic);
 
-			switch (smtType) {
-				case SmtType::POSITION: Helper::copyVertexData(src.pos,		 smtIdx, pData, vtxSize, e.offset, vtxCnt); break;
-				case SmtType::COLOR:	Helper::copyVertexData(src.color,	 smtIdx, pData, vtxSize, e.offset, vtxCnt); break;
-				case SmtType::TEXCOORD: Helper::copyVertexData(src.uv, 		 smtIdx, pData, vtxSize, e.offset, vtxCnt); break;
-				case SmtType::NORMAL:	Helper::copyVertexData(src.normal, 	 smtIdx, pData, vtxSize, e.offset, vtxCnt); break;
-				case SmtType::TANGENT:	Helper::copyVertexData(src.tangent,	 smtIdx, pData, vtxSize, e.offset, vtxCnt); break;
-				case SmtType::BINORMAL:	Helper::copyVertexData(src.binormal, smtIdx, pData, vtxSize, e.offset, vtxCnt); break;
+			switch (t){
+				case SmtType::POSITION: builder.pos		(i).copy(src.pos	 );	break;
+				case SmtType::COLOR:	builder.color	(i).copy(src.color	 );	break;
+				case SmtType::TEXCOORD: builder.uv		(i).copy(src.uv[i]	 );	break;
+				case SmtType::NORMAL:	builder.normal	(i).copy(src.normal	 );	break;
+				case SmtType::TANGENT:	builder.tangent	(i).copy(src.tangent );	break;
+				case SmtType::BINORMAL:	builder.binormal(i).copy(src.binormal);	break;
 				default: SGE_ASSERT(false);
 			}
 		}
 
-		auto* renderer = Renderer::current();
-
-		{
-			RenderGpuBuffer::CreateDesc desc;
-			desc.type		= RenderGpuBufferType::Vertex;
-			desc.bufferSize = vertexData.size();
-			m_vertexBuf = renderer->createGpuBuffer(desc);
-			m_vertexBuf->uploadToGpu(vertexData);
-		}
-
-		if (m_indexCount > 0) {
-			ByteSpan indexData;
-			Vector_<u16, 1024> indices_sint16;
-
-			if (m_indexCount >= UINT16_MAX) {
-				m_indexFormat	 = RenderFormatType::UInt32x1;
-				indexData		 = spanCast<const u8, const u32>(src.indicies);
-			}
-			else {
-				indices_sint16.reserve(m_indexCount);
-				for (auto i : src.indicies) {
-					indices_sint16.emplace_back(static_cast<u16>(i));
-				}
-				m_indexFormat	= RenderFormatType::UInt16x1;
-				indexData		= spanCast<const u8, const u16>(indices_sint16);
-			}
-
-			RenderGpuBuffer::CreateDesc desc;
-			desc.type		= RenderGpuBufferType::Index;
-			desc.bufferSize = indexData.size();
-
-			m_indexBuf = renderer->createGpuBuffer(desc);
-			m_indexBuf->uploadToGpu(indexData);
-		}
+		builder.createIndexResult (m_indexFormat,   m_indexCount,  m_indexBuffer);
+		builder.createVertexResult(m_vertexLayout, m_vertexCount, m_vertexBuffer);
 	}
 
 	void RenderSubMesh::clear() {
-		m_vertexBuf = nullptr;
-		m_indexBuf	= nullptr;
+		m_vertexBuffer = nullptr;
+		m_indexBuffer  = nullptr;
 
 		m_vertexCount = 0;
-		m_indexBuf	  = 0;
+		m_indexCount  = 0;
 	}
-
 }
