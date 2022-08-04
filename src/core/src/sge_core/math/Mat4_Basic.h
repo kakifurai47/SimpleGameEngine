@@ -7,7 +7,8 @@ namespace sge {
 
 	template<class T>
 	struct Mat4_Basic_Data {
-		using Vec4 = Vec4_Basic<T, typename Vec4_SSE_Select<T>::Data>;
+
+		using Vec4  = Vec4_Basic<T, typename Vec4_SSE_Select<T>::Data>;
 
 		using ElementType = T;
 		static const size_t kElementCount = 16;
@@ -60,11 +61,20 @@ namespace sge {
 		static SGE_INLINE		Mat4	s_ortho			(T left, T right, T bottom, T top, T zNear, T zFar);
 		static SGE_INLINE		Mat4	s_lookAt		(const Vec3 & eye, const Vec3 & aim, const Vec3 & up);
 
-		SGE_INLINE Mat4_Basic() = default;
-		SGE_INLINE Mat4_Basic(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_)
+		SGE_INLINE Mat4()			   = default;
+		SGE_INLINE Mat4(const Mat4& v) = default;
+		SGE_INLINE Mat4(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_)
 					: DATA(cx_, cy_, cz_, cw_) 
 				{
 				}
+
+		template<class U, class D>
+		SGE_INLINE explicit Mat4(const Mat4_Basic<U, D>& v)
+			: DATA(static_cast<Vec4>(v.cx), static_cast<Vec4>(v.cy),
+				   static_cast<Vec4>(v.cz), static_cast<Vec4>(v.cw))
+		{
+		}
+
 
 		SGE_INLINE			Vec4& operator[](int i)			{ return m_columns[i]; }
 		SGE_INLINE const	Vec4& operator[](int i) const	{ return m_columns[i]; }

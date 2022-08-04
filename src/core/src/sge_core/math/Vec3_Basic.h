@@ -33,10 +33,16 @@ namespace sge {
 	
 		SGE_INLINE static Vec3 s_inf()		{ auto f = Math::inf<T>(); return Vec3(f,f,f); }
 	
-		SGE_INLINE Vec3() = default;
+		SGE_INLINE Vec3()			   = default;
+		SGE_INLINE Vec3(const Vec3& v) = default;
 		SGE_INLINE Vec3(const Tuple3<T> & v)					 { set(v); }
 		SGE_INLINE Vec3(const Vec2& v, const T& z_)				 { set(v.x, v.y, z_); }
-		SGE_INLINE Vec3(const T& x_,   const T& y_, const T& z_) { set(x_, y_, z_); }
+		SGE_INLINE Vec3(const T& x_,   const T& y_, const T& z_) { set(x_,  y_,  z_); }
+
+		template<class U, class D>
+		SGE_INLINE explicit Vec3(const Vec3_Basic<U, D>& v) {
+			set(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z));
+		}
 	
 		SGE_INLINE void set(const Tuple3<T> & v) { DATA::set(v); }
 		SGE_INLINE void set(const T& x_, const T& y_, const T& z_) { set(Tuple3<T>(x_, y_, z_)); }

@@ -14,9 +14,15 @@ namespace sge {
 		using DATA::x;
 		using DATA::y;
 	
-		SGE_INLINE Vec2() = default;
+		SGE_INLINE Vec2()			   = default;
+		SGE_INLINE Vec2(const Vec2& v) = default;
 		SGE_INLINE Vec2(const Tuple2<T> & v)	  { set(v);		 }
 		SGE_INLINE Vec2(const T& x_, const T& y_) { set(x_, y_); }
+
+		template<class U, class D>
+		SGE_INLINE explicit Vec2(const Vec2_Basic<U, D>& v) {
+			set( static_cast<T>(v.x), static_cast<T>(v.y) );
+		}
 	
 		SGE_INLINE void set(const Tuple2<T> & v)	  { DATA::set(v); }
 		SGE_INLINE void set(const T& x_, const T& y_) { set(Tuple2<T>(x_, y_)); }
