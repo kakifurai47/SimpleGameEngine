@@ -5,9 +5,9 @@
 #include <sge_render/backend/base/RenderFormat.h>
 		 
 #include <sge_render/vertex/VertexLayoutManager.h>
-		 
-#include <sge_render/command/RenderCommandBuffer.h>
-		 
+
+#include <sge_render/command/RenderRequest.h>
+
 #include <sge_render/mesh/EditMesh.h>
 #include <sge_render/mesh/RenderMesh.h>
 		 

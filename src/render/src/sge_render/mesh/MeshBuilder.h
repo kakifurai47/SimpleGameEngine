@@ -1,25 +1,32 @@
 #pragma once
 
+#include <sge_render/texture/Texture.h>
 #include <sge_render/vertex/Vertex.h>
 #include <sge_render/mesh/DrawableUnit.h>
 
 namespace sge {
 
+	using MeshBuilder_Buffer = Vector<u8, 1024>;
+
 	class MeshBuilder_BuildArray {
-		using Util = RenderFormatTypeUtil;
+		using Util	 = RenderFormatTypeUtil;
 	public:
+		using Buffer = MeshBuilder_Buffer;
 
 		MeshBuilder_BuildArray() = default;
-		MeshBuilder_BuildArray(u8* data, RenderFormatType format, size_t offset, size_t stride, size_t count)
-			: m_data(data), m_count(count), m_format(format)
+		MeshBuilder_BuildArray(Buffer* vector, RenderFormatType format, size_t offset, size_t stride, size_t capacity)
+			: m_buffer(vector), m_capacity(capacity), m_format(format)
 			, m_offset(offset), m_stride(stride)
 		{
 		}
 
+		SGE_INLINE size_t size		() { return m_size; }
+		SGE_INLINE size_t capacity	() { return m_capacity; }
+
 		template<class T>
-		void add(size_t index, const T& value) {
+		void assign(size_t index, const T& value) {
 			_throwIfOutOfRange(index);
-			_add(index, value);
+			_assign(index, value);
 		}
 
 		template<class T>
@@ -28,23 +35,27 @@ namespace sge {
 			_throwIfOutOfRange(src.size() - 1);
 
 			for (size_t i = 0; i < src.size(); i++) {
-				_add(i, src[i]);
+				_assign(i, src[i]);
 			}
 		}
+
+		template<class T>
+		void add(const T&  value) { assign(m_size, value); m_size++; }
+
 	private:
 		void _throwIfOutOfRange(size_t  index) {
-			if (index < 0 || index >= m_count) {
+			if (index < 0 || index >= m_capacity) {
 				throw SGE_ERROR("build array :  out of range");
 			}
 		}
 		
 		template<class S>
-		void _add(size_t index, const S& value) 
+		void _assign(size_t index, const S& value) 
 		{
 		#define ADD_CASE(CLSS_TYPE, ENUM_TYPE) \
 			case ENUM_TYPE: { \
 				if constexpr (std::is_convertible<S, CLSS_TYPE>::value) { \
-					auto* p = m_data + m_offset + m_stride * index; \
+					auto* p = m_buffer->data() + m_offset + m_stride * index; \
 					*reinterpret_cast<CLSS_TYPE*>(p) = static_cast<CLSS_TYPE>(value); \
 				} \
 				else { \
@@ -67,10 +78,11 @@ namespace sge {
 		
 		size_t m_stride = 0;
 		size_t m_offset = 0;
-		size_t m_count	= 0;
 
-		u8*	   m_data	= nullptr;
-	};	
+		Buffer* m_buffer	= nullptr;
+		size_t	m_size		= 0;
+		size_t	m_capacity	= 0;
+	};
 
 	struct MeshBuilder_CreateDesc 
 	{
@@ -81,14 +93,15 @@ namespace sge {
 		size_t  indexCount = 0;
 	};
 
-
 	class MeshBuilder : public NonCopyable {
 	public:
 		using CreateDesc = MeshBuilder_CreateDesc;
 
 		using BuildArray = MeshBuilder_BuildArray;
 		using Util		 = VertexSemanticUtil;
+		using Buffer	 = MeshBuilder_Buffer;
 
+		MeshBuilder() = default;
 		MeshBuilder(const CreateDesc& desc);
 
 		SGE_INLINE size_t  indexStride() { return m_indexFormat == RenderFormatType::UInt32x1 ? 4 : 2; }
@@ -106,7 +119,7 @@ namespace sge {
 		BuildArray vertAttr(VertexSemantic	   semantic);
 		BuildArray vertAttr(VertexSemanticType semanticType, u8 semanticIndex) { return vertAttr(Util::make(semanticType, semanticIndex));  }
 
-		BuildArray idx		()				   { return {m_indexData.data(), m_indexFormat, 0, indexStride(), m_indexCount}; }
+		BuildArray index	()				   { return BuildArray{&m_indexData, m_indexFormat, 0, indexStride(), m_indexCount}; }
 		BuildArray pos		(u8 semanticIndex) { return vertAttr(VertexSemanticType::POSITION, semanticIndex); }
 		BuildArray uv		(u8 semanticIndex) { return vertAttr(VertexSemanticType::TEXCOORD, semanticIndex); }
 		BuildArray color	(u8 semanticIndex) { return vertAttr(VertexSemanticType::COLOR,	   semanticIndex); }
@@ -116,8 +129,8 @@ namespace sge {
 
 		void clear();
 
-		void resetIndices (RenderFormatType     indexFormat = RenderFormatType::None, size_t count = 0);
-		void resetVertices(const VertexLayout* vertexLayout = nullptr,				  size_t count = 0);
+		void resetIndices (size_t count, RenderFormatType indexFormat = RenderFormatType::None); //warning : do not use the BuildArray after reset get the new one
+		void resetVertices(size_t count, const VertexLayout* vertexLayout);						 //warning : do not use the BuildArray after reset get the new one
 
 		void  createIndexResult(RenderFormatType&    outFormat, size_t& outCount, SPtr<RenderGpuBuffer>& outBuffer);
 		void createVertexResult(const VertexLayout*& outLayout, size_t& outCount, SPtr<RenderGpuBuffer>& outBuffer);
@@ -129,7 +142,7 @@ namespace sge {
 		size_t  m_indexCount = 0;
 		size_t m_vertexCount = 0;
 
-		Vector_<u8, 1024>  m_indexData;
-		Vector_<u8, 1024> m_vertexData;
+		Buffer  m_indexData;
+		Buffer m_vertexData;
 	};
 }

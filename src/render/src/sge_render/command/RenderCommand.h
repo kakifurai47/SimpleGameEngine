@@ -3,6 +3,8 @@
 #include <sge_core/graph/Color.h>
 #include <sge_render/backend/base/Render_Common.h>
 
+#include <sge_core/alllocators/LinearAllocator.h>
+
 #include "../vertex/Vertex.h"
 #include "../buffer/RenderGpuBuffer.h"
 #include "../shader/Material.h"
@@ -18,12 +20,12 @@ namespace sge {
 		DrawCall,
 	};
 
-	class RenderCmd : public NonCopyable {
+	class RenderCommand : public NonCopyable {
 	public:
 		using Type = RenderCommandType;
 
-		RenderCmd(Type type) : m_type(type) {}
-		virtual ~RenderCmd() {}
+		RenderCommand(Type type) : m_type(type) {}
+		virtual ~RenderCommand() {}
 
 		Type type() const { return m_type; }
 
@@ -34,11 +36,11 @@ namespace sge {
 		Type m_type = Type::None;
 	};
 
-	class RenderCmd_ClearFrameBuffers : public RenderCmd {
-		using Base = RenderCmd;
-		using This = RenderCmd_ClearFrameBuffers;
+	class RenderCommand_ClearFrameBuffers : public RenderCommand {
+		using Base = RenderCommand;
+		using This = RenderCommand_ClearFrameBuffers;
 	public:
-		RenderCmd_ClearFrameBuffers() : Base(Type::ClearFrameBuffers) {}
+		RenderCommand_ClearFrameBuffers() : Base(Type::ClearFrameBuffers) {}
 
 		This& setColor(const Color4f& color_) { color = color_; return *this; }
 		This& dontClearColor() { color.reset(); return *this; }
@@ -47,11 +49,11 @@ namespace sge {
 		Opt<float>   depth = 0;
 	};
 
-	class RenderCmd_DrawCall : public RenderCmd {
-		using Base = RenderCmd;
-		using This = RenderCmd_DrawCall;
+	class RenderCommand_DrawCall : public RenderCommand {
+		using Base = RenderCommand;
+		using This = RenderCommand_DrawCall;
 	public:
-		RenderCmd_DrawCall() :Base(Type::DrawCall) {}
+		RenderCommand_DrawCall() :Base(Type::DrawCall) {}
 
 		const VertexLayout* vertexLayout	= nullptr;
 
@@ -72,10 +74,40 @@ namespace sge {
 
 	};
 
-	class RenderCmd_SwapBuffers : public RenderCmd {
-		using Base = RenderCmd;
-		using This = RenderCmd_SwapBuffers;
+	class RenderCommand_SwapBuffers : public RenderCommand {
+		using Base = RenderCommand;
+		using This = RenderCommand_SwapBuffers;
 	public:
-		RenderCmd_SwapBuffers() : Base(Type::SwapBuffers) {}
+		RenderCommand_SwapBuffers() : Base(Type::SwapBuffers) {}
+	};
+
+
+	class RenderCommandBuffer : public NonCopyable 
+	{
+	public:
+		static constexpr u64 size = 4 * 1024 * 1024;
+
+		 RenderCommandBuffer();
+		~RenderCommandBuffer();
+
+		Span<RenderCommand*> commands() { return m_commands; }
+
+
+		template<class CMD>
+		CMD* newCommand() {
+			auto s = sizeof(CMD);
+			auto a = std::min<size_t>( 32, Math::nextPow2(s));
+			auto* cmd = new (m_allocator.allocate(s, a))CMD();
+			m_commands.emplace_back(cmd);
+			return cmd;
+		}
+
+		void reset();
+
+
+	private:
+		u8*	m_buffer = nullptr;
+		LinearAllocator	  m_allocator;
+		Vector<RenderCommand*> m_commands;		
 	};
 }

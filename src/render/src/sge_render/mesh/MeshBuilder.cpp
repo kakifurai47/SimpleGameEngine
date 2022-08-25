@@ -5,36 +5,42 @@
 namespace sge {
 
 	MeshBuilder::MeshBuilder(const CreateDesc& desc) {
-		resetIndices (desc.indexFormat, desc.indexCount);
-		resetVertices(desc.layout,	   desc.vertexCount);
+		resetIndices (desc.indexCount,  desc.indexFormat);
+		resetVertices(desc.vertexCount, desc.layout);
 	}
 
 	void MeshBuilder::clear() {
-		resetIndices ();
-		resetVertices();
+		resetIndices (0);
+		resetVertices(0, nullptr);
 	}
 
-	void MeshBuilder::resetIndices(RenderFormatType indexFormat, size_t indexCount) {
+	void MeshBuilder::resetIndices(size_t indexCount, RenderFormatType indexFormat) {
 		using FT = RenderFormatType;
 
 		m_indexData.clear();
 
-		auto rsltFmt = indexFormat;
+		auto rsltFormat = indexFormat;
 		if (indexCount > 0) {
-			if (rsltFmt == RenderFormatType::None) {
-				rsltFmt = indexCount >= UINT16_MAX ? FT::UInt32x1 : FT::UInt16x1;
+			if (rsltFormat == RenderFormatType::None) {
+				rsltFormat = indexCount >= UINT16_MAX ? FT::UInt32x1 : FT::UInt16x1;
 			}
-			if (rsltFmt != FT::UInt32x1 && rsltFmt != FT::UInt16x1) {
-				throw SGE_ERROR("mesh builder : unsupported index format : [{}]", rsltFmt);
+
+			if (rsltFormat != FT::UInt16x1 &&
+				rsltFormat != FT::UInt32x1) {
+				throw SGE_ERROR("mesh builder : unsupported index format : [{}]", rsltFormat);
+			}
+
+			if(rsltFormat == FT::UInt16x1 && indexCount >= UINT16_MAX) {
+				throw SGE_ERROR("mesh builder : invalid index foramt");
 			}
 		}
 
-		m_indexCount= indexCount;
-		m_indexFormat  = rsltFmt;
+		m_indexCount  = indexCount;
+		m_indexFormat = rsltFormat;
 		m_indexData.resize(m_indexCount * indexStride());
 	}
 
-	void MeshBuilder::resetVertices(const VertexLayout* vertexLayout , size_t vertexCount) {
+	void MeshBuilder::resetVertices(size_t vertexCount, const VertexLayout* vertexLayout) {
 		m_vertexData.clear();
 		
 		m_layout	 = vertexLayout;
@@ -45,6 +51,9 @@ namespace sge {
 
 	void MeshBuilder::createIndexResult(RenderFormatType& outFormat, size_t& outCount, SPtr<RenderGpuBuffer>& outBuffer)
 	{
+		if (m_indexCount < 0) {
+			throw SGE_ERROR("mesh builder : creating empty buffer");
+		}
 		outFormat   = m_indexFormat;
 		outCount	= m_indexCount;
 
@@ -60,6 +69,9 @@ namespace sge {
 
 	void MeshBuilder::createVertexResult(const VertexLayout*& outLayout, size_t& outCount, SPtr<RenderGpuBuffer>& outBuffer)
 	{
+		if (m_vertexCount < 0) {
+			throw SGE_ERROR("mesh builder : creating empty buffer");
+		}
 		outLayout = m_layout;
 		outCount  = m_vertexCount;
 
@@ -82,7 +94,7 @@ namespace sge {
 			throw SGE_ERROR("mesh builder : access non existing vertex element");
 		}
 		return BuildArray {
-			m_vertexData.data(), elm->formatType, elm->offset, vertexStride(), m_vertexCount
+			&m_vertexData, elm->formatType, elm->offset, vertexStride(), m_vertexCount
 		};
 	}
 }

@@ -74,28 +74,28 @@ namespace sge {
 
 		for (size_t i = oldSize; i < newSize; i++) {
 			auto& sm = m_subMeshes[i];
-
-			sm.m_vertexLayout = m_vertexLayout;
-			sm.m_primitive	  = m_primitive;
+			sm.m_mesh = this;
 		}
 	}
 
 	void RenderSubMesh::create(const EditMesh& src) {
 		using Helper = RenderMesh_InternalHelper;
-		clear();	
+		clear();
+
+		auto* layout = m_mesh->m_vertexLayout;
 
 		MeshBuilder::CreateDesc buildDesc{};
-		buildDesc.layout	  = m_vertexLayout;
+		buildDesc.layout	  = layout;
 		buildDesc.vertexCount = src.pos.size();
 		buildDesc.indexCount  = src.indicies.size();
 
 		MeshBuilder builder{buildDesc};
 
 		if (buildDesc.indexCount > 0) {
-			builder.idx().copy(src.indicies);
+			builder.index().copy(src.indicies);
 		}
 
-		for (auto& e : m_vertexLayout->elements) {
+		for (auto& e : layout->elements) {
 			using Util		= VertexSemanticUtil;
 			using SmtType	= VertexSemanticType;
 
@@ -114,7 +114,7 @@ namespace sge {
 		}
 
 		builder.createIndexResult (m_indexFormat,   m_indexCount,  m_indexBuffer);
-		builder.createVertexResult(m_vertexLayout, m_vertexCount, m_vertexBuffer);
+		builder.createVertexResult(layout,		   m_vertexCount, m_vertexBuffer);
 	}
 
 	void RenderSubMesh::clear() {
