@@ -5,8 +5,6 @@
 #include <sge_render/buffer/RenderGpuBuffer.h>
 #include <sge_render/vertex/Vertex.h>
 
-#include <sge_render/mesh/DrawableUnit.h>
-
 namespace sge 
 {
 	class EditMesh;

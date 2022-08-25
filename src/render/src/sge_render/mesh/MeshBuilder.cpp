@@ -2,6 +2,7 @@
 
 #include <sge_render/backend/base/Renderer.h>
 
+
 namespace sge {
 
 	MeshBuilder::MeshBuilder(const CreateDesc& desc) {

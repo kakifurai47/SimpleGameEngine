@@ -1,8 +1,8 @@
 #pragma once
 
+#include <sge_render/buffer/RenderGpuBuffer.h>
 #include <sge_render/texture/Texture.h>
 #include <sge_render/vertex/Vertex.h>
-#include <sge_render/mesh/DrawableUnit.h>
 
 namespace sge {
 
