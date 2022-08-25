@@ -48,9 +48,9 @@ namespace sge {
 		using  PixelStage  = ShaderPixelStage_DX11;
 
 		virtual void onCreate	  (StrView		   compiledPath) override;
-		virtual void onResetPasses(Vector_<Pass*, 1>& outPasses) override;
+		virtual void onResetPasses(Vector<Pass*, 1>&  outPasses) override;
 		virtual void onDestroy	  ()							 override;
 	protected:
-		Vector_<ShaderPass_DX11, 1> m_dx11ShadPasses;
+		Vector<ShaderPass_DX11, 1> m_dx11ShadPasses;
 	};
 }

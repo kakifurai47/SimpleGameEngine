@@ -18,12 +18,14 @@ namespace sge {
 
 		template<class T>
 		void io(T& t) {
-			if		constexpr (meta::isEnum		  <T>()) { toEnum(t);			return; }
-			else if constexpr (meta::isArithmetic <T>()) { toValue(t);			return; }
+			if		constexpr (meta::isEnum		  <T>()) { toEnum	(t);		return; }
+			else if constexpr (meta::isArithmetic <T>()) { toValue	(t);		return; }
 			else if constexpr (meta::isString	  <T>()) { toStrView(t.view());	return; }
-			else if constexpr (meta::isVector	  <T>()) { toSpan(makeSpan(t));	return; }
-			else if constexpr (meta::isSerDes	  <T>()) { toObject(t);			return; }
-			else { SGE_ASSERT(false); }
+			else if constexpr (meta::isVector	  <T>()) { toSpan	(t.span());	return; }
+			else if constexpr (meta::isSerDes	  <T>()) { toObject	(t);		return; }
+			else {
+				SGE_ASSERT(false); 
+			}
 		}
 	private:
 		inline
@@ -91,7 +93,7 @@ namespace sge {
 		}
 
 	private:
-		Vector_<Json*, 64> m_stack;
+		Vector<Json*, 64> m_stack;
 		Json& m_json;
 	};
 }

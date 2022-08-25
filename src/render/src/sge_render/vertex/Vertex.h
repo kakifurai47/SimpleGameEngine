@@ -222,9 +222,9 @@ namespace sge {
 			FormatType	 formatType	= FormatType::None;
 		};
 
-		Vector_<Element, 16>	elements;
-		VertexType				type;
-		size_t					stride;
+		Vector<Element, 16>	elements;
+		VertexType			type;
+		size_t				stride;
 
 		const Element* find(Semantic semantic) const {
 			for (auto& e : elements) {

@@ -105,7 +105,7 @@ namespace sge {
 		if  (end > cpuBuffer.size())
 			throw SGE_ERROR("const buf : setParam out of range");
 
-		auto* dst = cpuBuffer.data() + varInfo->offset;		
+		auto* dst = cpuBuffer.data() + varInfo->offset;
 		*reinterpret_cast<T*>(dst) = value;
 		m_dirty = true;
 	}

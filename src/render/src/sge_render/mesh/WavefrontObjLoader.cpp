@@ -133,7 +133,7 @@ namespace sge {
 
 	void WavefrontObjLoader::_parse_f(EditMesh& outMesh) {
 		nextToken();
-		Vector_<int, 64> face_idx;
+		Vector<int, 64> face_idx;
 
 		for (;;) {
 			if (m_token.isNewLine() || m_token.isEnd()) {

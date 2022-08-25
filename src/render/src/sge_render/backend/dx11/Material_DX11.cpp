@@ -80,7 +80,7 @@ namespace sge
 		else {
 			using Util = DX11Util;
 
-			Vector_<D3D11_INPUT_ELEMENT_DESC, 32> inputDesc;
+			Vector<D3D11_INPUT_ELEMENT_DESC, 32> inputDesc;
 
 			auto* vsInfo = info();
 
@@ -154,7 +154,7 @@ namespace sge
 		}
 	}
 
-	void Material_DX11::onResetPasses(Vector_<Pass*, 1>& outPasses) {
+	void Material_DX11::onResetPasses(Vector<Pass*, 1>& outPasses) {
 		outPasses.clear();
 		outPasses.reserve(outPasses.size());
 		for (auto& p : m_dx11Passes) { outPasses.emplace_back(&p); }

@@ -72,8 +72,8 @@ namespace sge {
 			String		psFunc;
 		};
 
-		Vector_<Prop, 8>	props;
-		Vector_<Pass, 1>	passes;
+		Vector<Prop, 8>	props;
+		Vector<Pass, 1>	passes;
 	};
 
 	template<class SE> inline
@@ -139,7 +139,7 @@ namespace sge {
 			i16		 bindCount = 0;
 			size_t	 dataSize  = 0;
 
-			Vector_<Variable, 4> variables;
+			Vector<Variable, 4> variables;
 
 			const Variable* findVariable(StrView propName) const {
 				for (auto& v : variables) {
@@ -163,12 +163,12 @@ namespace sge {
 			FormatType	formatType  = FormatType::None;
 		};
 
-		Vector_<Input, 8>		inputs;
-		Vector_<Param, 8>		params;
-		Vector_<ConstBuffer, 8>	constBuffers;
+		Vector<Input, 8>		inputs;
+		Vector<Param, 8>		params;
+		Vector<ConstBuffer, 8>	constBuffers;
 
-		Vector_<Texture, 8>		textures;
-		Vector_<Sampler, 8>		samplers;
+		Vector<Texture, 8>		textures;
+		Vector<Sampler, 8>		samplers;
 	};
 
 	template<class SE> inline

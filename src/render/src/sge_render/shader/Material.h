@@ -93,8 +93,8 @@ namespace sge {
 
 	protected:
 		ShaderStage* m_shadStage  = nullptr;
-		Vector_<ConstBuffer, 4> m_constBufs;
-		Vector_<TexParam, 4>	m_texParams;
+		Vector<ConstBuffer, 4> m_constBufs;
+		Vector<TexParam,	4> m_texParams;
 	};
 
 	class MaterialVertexStage : public MaterialStage  {
@@ -157,9 +157,9 @@ namespace sge {
 		void _setTexParam(StrView name,	Texture* tex);
 
 		virtual void onSetShader  (Span<ShaderPass*>  shadPasses) = 0;
-		virtual void onResetPasses(Vector_<Pass*, 1>&  outPasses) = 0;	
+		virtual void onResetPasses(Vector<Pass*, 1>&   outPasses) = 0;	
 		
-		SPtr<Shader> m_shader;
-		Vector_<Pass*, 1> m_matPasses;
+		SPtr<Shader>	 m_shader;
+		Vector<Pass*, 1> m_matPasses;
 	};
 }

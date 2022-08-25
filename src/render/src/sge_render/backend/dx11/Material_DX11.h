@@ -79,8 +79,8 @@ namespace sge {
 		Shader_DX11* dx11Shad() { return static_cast<Shader_DX11*>(m_shader.ptr()); }
 	protected:		
 		virtual void onSetShader  (Span<ShaderPass*>  shadPasses) override;
-		virtual void onResetPasses(Vector_<Pass*, 1>&  outPasses) override;
+		virtual void onResetPasses(Vector<Pass*, 1>&   outPasses) override;
 
-		Vector_<MaterialPass_DX11, 1> m_dx11Passes;
+		Vector<MaterialPass_DX11, 1> m_dx11Passes;
 	};
 }

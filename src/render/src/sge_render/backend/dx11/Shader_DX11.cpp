@@ -74,10 +74,10 @@ namespace sge {
 		}
 	}
 
-	void Shader_DX11::onResetPasses(Vector_<Pass*, 1>& outPasses) {
+	void Shader_DX11::onResetPasses(Vector<Pass*, 1>& outPasses) {
 		outPasses.clear();
 		outPasses.reserve(m_dx11ShadPasses.size());
-		for (auto& p : m_dx11ShadPasses) { 
+		for (auto& p : m_dx11ShadPasses) {
 			outPasses.emplace_back(&p);
 		}
 	}

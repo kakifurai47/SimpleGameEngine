@@ -24,7 +24,10 @@ namespace sge {
 			else if constexpr (meta::isString	  <T>()) { toString(out);	return; }
 			else if constexpr (meta::isVector	  <T>()) { toVector(out);	return; }
 			else if constexpr (meta::isSerDes	  <T>()) { toObject(out);	return; }
-			else { SGE_ASSERT(false); }
+			else {
+				SGE_DUMP_VAR("etf");
+				SGE_ASSERT(false); 
+			}
 		}
 	private:
 
@@ -97,7 +100,7 @@ namespace sge {
 		}
 
 	private:
-		Vector_<Json*, 64> m_stack;
+		Vector<Json*, 64> m_stack;
 		Json& m_json;
 	};
 }

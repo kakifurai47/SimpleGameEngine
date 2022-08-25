@@ -213,7 +213,7 @@ namespace sge {
 
 		outImg.create(outColorType, width, height);
 
-		Vector_<png_byte*, 2048> rows;
+		Vector<png_byte*, 2048> rows;
 		rows.reserve(height);
 
 		for (int y = 0; y < height; y++) {

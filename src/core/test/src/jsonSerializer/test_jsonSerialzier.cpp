@@ -21,7 +21,7 @@ namespace sge {
 		u64 myUint8A;
 		bool myBoolA = false;
 
-		Vector_<bool, 3> MyBoolVec;
+		Vector<bool, 3> MyBoolVec;
 	};
 
 	struct TestStruct {
@@ -29,12 +29,12 @@ namespace sge {
 		String myStringB;
 		String myStringC;
 
-		Vector_<u8, 3> myVectorA;
+		Vector<u8, 3> myVectorA;
 
 		MyEnum myEnum;
 
 		u64 myUint64A;
-		Vector_<TestNestedStruct, 3> myNestedStructVec;
+		Vector<TestNestedStruct, 3> myNestedStructVec;
 
 	};
 
@@ -75,12 +75,17 @@ namespace sge {
 				auto& a = testStruct.myNestedStructVec.emplace_back();
 				a.myBoolA = true;
 				a.myUint8A = 1024;
-				a.MyBoolVec = { true, false, true };
+//				a.MyBoolVec =  { true, false, true };
 
 				auto& b = testStruct.myNestedStructVec.emplace_back();
 				b.myBoolA = false;
 				b.myUint8A = 789;
-				b.MyBoolVec = { false, true, true };
+//				b.MyBoolVec = { false, true, true };
+
+				eastl::vector<bool> test_vec;
+
+				test_vec = { b.myBoolA , true, true };
+
 
 				testStruct.myEnum = MyEnum::A;
 
