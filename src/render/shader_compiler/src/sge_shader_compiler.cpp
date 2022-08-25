@@ -8,15 +8,10 @@
 namespace sge {
 	class ShaderCompiler : public ConsoleApp {
 	protected:
-		virtual void onRun() {
-			
-			String file = getExecutableFileName();
-			String path = FilePath::dirname(file);
-			path.append("/../../../../../../examples/Test101");
 
+		void compileShader(StrView filename) 
+		{
 			auto* proj = ProjectSettings::instance();
-			proj->setProjectRoot(path);
-			//---------
 
 			ShaderInfo info;
 			StrView shaderFilename = "Assets/Shaders/terrain.shader";
@@ -49,6 +44,29 @@ namespace sge {
 					passIndex++;
 				}
 			}
+		}
+
+
+		virtual void onRun() {
+			
+			String file = getExecutableFileName();
+			String path = FilePath::dirname(file);
+			path.append("/../../../../../../examples/Test101");
+
+			auto* proj = ProjectSettings::instance();
+			proj->setProjectRoot(path);
+			//---------
+
+			StrView shaderFilename[] = {
+				"Assets/Shaders/terrain.shader",
+				"Assets/Shaders/test.shader",
+			};
+
+			for (size_t i = 0; i < 2; i++) 
+			{
+				compileShader(shaderFilename[i]);
+			}
+
 			SGE_LOG("----------end------------");
 		}
 	};
