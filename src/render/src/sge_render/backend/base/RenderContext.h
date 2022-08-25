@@ -1,7 +1,6 @@
 #pragma once
 
 #include "sge_render/command/RenderCommand.h"
-#include "sge_render/command/RenderCommandBuffer.h"
 
 namespace sge  {
 
@@ -12,7 +11,7 @@ namespace sge  {
 	class RenderCommandBuffer;	
 	class RenderContext : public Object  {
 	public:
-		using CmdType	 = RenderCmd::Type;
+		using CmdType	 = RenderCommand::Type;
 		using CreateDesc = RenderContext_CreateDesc;
 
 		RenderContext(CreateDesc& desc) {};
@@ -34,12 +33,12 @@ namespace sge  {
 
 		#define CMD_CASE(E) \
 			case Cmd::E: { \
-				auto* c = static_cast<RenderCmd_##E*>(cmd); \
-				impl->onCmd_##E(*c); \
+				auto* c = static_cast<RenderCommand_##E*>(cmd); \
+				impl->onCommand_##E(*c); \
 			} break; \
 		//----
 
-			for (auto* cmd : cmdBuf.cmds()) {
+			for (auto* cmd : cmdBuf.commands()) {
 				switch (cmd->type()) {
 					CMD_CASE(ClearFrameBuffers);
 					CMD_CASE(SwapBuffers);

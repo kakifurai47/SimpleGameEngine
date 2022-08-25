@@ -26,6 +26,8 @@ namespace sge {
 		void setAim(const Vec3& aim) { m_aim = aim; }
 		void setUp (const Vec3& up);
 
+		Vec3 pos() { return m_pos; }
+
 	private:
 		float m_fov		= Math::radians(50.0f);
 		float m_far		= 10000.0f;

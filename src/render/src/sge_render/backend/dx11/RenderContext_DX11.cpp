@@ -70,19 +70,20 @@ namespace sge
 	{
 	}
 
-	void RenderContext_DX11::onCmd_ClearFrameBuffers(RenderCmd_ClearFrameBuffers& cmd) {
+
+	void RenderContext_DX11::onCommand_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
 		auto* ctx = m_renderer->d3dDeviceContext();
 		if (m_d3dRenderTargetView && cmd.color.has_value()) {
 			ctx->ClearRenderTargetView(m_d3dRenderTargetView, cmd.color->data);
 		}
 	}
 
-	void RenderContext_DX11::onCmd_SwapBuffers(RenderCmd_SwapBuffers& cmd) {
+	void RenderContext_DX11::onCommand_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
 		auto hr = m_dxgiSwapChain->Present(0, 0);
 		Util::throwIfError(hr);
 	}
 
-	void RenderContext_DX11::onCmd_DrawCall(RenderCmd_DrawCall& cmd) {
+	void RenderContext_DX11::onCommand_DrawCall(RenderCommand_DrawCall& cmd) {
 		SGE_ASSERT(cmd.vertexLayout != nullptr);
 
 		auto* vertexBuffer = static_cast<RenderGpuBuffer_DX11*>(cmd.vertexBuffer.ptr());
@@ -98,6 +99,8 @@ namespace sge
 		}
 
 		auto* ctx = m_renderer->d3dDeviceContext();
+
+		_setTestDefaultRenderState();
 
 		if (auto* pass = cmd.getMaterialPass()) {
 			pass->bind(this, cmd.vertexLayout);
@@ -124,12 +127,89 @@ namespace sge
 		}
 	}
 
-	void RenderContext_DX11::onCommit(RenderCommandBuffer& cmdBuf) {
-		_dispatch(this, cmdBuf);
+
+	void RenderContext_DX11::_setTestDefaultRenderState()
+	{	
+		auto* dev = m_renderer->d3dDevice();
+		auto* ctx = m_renderer->d3dDeviceContext();
+	
+		HRESULT hr;
+		if (!m_testRasterizerState) {
+			D3D11_RASTERIZER_DESC rasterDesc = {};
+			rasterDesc.AntialiasedLineEnable = true;
+			rasterDesc.CullMode				 = D3D11_CULL_BACK;
+			rasterDesc.DepthBias			 = 0;
+			rasterDesc.DepthBiasClamp		 = 0.0f;
+			rasterDesc.DepthClipEnable		 = true;
+	
+			bool wireframe	 = false;
+			wireframe = true; //test;
+			rasterDesc.FillMode = wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+	
+			rasterDesc.FrontCounterClockwise = true;
+			rasterDesc.MultisampleEnable	 = false;
+			rasterDesc.ScissorEnable		 = false;
+			rasterDesc.SlopeScaledDepthBias  = 0.0f;
+	
+			hr = dev->CreateRasterizerState(&rasterDesc, m_testRasterizerState.ptrForInit());
+			Util::throwIfError(hr);
+		}
+	
+		if (!m_testDepthStencilState) {
+			D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
+	
+			bool depthTest = true;
+			if (depthTest) {
+				depthStencilDesc.DepthEnable	= true;
+				depthStencilDesc.DepthFunc		= D3D11_COMPARISON_LESS_EQUAL;
+				depthStencilDesc.DepthWriteMask	= D3D11_DEPTH_WRITE_MASK_ALL;
+			} else {
+				depthStencilDesc.DepthEnable	= false;
+				depthStencilDesc.DepthFunc		= D3D11_COMPARISON_ALWAYS;
+				depthStencilDesc.DepthWriteMask	= D3D11_DEPTH_WRITE_MASK_ZERO;
+			}
+	
+			depthStencilDesc.StencilEnable		= false;
+			depthStencilDesc.StencilReadMask	= 0xFF;
+			depthStencilDesc.StencilWriteMask	= 0xFF;
+	
+			hr = dev->CreateDepthStencilState(&depthStencilDesc, m_testDepthStencilState.ptrForInit());
+			Util::throwIfError(hr);
+		}
+	
+		if (!m_testBlendState) {
+			D3D11_BLEND_DESC blendStateDesc = {};
+			blendStateDesc.AlphaToCoverageEnable  = false;
+			blendStateDesc.IndependentBlendEnable = false;
+			auto& rtDesc = blendStateDesc.RenderTarget[0];
+	
+			rtDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+			bool blendEnable = true;
+			if (blendEnable) {
+				rtDesc.BlendEnable	  = true;
+				rtDesc.BlendOp        = D3D11_BLEND_OP_ADD;
+				rtDesc.BlendOpAlpha   = D3D11_BLEND_OP_ADD;
+				rtDesc.SrcBlend       = D3D11_BLEND_SRC_ALPHA;
+				rtDesc.DestBlend      = D3D11_BLEND_INV_SRC_ALPHA;
+				rtDesc.SrcBlendAlpha  = D3D11_BLEND_SRC_ALPHA;
+				rtDesc.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+			}else{
+				rtDesc.BlendEnable	  = false;
+			}
+	
+			hr = dev->CreateBlendState(&blendStateDesc, m_testBlendState.ptrForInit());
+			Util::throwIfError(hr);
+		}
+	
+		ctx->RSSetState(m_testRasterizerState);
+		ctx->OMSetDepthStencilState(m_testDepthStencilState, 1);
+		
+		Color4f blendColor(1,1,1,1);
+		ctx->OMSetBlendState(m_testBlendState, blendColor.data, 0xffffffff);
 	}
 
 
-
-	//void RenderContext_DX11::onDraw(RenderCmd_Draw* cmd) {
-	//}
+	void RenderContext_DX11::onCommit(RenderCommandBuffer& cmdBuf) {
+		_dispatch(this, cmdBuf);
+	}
 }

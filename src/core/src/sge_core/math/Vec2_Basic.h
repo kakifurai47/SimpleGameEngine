@@ -62,7 +62,7 @@ namespace sge {
 		SGE_NODISCARD SGE_INLINE T dot(const Vec2& v) const { return (x * v.x) + (y * v.y); }
 		SGE_NODISCARD SGE_INLINE T sqrMagnitude()	  const { return dot(*this); }
 
-
+		SGE_INLINE Vec2		yx() const { return Vec2(y, x); }
 	
 		Tuple2<T> toTuple() const { return Tuple2<T>(x,y); }
 		operator Tuple2<T>() const { return toTuple(); }

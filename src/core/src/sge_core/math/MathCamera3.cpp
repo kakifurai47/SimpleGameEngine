@@ -45,10 +45,10 @@ namespace sge {
 		auto u     = m_pos - m_aim;
 		auto right = m_up.cross(u).normalize();
 		
-		auto q = Quat4::s_eulerY(v.x) * Quat4::s_angleAxis(v.y, right);
+		auto q = Quat4::s_angleAxis(v.y, right) * Quat4::s_eulerY(v.x);
 		u		= q *  u;
-		m_up	= q *  m_up;
 		m_pos   = m_aim + u;
+		m_up	= q *  m_up;
 	}
 
 	template<class T>

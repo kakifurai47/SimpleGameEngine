@@ -43,6 +43,11 @@ namespace sge
 
 		void create(ColorType type, int width, int height);
 
+		void copy(const Image& src) {
+			m_info	 = src.m_info;
+			m_pixels = src.m_pixels;
+		}
+
 		SGE_INLINE Span<u8>		  rowBytes(int y)		{ return { &m_pixels[y * m_info.strideInBytes], m_info.strideInBytes }; }
 		SGE_INLINE Span<const u8> rowBytes(int y) const { return { &m_pixels[y * m_info.strideInBytes], m_info.strideInBytes }; }
 
