@@ -181,6 +181,45 @@ constexpr ColorType ColorType_make(ColorModel model, ColorCompressType compress)
 		{
 		}
 	};
+
+	template<class T>
+	struct ColorL {
+		using ElementType = T;
+		static constexpr size_t		kElementCount = 1;
+		static constexpr int		kAlphaBits	  = 0;
+		static constexpr ColorType	kColorType	  = ColorType_make(ColorModel::L, ColorElementType_get<T>());
+	
+		union {
+			struct { T l; };
+			T data[kElementCount];
+		};
+	
+		ColorL() = default;
+		ColorL(const T& l_) : l(l_)
+		{
+		}
+	};
+	
+	template<class T>
+	struct ColorLA {
+		using ElementType = T;
+		static constexpr size_t		kElementCount = 2;
+		static constexpr int		kAlphaBits	  = sizeof(T) * 8;
+		static constexpr ColorType	kColorType	  = ColorType_make(ColorModel::LA, ColorElementType_get<T>());
+	
+		union {
+			struct { T l, a; };
+			T data[kElementCount];
+		};
+	
+		ColorLA() = default;
+		ColorLA(const T& l_, const T& a_)
+			: l(l_), a(a_) 
+		{
+		}
+	};
+
+
 	
 //	struct ColorBC1 {
 //		using ElementType = void;
@@ -248,6 +287,14 @@ constexpr ColorType ColorType_make(ColorModel model, ColorCompressType compress)
 	using Color4f = ColorRGBAf;
 	using Color4b = ColorRGBAb;
 
+	using ColorLf = ColorL<float>;
+	using ColorLb = ColorL<u8>;
+	using ColorLs = ColorL<u16>;
+	
+	using ColorLAf = ColorLA<float>;
+	using ColorLAb = ColorLA<u8>;
+	using ColorLAs = ColorLA<u16>;
+
 	struct ColorUtil 
 	{
 		ColorUtil() = delete;
@@ -269,9 +316,16 @@ constexpr ColorType ColorType_make(ColorModel model, ColorCompressType compress)
 	return false;
 	}
 	
-	constexpr int ColorUtil::pixelSizeInBytes(ColorType t) {
+	constexpr
+	int ColorUtil::pixelSizeInBytes(ColorType t) {
 		switch (t) {
 			case ColorType::RGBAb: return sizeof(ColorRGBAb);
+			case ColorType::RGBAs: return sizeof(ColorRGBAs);
+			case ColorType::RGBAf: return sizeof(ColorRGBAf);
+
+			case ColorType::Lb: return sizeof(ColorLb);
+			case ColorType::Ls: return sizeof(ColorLs);
+			case ColorType::Lf: return sizeof(ColorLf);			
 		}
 	
 		SGE_ASSERT(false);

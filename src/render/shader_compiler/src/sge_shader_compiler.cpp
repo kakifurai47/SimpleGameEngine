@@ -19,7 +19,7 @@ namespace sge {
 			//---------
 
 			ShaderInfo info;
-			StrView shaderFilename = "Assets/Shaders/test.shader";
+			StrView shaderFilename = "Assets/Shaders/terrain.shader";
 			
 			String outputPath = Fmt("{}/{}", proj->importedPath(), shaderFilename);
 			Directory::create(outputPath);
