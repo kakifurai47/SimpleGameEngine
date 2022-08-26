@@ -9,12 +9,11 @@ namespace sge {
 	class ShaderCompiler : public ConsoleApp {
 	protected:
 
-		void compileShader(StrView filename) 
+		void compileShader(StrView shaderFilename) 
 		{
 			auto* proj = ProjectSettings::instance();
 
 			ShaderInfo info;
-			StrView shaderFilename = "Assets/Shaders/terrain.shader";
 			
 			String outputPath = Fmt("{}/{}", proj->importedPath(), shaderFilename);
 			Directory::create(outputPath);
