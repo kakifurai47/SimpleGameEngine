@@ -8,7 +8,8 @@ namespace sge {
 		onRun();
 	}
 
-	void NativeUIApp_Base::quit() {
+	void NativeUIApp_Base::quit(int exitCode) {
+		m_excitCode = exitCode;
 		onQuit();
 	}
 

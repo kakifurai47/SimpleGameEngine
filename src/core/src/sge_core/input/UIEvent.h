@@ -42,11 +42,11 @@ namespace sge {
 		bool isScroll()	  const	{ return type == Type::Scroll; }
 		bool isDragging() const { return type == Type::Move && pressedButtons != Button::None; }
 
-		Type		type			 = Type::None;
-		Button		initButton		 = Button::None;
-		Button		button			 = Button::None;
-		Button		pressedButtons	 = Button::None;
-		Modifier	modifier		 = Modifier::None;
+		Type		type			   = Type::None;
+		Button		firstPressedButton = Button::None;
+		Button		button			   = Button::None;
+		Button		pressedButtons	   = Button::None;
+		Modifier	modifier		   = Modifier::None;
 
 		Vec2f pos		{0, 0};
 		Vec2f deltaPos	{0, 0};

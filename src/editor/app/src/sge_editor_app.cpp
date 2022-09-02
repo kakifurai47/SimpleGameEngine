@@ -7,49 +7,49 @@
 #include <sge_render/shader/RenderState.h>
 #include <sge_render/terrain/RenderTerrain.h>
 
-namespace sge {
+#include <sge_editor/gui/EditorGui.h>
 
-	struct MyStructA
-	{
-		int a = 3;
-	};
-
-
+namespace sge 
+{
 	class MainWin : public NativeUIWindow {
 	public:
 		using Base = NativeUIWindow;
 		 
-		virtual void MainWin::onCreate() override {
-			Base::onCreate();
+		virtual void MainWin::onCreate(CreateDesc& desc) override {
+			Base::onCreate(desc);
+
 			auto* renderer = Renderer::current();
 
 			{
-				RenderContext::CreateDesc desc;
-				desc.window = this;
-				m_renderContext = renderer->createContext(desc);
+				RenderContext::CreateDesc rcDesc;
+				rcDesc.window = this;
+				m_renderContext = renderer->createContext(rcDesc);
+			}
+
+			{
+				EditorGuiHandle::CreateDesc eghDesc;
+				eghDesc.window = this;
+				m_editorGuiHandle.createContext(eghDesc);
 			}
 
 			{
 				m_terrain.createFromHeightMapFile(4, "Assets/Terrain/TerrainHeight_Small.png");
-
-
-
 			}
 
 			m_camera.setPos({0, 10, 10});
 			m_camera.setAim({0,  0,  0});
-			{
-				//----
-				Texture2D_CreateDesc desc;
 
-				desc.imageToUpload.emplace();
-				auto& image = desc.imageToUpload.value();
+			{//test material
+				Texture2D_CreateDesc t2dDesc;
+
+				t2dDesc.imageToUpload.emplace();
+				auto& image = t2dDesc.imageToUpload.value();
 				image.load("Assets/Textures/banana.png");
 
-				desc.colorType = image.colorType();
-				desc.size = image.size();
+				t2dDesc.colorType = image.colorType();
+				t2dDesc.size = image.size();
 
-				auto tex = renderer->createTexture2D(desc);
+				auto tex = renderer->createTexture2D(t2dDesc);
 
 				//----
 				auto shad = renderer->createShader("Assets/Shaders/test.shader");
@@ -57,7 +57,7 @@ namespace sge {
 				m_mat->setShader(shad);
 				m_mat->setParam("mainTex", tex);
 			}
-			{
+			{//test mesh
 				EditMesh editMesh;
 #if 1
 //				editMesh.loadObj("Assets/Mesh/standford_bunny.obj");
@@ -80,12 +80,15 @@ namespace sge {
 
 		virtual void MainWin::onUIMouseEvent(UIMouseEvent& ev) override 
 		{
+			Base::onUIMouseEvent(ev);
+
 			if (ev.isDragging()) {
 				
 				using Modifier  = UIEventModifier;
 				using Button = UIMouseEventButton;
 
-				switch (ev.initButton) {
+				switch (ev.firstPressedButton)
+				{
 					case (Button::Left):	{ auto d = ev.deltaPos *   0.01f;  m_camera.orbit(d);				} break;
 					case (Button::Middle):  { auto d = ev.deltaPos *   0.01f;  m_camera.move ({ d.x, d.y , 0});	} break;
 					case (Button::Right):	{ auto d = ev.deltaPos * -0.005f;  m_camera.dolly(d.x + d.y);		} break;				
@@ -93,13 +96,27 @@ namespace sge {
 			}
 		}
 
+		virtual void MainWin::onUpdate(float deltaTime) override
+		{
+		}
+
 		virtual void MainWin::onPaint() override {
 			Base::onPaint();
 			if (!m_renderContext) return;
 
+			m_editorGuiHandle.beginRender();
+
+			m_camera.setViewport(clientRect());
+			
+			m_renderContext->setFrameBufferSize(clientRect().size);
 			m_renderContext->beginRender();
 
+
 			m_renderRequest.reset();
+
+			if (m_showDemoWindow) {
+				EditorGui::ShowDemoWindow(&m_showDemoWindow);
+			}
 
 			m_renderRequest.model	= Mat4f::s_identity();
 			m_renderRequest.view	= m_camera.viewMat ();
@@ -107,34 +124,36 @@ namespace sge {
 
 			m_renderRequest.camera_pos = m_camera.pos();
 			
-			m_renderRequest.clearFrameBuffers()->setColor({ 0.f, 0.f, 0.f, 1 });
-			m_renderRequest.drawMesh(SGE_LOC, m_mesh, m_mat);
+			m_renderRequest.clearFrameBuffers()->setColor({ 1.f, 1.f, 1.f, 1 });
 
+			m_renderRequest.drawMesh(SGE_LOC, m_mesh, m_mat);
 			m_terrain.render(m_renderRequest);
+			m_editorGuiHandle.render(m_renderRequest);
 
 			m_renderRequest.swapBuffers();
-			
+
 			m_renderContext->commit(m_renderRequest.commandBuffer);
 			m_renderContext->endRender();
-
-			paintNeeded();
 		}
 
 		virtual void MainWin::onCloseButton() override {
-			NativeUIApp::current()->quit();
+			NativeUIApp::current()->quit(0);
 		}
 
 		RenderMesh m_mesh;
 		Camera3f m_camera;
 
 		float alpha = 0;
-		SPtr<RenderContext> m_renderContext;
+		SPtr<RenderContext>		m_renderContext;
+		EditorGuiHandle			m_editorGuiHandle;
 
 		RenderRequest		m_renderRequest;
 		RenderCommandBuffer	m_cmdBuf;
 		SPtr<Material>		m_mat;
 
 		RenderTerrain		m_terrain;
+
+		bool				m_showDemoWindow = true;
 	};
 	
 	class EditorApp : public NativeUIApp 
@@ -177,23 +196,25 @@ namespace sge {
 				Renderer::create(desc);
 			}
 			{
-				m_mainWin.create();
+				NativeUIWindow::CreateDesc desc;
+				m_mainWin.create(desc);
 			}
 		}
 
-		virtual void EditorApp::onQuit() override {
-			Base::onQuit();
-			//m_renderer.clear();	
+		virtual void EditorApp::onUpdate(float deltaTime) override {
+			m_mainWin.update(deltaTime);
+			m_mainWin.paintNeeded();
 		}
+
+		virtual void EditorApp::onQuit() override { Base::onQuit(); }
+
 	private:
 		MainWin  m_mainWin;
-		
-		//Renderer m_renderer;
 	};
 }
 
 int main() {
-	sge::EditorApp app;	
+	sge::EditorApp app;
 	app.run();
 
 	return 0;

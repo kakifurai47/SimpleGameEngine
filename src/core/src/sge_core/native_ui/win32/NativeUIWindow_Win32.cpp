@@ -9,9 +9,9 @@
 namespace sge {
 
 
-	void NativeUIWindow_Win32::onCreate()
+	void NativeUIWindow_Win32::onCreate(CreateDesc& desc)
 	{
-		Base::onCreate();
+		Base::onCreate(desc);
 
 		auto hInstance = ::GetModuleHandle(nullptr);		
 		WNDCLASSEX wc = {};
@@ -39,20 +39,13 @@ namespace sge {
 				throw SGE_ERROR("registerclassex");
 			}
 		}
-		
-		m_hwmd = ::CreateWindowEx(0,
-			szWindowClass,
-			szWindowClass,
-			WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT,
-			CW_USEDEFAULT,
-			CW_USEDEFAULT,
-			CW_USEDEFAULT,
-			nullptr,
-			nullptr,
-			hInstance,
-			this
-		);
+
+		m_hwmd = ::CreateWindowEx(0, szWindowClass, szWindowClass, WS_OVERLAPPEDWINDOW,
+								  int(desc.rect.x),
+								  int(desc.rect.y),
+								  int(desc.rect.w),
+								  int(desc.rect.h),
+								  nullptr, nullptr, hInstance, this);
 
 		if (!m_hwmd) {
 			throw SGE_ERROR("CreateWindowEx");
@@ -85,7 +78,13 @@ namespace sge {
 			}break;
 
 			case WM_SIZE: {
-				
+				if (auto* thisObj = s_getThis(hwnd)) {
+					RECT clientRect;
+					::GetClientRect(hwnd, &clientRect);
+					Rect2f newClientRect = Win32Util::toRect2f(clientRect);
+					thisObj->onClientRectChanged(newClientRect);
+					return 0;
+				}
 			}break;
 
 			//case WM_ACTIVATE: {

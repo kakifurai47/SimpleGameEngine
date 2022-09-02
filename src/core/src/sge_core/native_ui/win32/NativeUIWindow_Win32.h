@@ -9,13 +9,15 @@ namespace sge {
 	{
 		using This = NativeUIWindow_Win32;
 		using Base = NativeUIWindow_Base;
-
 	public:
+		using CreateDesc = Base::CreateDesc;
+
+
 		HWND m_hwmd;
 
 	protected:
-		virtual void onCreate()		 override;
-		virtual void onPaintNeeded() override;
+		virtual void onCreate(CreateDesc& desc) override;
+		virtual void onPaintNeeded()			override;
 	private:
 		static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		
