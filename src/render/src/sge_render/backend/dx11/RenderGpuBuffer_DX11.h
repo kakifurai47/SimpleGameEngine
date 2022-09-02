@@ -12,6 +12,11 @@ namespace sge {
 		RenderGpuBuffer_DX11(CreateDesc& desc);
 
 		virtual void onUploadToGpu(ByteSpan data, size_t offset) override;
+
+		virtual u8*  onBeginMapping() override;
+		virtual void   onEndMapping() override;
+
+
 		
 		DX11_ID3DBuffer* d3dBuf() { return m_d3dBuf; }
 	private:

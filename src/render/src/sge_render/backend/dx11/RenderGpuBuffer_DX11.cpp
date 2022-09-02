@@ -38,7 +38,15 @@ namespace sge {
 		Util::throwIfError(hr);
 	}
 
-	void RenderGpuBuffer_DX11::onUploadToGpu(ByteSpan data, size_t offset) {
+	void RenderGpuBuffer_DX11::onUploadToGpu(ByteSpan data, size_t offset) 
+	{		
+		auto*  dst = onBeginMapping();
+		memcpy(dst + offset, data.data(), data.size());
+		onEndMapping();
+	}
+
+	u8* RenderGpuBuffer_DX11::onBeginMapping() 
+	{
 		auto* renderer = Renderer_DX11::current();
 		auto* ctx  = renderer->d3dDeviceContext();
 
@@ -47,9 +55,15 @@ namespace sge {
 		auto hr = ctx->Map(m_d3dBuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 		Util::throwIfError(hr);
 
-		u8* dst  = reinterpret_cast<u8*>(mapped.pData);
-		memcpy(dst + offset, data.data(), data.size());
+		return reinterpret_cast<u8*>(mapped.pData);
+	}
+
+	void RenderGpuBuffer_DX11::onEndMapping()
+	{
+		auto* renderer = Renderer_DX11::current();
+		auto* ctx  = renderer->d3dDeviceContext();
 
 		ctx->Unmap(m_d3dBuf, 0);
 	}
+
 }

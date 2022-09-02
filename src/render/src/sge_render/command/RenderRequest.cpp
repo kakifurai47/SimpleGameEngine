@@ -40,6 +40,9 @@ namespace sge
 	
 			cmd->indexCount			= subMesh.indexCount  ();
 			cmd->vertexCount		= subMesh.vertexCount ();
+
+			cmd->startIndex			= subMesh.startIndex  ();
+			cmd->baseVertex			= subMesh.baseVertex  ();
 	
 			cmd->indexBuffer		= subMesh.indexBuffer ();
 			cmd->vertexBuffer		= subMesh.vertexBuffer();

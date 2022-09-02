@@ -60,9 +60,11 @@ namespace sge {
 		RenderPrimitiveType primitive		= RenderPrimitiveType::None ;
 		RenderFormatType	indexFormat		= RenderFormatType::UInt16x1;
 
-
 		size_t indexCount  = 0;
 		size_t vertexCount = 0;
+
+		size_t startIndex = 0;
+		size_t baseVertex = 0;
 
 		SPtr<RenderGpuBuffer> vertexBuffer;
 		SPtr<RenderGpuBuffer> indexBuffer;
@@ -71,8 +73,10 @@ namespace sge {
 		size_t		   materialPassIndex = 0;
 
 		auto getMaterialPass() { return material ? material->getPass(materialPassIndex) : nullptr; }
-
 	};
+
+	
+
 
 	class RenderCommand_SwapBuffers : public RenderCommand {
 		using Base = RenderCommand;

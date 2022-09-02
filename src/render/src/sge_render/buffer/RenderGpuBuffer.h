@@ -22,17 +22,33 @@ namespace sge {
 		using Type		 = RenderGpuBufferType;
 		using CreateDesc = RenderGpuBuffer_CreateDesc;
 
+		class MappedWriter : public NonCopyable {
+		public:
+			~MappedWriter();
+
+			void create(RenderGpuBuffer* buf);
+			void write (ByteSpan data, size_t offset);
+			void close ();
+
+			bool isMapping() { return m_mapping; }
+
+//		private:
+			u8*				 m_mapData = nullptr;
+			RenderGpuBuffer* m_buffer  = nullptr;
+			bool			 m_mapping = false;
+		};
+
 		RenderGpuBuffer(CreateDesc& desc);
 
-		void uploadToGpu(ByteSpan data, size_t offset = 0) {
-			if (data.size() + offset  > m_desc.bufferSize) {
-				throw SGE_ERROR("render buffer : out of range");
-			}
-			onUploadToGpu(data, offset);
-		}
+		void uploadToGpu(ByteSpan data, size_t offset = 0);
 
 	protected:
-		virtual void onUploadToGpu(ByteSpan data, size_t offset) = 0;
+		void	checkInRange(size_t size);
+
+		virtual u8*  onBeginMapping() = 0;
+		virtual void   onEndMapping() = 0;
+
+		virtual void  onUploadToGpu(ByteSpan data, size_t offset) = 0;
 
 		CreateDesc m_desc;
 	};

@@ -68,6 +68,33 @@ namespace sge {
 		m_subMeshes.clear();
 	}
 
+	void RenderMesh::resetVertexBuffer(size_t vertexCount_) {
+		m_vertexCount  = vertexCount_;
+		if (m_vertexCount <= 0) {
+			m_vertexBuffer = nullptr;
+			return;
+		}
+		auto* renderer = Renderer::current();
+		RenderGpuBuffer::CreateDesc desc;
+		desc.bufferSize = m_vertexCount * m_vertexLayout->stride;
+
+		desc.type = RenderGpuBufferType::Vertex;
+		m_vertexBuffer = renderer->createGpuBuffer(desc);
+	}
+
+	void RenderMesh::resetIndexBuffer(size_t indexCount_) {
+		m_indexCount   = indexCount_;
+		if (m_indexCount <= 0) {
+			m_indexBuffer = nullptr;
+			return;
+		}
+		auto* renderer = Renderer::current();
+		RenderGpuBuffer::CreateDesc desc;
+		desc.bufferSize   = m_indexCount;
+		desc.type		  = RenderGpuBufferType::Index ;
+		m_indexBuffer = renderer->createGpuBuffer(desc);
+	}
+
 	void RenderMesh::setSubMeshCount(size_t newSize) {
 		size_t oldSize = m_subMeshes.size();
 		m_subMeshes.resize(newSize);
@@ -113,15 +140,16 @@ namespace sge {
 			}
 		}
 
-		builder.createIndexResult (m_indexFormat,   m_indexCount,  m_indexBuffer);
-		builder.createVertexResult(layout,		   m_vertexCount, m_vertexBuffer);
+		builder.createIndexResult (m_mesh->m_indexFormat,   m_indexCount,  m_mesh->m_indexBuffer);
+		builder.createVertexResult(layout,				   m_vertexCount, m_mesh->m_vertexBuffer);
 	}
 
-	void RenderSubMesh::clear() {
-		m_vertexBuffer = nullptr;
-		m_indexBuffer  = nullptr;
-
+	void RenderSubMesh::clear() 
+	{
 		m_vertexCount = 0;
 		m_indexCount  = 0;
+
+		m_startIndex  = 0;
+		m_baseVertex  = 0;
 	}
 }
