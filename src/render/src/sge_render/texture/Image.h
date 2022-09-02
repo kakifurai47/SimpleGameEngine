@@ -33,6 +33,9 @@ namespace sge
 
 		void clear();
 
+		void setInfo  (ImageInfo& info) { m_info = info; }
+		void setPixels(ByteSpan& pixel) {  }
+
 		void load 	 (StrView filename);
 
 		void load_png(StrView filename) { _load<ImageIO_png>(filename); }
@@ -47,6 +50,12 @@ namespace sge
 			m_info	 = src.m_info;
 			m_pixels = src.m_pixels;
 		}
+
+		void copy(ByteSpan src) {
+			SGE_ASSERT(m_pixels.size() == src.size());
+			memcpy(m_pixels.data(), src.data(), src.size());
+		}
+
 
 		SGE_INLINE Span<u8>		  rowBytes(int y)		{ return { &m_pixels[y * m_info.strideInBytes], m_info.strideInBytes }; }
 		SGE_INLINE Span<const u8> rowBytes(int y) const { return { &m_pixels[y * m_info.strideInBytes], m_info.strideInBytes }; }

@@ -154,7 +154,7 @@ namespace sge
 		m_renderNodes.clear();
 	}
 
-	void RenderTerrain::patchInstance::create(Terrain* terrain, Shader* shad) {
+	void RenderTerrain::patchInstance::create(RenderTerrain* terrain, Shader* shad) {
 		auto* renderer    = Renderer::current();
 		m_material = renderer->createMaterial();
 		m_material->setShader(shad);

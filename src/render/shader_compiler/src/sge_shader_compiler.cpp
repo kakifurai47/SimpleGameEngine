@@ -59,9 +59,10 @@ namespace sge {
 			StrView shaderFilename[] = {
 				"Assets/Shaders/terrain.shader",
 				"Assets/Shaders/test.shader",
+				"Assets/Shaders/editorgui.shader",
 			};
 
-			for (size_t i = 0; i < 2; i++) 
+			for (size_t i = 0; i < shaderFilename->size(); i++) 
 			{
 				compileShader(shaderFilename[i]);
 			}
