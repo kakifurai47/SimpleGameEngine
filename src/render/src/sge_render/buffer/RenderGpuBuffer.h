@@ -32,13 +32,15 @@ namespace sge {
 
 			bool isMapping() { return m_mapping; }
 
-//		private:
+		private:
 			u8*				 m_mapData = nullptr;
 			RenderGpuBuffer* m_buffer  = nullptr;
 			bool			 m_mapping = false;
 		};
 
 		RenderGpuBuffer(CreateDesc& desc);
+
+		size_t size() { return m_desc.bufferSize; }
 
 		void uploadToGpu(ByteSpan data, size_t offset = 0);
 

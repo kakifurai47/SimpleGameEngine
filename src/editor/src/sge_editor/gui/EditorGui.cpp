@@ -124,6 +124,10 @@ namespace sge {
 
 		auto* dd = EditorGui::GetDrawData();
 
+		if (dd->TotalVtxCount <= 0) {
+			return;
+		}
+
 		bool resetVBuff = !m_mesh.vertexBuffer() || m_mesh.vertexCount() < dd->TotalVtxCount;
 		bool resetIBuff = ! m_mesh.indexBuffer() ||  m_mesh.indexCount() < dd->TotalIdxCount;
 
