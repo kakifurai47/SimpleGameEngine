@@ -53,7 +53,8 @@ namespace sge {
 
 	template<class T>
 	Mat4<T> Camera3<T>::projMat() {
-		return Mat4::s_perspective(m_fov, m_asepct, m_near, m_far);
+		T aspect = m_viewport.h != 0 ? m_viewport.w / m_viewport.h : T(0);
+		return Mat4::s_perspective(m_fov, aspect, m_near, m_far);
 	}
 
 	template<class T>

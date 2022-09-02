@@ -1,5 +1,6 @@
 
 #include "RenderContext_DX11.h"
+
 #include "Renderer_DX11.h"
 #include "Shader_DX11.h"
 #include "RenderGpuBuffer_DX11.h"
@@ -50,6 +51,18 @@ namespace sge
 		Util::throwIfError(hr);
 	}
 
+	void RenderContext_DX11::onSetFrameBufferSize(const Vec2f& newSize)
+	{
+		m_d3dRenderTargetView.reset(nullptr);
+
+		auto hr = m_dxgiSwapChain->ResizeBuffers(0 ,
+									static_cast<UINT>(Math::max(0.0f, newSize.x)),
+									static_cast<UINT>(Math::max(0.0f, newSize.y)),
+									DXGI_FORMAT_UNKNOWN,
+									0);
+		Util::throwIfError(hr);
+	}
+
 	void RenderContext_DX11::onBeginRender() {
 		auto* ctx = m_renderer->d3dDeviceContext();
 		if (!m_d3dRenderTargetView) {
@@ -68,10 +81,12 @@ namespace sge
 
 	void RenderContext_DX11::onEndRender()
 	{
+	
 	}
 
 
-	void RenderContext_DX11::onCommand_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
+	void RenderContext_DX11::onCommand_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) 
+	{
 		auto* ctx = m_renderer->d3dDeviceContext();
 		if (m_d3dRenderTargetView && cmd.color.has_value()) {
 			ctx->ClearRenderTargetView(m_d3dRenderTargetView, cmd.color->data);
@@ -113,6 +128,8 @@ namespace sge
 		UINT stride		 = static_cast<UINT>(cmd.vertexLayout->stride);
 		UINT vertexCount = static_cast<UINT>(cmd.vertexCount);
 		UINT indexCount	 = static_cast<UINT>(cmd.indexCount);
+		UINT startIndex  = static_cast<UINT>(cmd.startIndex);
+		INT  baseVertex  = static_cast< INT>(cmd.baseVertex);
 
 		DX11_ID3DBuffer* ppVertexBuffers[]  = { vertexBuffer->d3dBuf() };
 		ctx->IASetVertexBuffers(0, 1, ppVertexBuffers, &stride, &offset);
@@ -120,13 +137,12 @@ namespace sge
 		if (indexCount > 0) {
 			auto indexFormat = Util::getDxFormat(cmd.indexFormat);
 			ctx->IASetIndexBuffer(indexBuffer->d3dBuf(), indexFormat, 0);
-			ctx->DrawIndexed(indexCount, 0, 0);
+			ctx->DrawIndexed(indexCount, startIndex, baseVertex);
 		}
 		else {
 			ctx->Draw(vertexCount, 0);
 		}
 	}
-
 
 	void RenderContext_DX11::_setTestDefaultRenderState()
 	{	
@@ -143,10 +159,10 @@ namespace sge
 			rasterDesc.DepthClipEnable		 = true;
 	
 			bool wireframe	 = false;
-			wireframe = true; //test;
+//			wireframe = true; //test;
 			rasterDesc.FillMode = wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
 	
-			rasterDesc.FrontCounterClockwise = true;
+			rasterDesc.FrontCounterClockwise = false;
 			rasterDesc.MultisampleEnable	 = false;
 			rasterDesc.ScissorEnable		 = false;
 			rasterDesc.SlopeScaledDepthBias  = 0.0f;

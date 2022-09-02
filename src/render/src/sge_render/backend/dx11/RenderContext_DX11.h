@@ -36,8 +36,12 @@ namespace sge {
 
 	protected:
 		void _createRenderTarget();
+
+
+		virtual void onSetFrameBufferSize(const Vec2f& newSize) override;
 		virtual void onBeginRender() override;
 		virtual void onEndRender  () override;
+		
 
 		void _setTestDefaultRenderState();
 

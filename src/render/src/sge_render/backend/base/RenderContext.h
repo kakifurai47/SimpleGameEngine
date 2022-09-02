@@ -20,12 +20,15 @@ namespace sge  {
 		void beginRender() { onBeginRender(); }
 		void endRender()   { onEndRender();   }
 
+		void setFrameBufferSize(const Vec2f newSize);
+
 		void commit(RenderCommandBuffer& cmdBuf) { onCommit(cmdBuf); }
 
 	protected:
 		virtual void onBeginRender() {}
 		virtual void onEndRender  () {}
-		virtual void onCommit(RenderCommandBuffer& cmdBuf){}		
+		virtual void onCommit	   (RenderCommandBuffer& cmdBuf){}
+		virtual void onSetFrameBufferSize(const Vec2f& newSize) {};
 
 		template<class IMPL>
 		void _dispatch(IMPL* impl, RenderCommandBuffer& cmdBuf) {
@@ -49,6 +52,9 @@ namespace sge  {
 			}
 		#undef CMD_CASE
 		}
+
+
+		Vec2f m_frameBufferSize {0,0};
 	};
 	
 }
