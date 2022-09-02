@@ -128,8 +128,8 @@ namespace sge {
 			return;
 		}
 
-		bool resetVBuff = !m_mesh.vertexBuffer() || m_mesh.vertexCount() < dd->TotalVtxCount;
-		bool resetIBuff = ! m_mesh.indexBuffer() ||  m_mesh.indexCount() < dd->TotalIdxCount;
+		bool resetVBuff = !m_mesh.vertexBuffer() || m_mesh.vertexBuffer()->size() < dd->TotalVtxCount;
+		bool resetIBuff = ! m_mesh.indexBuffer() ||  m_mesh.indexBuffer()->size() < dd->TotalIdxCount;
 
 		if(resetVBuff) m_mesh.resetVertexBuffer( static_cast<size_t>( dd->TotalVtxCount + 5000 ) );
 		if(resetIBuff) m_mesh.resetIndexBuffer ( static_cast<size_t>( dd->TotalIdxCount + 10000) );
