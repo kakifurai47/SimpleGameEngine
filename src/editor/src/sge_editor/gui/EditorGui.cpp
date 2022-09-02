@@ -15,6 +15,16 @@ namespace sge {
 		inline ByteSpan makeByteSpan(ImVector<T>& vec) {
 			return spanCast<const u8,const T>( Span<const T>( vec.Data, vec.Size ) );
 		}
+
+		static inline int getButton(UIMouseEventButton src) {
+			switch (src) {
+				case UIMouseEventButton::Left:		return 0;
+				case UIMouseEventButton::Right:		return 1;
+				case UIMouseEventButton::Middle:	return 2;
+
+				default: throw SGE_ERROR("Unhandled mouse button pressed");
+			}
+		}
 	};
 
 	void EditorGuiHandle::createContext(CreateDesc& desc)
@@ -175,16 +185,23 @@ namespace sge {
 		request.drawMesh(SGE_LOC, m_mesh, m_material);
 	}
 
+	void EditorGuiHandle::onUIMouseEvent(UIMouseEvent& ev) {
+		using Helper = EditorGui_InternalHelper;
+		auto& io = EditorGui::GetIO();
+
+		switch (ev.type) {
+			case UIMouseEventType::Down: io.AddMouseButtonEvent(Helper::getButton(ev.button), true );
+			case UIMouseEventType::Up:   io.AddMouseButtonEvent(Helper::getButton(ev.button), false);
+		}
+	}
+
 	void EditorGuiHandle::beginRender()
 	{
 	#if SGE_OS_WINDOWS		
 		ImGui_ImplWin32_NewFrame();
 	#else
+
 	#endif
-
-//		ImGui_ImplDX11_NewFrame();
 		EditorGui::NewFrame();
-
-
 	}
 }

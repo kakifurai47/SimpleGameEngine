@@ -81,6 +81,7 @@ namespace sge
 		virtual void MainWin::onUIMouseEvent(UIMouseEvent& ev) override 
 		{
 			Base::onUIMouseEvent(ev);
+			m_editorGuiHandle.onUIMouseEvent(ev);
 
 			if (ev.isDragging()) {
 				

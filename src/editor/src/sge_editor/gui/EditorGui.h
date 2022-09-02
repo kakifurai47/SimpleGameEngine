@@ -25,6 +25,7 @@ namespace sge {
 		void beginRender();
 		void render(RenderRequest& request);
 
+		void onUIMouseEvent(UIMouseEvent& ev);
 
 	protected:
 
