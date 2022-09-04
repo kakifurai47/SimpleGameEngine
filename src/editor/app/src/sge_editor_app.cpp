@@ -7,30 +7,18 @@
 #include <sge_render/shader/RenderState.h>
 #include <sge_render/terrain/RenderTerrain.h>
 
-#include <sge_editor/gui/EditorGui.h>
+#include <sge_editor/window/EditorWindow.h>
 
 namespace sge 
 {
-	class MainWin : public NativeUIWindow {
+	class MainWin : public EditorWindow {
 	public:
-		using Base = NativeUIWindow;
+		using Base = EditorWindow;
 		 
 		virtual void MainWin::onCreate(CreateDesc& desc) override {
 			Base::onCreate(desc);
 
 			auto* renderer = Renderer::current();
-
-			{
-				RenderContext::CreateDesc rcDesc;
-				rcDesc.window = this;
-				m_renderContext = renderer->createContext(rcDesc);
-			}
-
-			{
-				EditorGuiHandle::CreateDesc eghDesc;
-				eghDesc.window = this;
-				m_editorGuiHandle.createContext(eghDesc);
-			}
 
 			{
 				m_terrain.createFromHeightMapFile(4, "Assets/Terrain/TerrainHeight_Small.png");
@@ -81,7 +69,6 @@ namespace sge
 		virtual void MainWin::onUIMouseEvent(UIMouseEvent& ev) override 
 		{
 			Base::onUIMouseEvent(ev);
-			m_editorGuiHandle.onUIMouseEvent(ev);
 
 			if (ev.isDragging()) {
 				
@@ -97,10 +84,6 @@ namespace sge
 			}
 		}
 
-		virtual void MainWin::onUpdate(float deltaTime) override
-		{
-		}
-
 		virtual void MainWin::onPaint() override {
 			Base::onPaint();
 			if (!m_renderContext) return;
@@ -111,7 +94,6 @@ namespace sge
 			
 			m_renderContext->setFrameBufferSize(clientRect().size);
 			m_renderContext->beginRender();
-
 
 			m_renderRequest.reset();
 
@@ -131,6 +113,11 @@ namespace sge
 			m_terrain.render(m_renderRequest);
 			m_editorGuiHandle.render(m_renderRequest);
 
+//			if (EditorGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+//				EditorGui::UpdatePlatformWindows();
+//				EditorGui::RenderPlatformWindowsDefault();
+//			}
+
 			m_renderRequest.swapBuffers();
 
 			m_renderContext->commit(m_renderRequest.commandBuffer);
@@ -145,15 +132,9 @@ namespace sge
 		Camera3f m_camera;
 
 		float alpha = 0;
-		SPtr<RenderContext>		m_renderContext;
-		EditorGuiHandle			m_editorGuiHandle;
-
-		RenderRequest		m_renderRequest;
-		RenderCommandBuffer	m_cmdBuf;
+		
 		SPtr<Material>		m_mat;
-
 		RenderTerrain		m_terrain;
-
 		bool				m_showDemoWindow = true;
 	};
 	
@@ -173,7 +154,7 @@ namespace sge
 				SGE_LOG("dir = {}", dir);
 			}
 
-		#if 1 // for quick testing
+		#if 0 // for quick testing
 			{
 				SHELLEXECUTEINFO ShExecInfo = { 0 };
 				ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
@@ -198,6 +179,7 @@ namespace sge
 			}
 			{
 				NativeUIWindow::CreateDesc desc;
+//				desc.rect = {10,10,1920,1080};
 				m_mainWin.create(desc);
 			}
 		}

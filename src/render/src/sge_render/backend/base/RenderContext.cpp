@@ -10,7 +10,7 @@ namespace sge {
 		}
 
 		m_frameBufferSize = newSize;
-
+		onSetFrameBufferSize(newSize);
 
 	}
 

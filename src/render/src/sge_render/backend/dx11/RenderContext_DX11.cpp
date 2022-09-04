@@ -5,6 +5,8 @@
 #include "Shader_DX11.h"
 #include "RenderGpuBuffer_DX11.h"
 
+#include <imgui_impl_dx11.h>
+
 namespace sge
 {
 	RenderContext_DX11::RenderContext_DX11(CreateDesc& desc)
@@ -17,8 +19,8 @@ namespace sge
 		auto* d3dDevice   = m_renderer->d3dDevice();
 
 		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-		swapChainDesc.BufferDesc.Width						= 800;
-		swapChainDesc.BufferDesc.Height						= 600;
+		swapChainDesc.BufferDesc.Width						= 8;
+		swapChainDesc.BufferDesc.Height						= 8;
 		swapChainDesc.BufferDesc.RefreshRate.Numerator		= 60;
 		swapChainDesc.BufferDesc.RefreshRate.Denominator	= 1;
 		swapChainDesc.BufferDesc.Format						= DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -47,35 +49,68 @@ namespace sge
 		hr = m_dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.ptrForInit()));
 		Util::throwIfError(hr);
 
-		hr = dev->CreateRenderTargetView(backBuffer, nullptr, m_d3dRenderTargetView.ptrForInit());
+		hr = dev->CreateRenderTargetView(backBuffer, nullptr, m_renderTargetView.ptrForInit());
+		Util::throwIfError(hr);
+
+		D3D11_TEXTURE2D_DESC backBufferDesc;
+		backBuffer->GetDesc(&backBufferDesc);
+
+		// Create depth stencil texture
+		D3D11_TEXTURE2D_DESC descDepth	= {};
+		descDepth.Width					= backBufferDesc.Width;
+		descDepth.Height				= backBufferDesc.Height;
+		descDepth.MipLevels				= 1;
+		descDepth.ArraySize				= 1;
+		descDepth.Format				= DXGI_FORMAT_D24_UNORM_S8_UINT;
+		descDepth.SampleDesc.Count		= 1;
+		descDepth.SampleDesc.Quality	= 0;
+		descDepth.Usage					= D3D11_USAGE_DEFAULT;
+		descDepth.BindFlags				= D3D11_BIND_DEPTH_STENCIL;
+		descDepth.CPUAccessFlags		= 0;
+		descDepth.MiscFlags				= 0;
+		hr = dev->CreateTexture2D(&descDepth, nullptr, m_depthStencil.ptrForInit());
+		Util::throwIfError(hr);
+
+		// Create the depth stencil view
+		D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
+		descDSV.Format				= descDepth.Format;
+		descDSV.ViewDimension		= D3D11_DSV_DIMENSION_TEXTURE2D;
+		descDSV.Texture2D.MipSlice	= 0;
+		hr = dev->CreateDepthStencilView(m_depthStencil.ptr(), &descDSV, m_depthStencilView.ptrForInit());
 		Util::throwIfError(hr);
 	}
 
 	void RenderContext_DX11::onSetFrameBufferSize(const Vec2f& newSize)
 	{
-		m_d3dRenderTargetView.reset(nullptr);
+		m_renderTargetView.reset(nullptr);
+		m_depthStencilView.reset(nullptr);
 
 		auto hr = m_dxgiSwapChain->ResizeBuffers(0 ,
 									static_cast<UINT>(Math::max(0.0f, newSize.x)),
 									static_cast<UINT>(Math::max(0.0f, newSize.y)),
 									DXGI_FORMAT_UNKNOWN,
 									0);
+
+		SGE_DUMP_VAR(newSize);
 		Util::throwIfError(hr);
 	}
 
 	void RenderContext_DX11::onBeginRender() {
 		auto* ctx = m_renderer->d3dDeviceContext();
-		if (!m_d3dRenderTargetView) {
+		if (!m_renderTargetView) {
 			_createRenderTarget();
 		}
-		DX11_ID3DRenderTargetView* rt[] = { m_d3dRenderTargetView };
-		ctx->OMSetRenderTargets(1, rt, nullptr);
+		DX11_ID3DRenderTargetView* rt[] = { m_renderTargetView };
+		ctx->OMSetRenderTargets(1, rt, m_depthStencilView);
 
 		D3D11_VIEWPORT viewport{};
-		viewport.TopLeftX = 0;
-		viewport.TopLeftY = 0;
-		viewport.Width  = 800;
-		viewport.Height = 600;
+		viewport.TopLeftX	= 0;
+		viewport.TopLeftY	= 0;
+		viewport.Width		= m_frameBufferSize.x;
+		viewport.Height		= m_frameBufferSize.y;
+//		viewport.MinDepth	= 0;
+//		viewport.MaxDepth	= 1;
+
 		ctx->RSSetViewports(1, &viewport);
 	}
 
@@ -88,9 +123,14 @@ namespace sge
 	void RenderContext_DX11::onCommand_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) 
 	{
 		auto* ctx = m_renderer->d3dDeviceContext();
-		if (m_d3dRenderTargetView && cmd.color.has_value()) {
-			ctx->ClearRenderTargetView(m_d3dRenderTargetView, cmd.color->data);
+		if (m_renderTargetView && cmd.color.has_value()) {
+			ctx->ClearRenderTargetView(m_renderTargetView, cmd.color->data);
 		}
+		if (m_depthStencilView && cmd.depth.has_value()) {
+			ctx->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, *cmd.depth, 0);
+		}
+
+//		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 	}
 
 	void RenderContext_DX11::onCommand_SwapBuffers(RenderCommand_SwapBuffers& cmd) {

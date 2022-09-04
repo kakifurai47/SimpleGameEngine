@@ -68,30 +68,29 @@ namespace sge {
 		m_subMeshes.clear();
 	}
 
-	void RenderMesh::resetVertexBuffer(size_t vertexCount_) {
-		m_vertexCount  = vertexCount_;
+	void RenderMesh::resetVertexBuffer(size_t newVertexCount) {
+		m_vertexCount  = newVertexCount;
 		if (m_vertexCount <= 0) {
 			m_vertexBuffer = nullptr;
 			return;
 		}
 		auto* renderer = Renderer::current();
 		RenderGpuBuffer::CreateDesc desc;
-		desc.bufferSize = m_vertexCount * m_vertexLayout->stride;
-
-		desc.type = RenderGpuBufferType::Vertex;
+		desc.bufferSize = m_vertexCount * _vertexStride();
+		desc.type		= RenderGpuBufferType::Vertex;
 		m_vertexBuffer = renderer->createGpuBuffer(desc);
 	}
 
-	void RenderMesh::resetIndexBuffer(size_t indexCount_) {
-		m_indexCount   = indexCount_;
+	void RenderMesh::resetIndexBuffer(size_t newIndexCount) {
+		m_indexCount   = newIndexCount;
 		if (m_indexCount <= 0) {
 			m_indexBuffer = nullptr;
 			return;
 		}
 		auto* renderer = Renderer::current();
 		RenderGpuBuffer::CreateDesc desc;
-		desc.bufferSize   = m_indexCount;
-		desc.type		  = RenderGpuBufferType::Index ;
+		desc.bufferSize = m_indexCount * _indexStride();
+		desc.type	    = RenderGpuBufferType::Index;
 		m_indexBuffer = renderer->createGpuBuffer(desc);
 	}
 

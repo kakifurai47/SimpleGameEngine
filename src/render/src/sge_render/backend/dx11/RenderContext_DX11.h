@@ -22,7 +22,9 @@ namespace sge {
 		Renderer_DX11* m_renderer = nullptr;
 
 		ComPtr<DX11_IDXGISwapChain>			m_dxgiSwapChain;
-		ComPtr<DX11_ID3DRenderTargetView>	m_d3dRenderTargetView;
+		ComPtr<DX11_ID3DRenderTargetView>	m_renderTargetView;
+		ComPtr<DX11_ID3DTexture2D>			m_depthStencil;
+		ComPtr<DX11_ID3DDepthStencilView>	m_depthStencilView;
 
 		ComPtr<DX11_ID3DBuffer>				m_testVtxBuffer;
 		ComPtr<DX11_ID3DVertexShader>		m_testVtxShader;

@@ -40,7 +40,7 @@ namespace sge {
 
 		RenderGpuBuffer(CreateDesc& desc);
 
-		size_t size() { return m_desc.bufferSize; }
+		size_t size() const { return m_desc.bufferSize; }
 
 		void uploadToGpu(ByteSpan data, size_t offset = 0);
 

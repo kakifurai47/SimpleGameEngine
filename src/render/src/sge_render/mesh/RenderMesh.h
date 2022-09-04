@@ -57,21 +57,24 @@ namespace sge
 		void create(const EditMesh& editMesh);
 		void clear();
 
-		RenderGpuBuffer* vertexBuffer() { return m_vertexBuffer; }
-		RenderGpuBuffer*  indexBuffer() { return  m_indexBuffer; }
+		SGE_INLINE RenderGpuBuffer* vertexBuffer() { return m_vertexBuffer; }
+		SGE_INLINE RenderGpuBuffer*  indexBuffer() { return  m_indexBuffer; }
 		
-		size_t	vertexCount() { return m_vertexCount; }
-		size_t   indexCount() { return  m_indexCount; }
+		SGE_INLINE size_t vertexCount() const { return m_vertexCount; }
+		SGE_INLINE size_t  indexCount() const { return  m_indexCount; }
 
-		void setVertexLayout(const VertexLayout* layout_) { m_vertexLayout = layout_; }
-		void setIndexFormat (RenderFormatType    format_) { m_indexFormat  = format_; }
+		SGE_INLINE void setVertexLayout(const VertexLayout* layout_) { m_vertexLayout = layout_; }
+		SGE_INLINE void setIndexFormat (RenderFormatType    format_) { m_indexFormat  = format_; }
 
-		void resetVertexBuffer(size_t vertexCount_);
-		void resetIndexBuffer (size_t  indexCount_);
+		void resetVertexBuffer(size_t newVertexCount);
+		void resetIndexBuffer (size_t  newIndexCount);
 
-		void setSubMeshCount(size_t newSize);		
+		void setSubMeshCount(size_t newSize);
 
 	private:
+
+		SGE_INLINE size_t _vertexStride() const { return m_vertexLayout->stride; }
+		SGE_INLINE size_t  _indexStride() const { return m_indexFormat == RenderFormatType::UInt32x1 ? 4 : 2; }
 
 	friend class RenderSubMesh;
 	protected:

@@ -96,11 +96,7 @@ namespace sge {
 		using CreateDesc = Texture2D_CreateDesc;
 		
 	protected:
-		Texture2D(CreateDesc& desc) : Base(desc, Format::Texture2D)
-			, m_samplerState(desc.samplerState)
-			, m_size(desc.size)
-		{
-		}
+		Texture2D(CreateDesc& desc);
 
 		SamplerState m_samplerState;
 		Vec2i		 m_size{ 0, 0 };
