@@ -71,12 +71,10 @@ namespace sge
 			Base::onUIMouseEvent(ev);
 
 			if (ev.isDragging()) {
-				
 				using Modifier  = UIEventModifier;
 				using Button = UIMouseEventButton;
 
-				switch (ev.firstPressedButton)
-				{
+				switch (ev.firstPressedButton) {
 					case (Button::Left):	{ auto d = ev.deltaPos *   0.01f;  m_camera.orbit(d);				} break;
 					case (Button::Middle):  { auto d = ev.deltaPos *   0.01f;  m_camera.move ({ d.x, d.y , 0});	} break;
 					case (Button::Right):	{ auto d = ev.deltaPos * -0.005f;  m_camera.dolly(d.x + d.y);		} break;				
@@ -99,6 +97,19 @@ namespace sge
 
 			if (m_showDemoWindow) {
 				EditorGui::ShowDemoWindow(&m_showDemoWindow);
+			}
+
+			if (m_showAnotherwindow) {
+				EditorGui::Begin("Another Window", &m_showAnotherwindow);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+				EditorGui::Text("Hello from another window!");
+				if (EditorGui::Button("Close Me"))
+				{
+
+					m_showAnotherwindow = false;
+				}
+
+				
+				EditorGui::End();
 			}
 
 			m_renderRequest.model	= Mat4f::s_identity();
@@ -135,7 +146,8 @@ namespace sge
 		
 		SPtr<Material>		m_mat;
 		RenderTerrain		m_terrain;
-		bool				m_showDemoWindow = true;
+		bool				m_showDemoWindow	= true;
+		bool				m_showAnotherwindow = true;
 	};
 	
 	class EditorApp : public NativeUIApp 

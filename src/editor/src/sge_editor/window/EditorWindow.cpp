@@ -22,12 +22,24 @@ namespace sge
 		}
 	}
 
+	void EditorWindow::onNativeUIMouseEvent(UIMouseEvent& ev)  {
+		using REG = CapturedRegion;
+		using MET = UIMouseEventType;
 
-	void EditorWindow::onUIMouseEvent(UIMouseEvent& ev) 
-	{
-		Base::onUIMouseEvent(ev);
-		m_editorGuiHandle.onUIMouseEvent(ev);
+		auto& io  = EditorGui::GetIO();
+
+		if (ev.type == MET::Down) {
+			m_capturedRegion = io.WantCaptureMouse ? REG::EditorGuiWindow : REG::MainWindow;
+		}
+
+		switch (m_capturedRegion) {
+			case REG::MainWindow:	   		 Base::onNativeUIMouseEvent(ev); break;
+			case REG::EditorGuiWindow: m_editorGuiHandle.onUIMouseEvent(ev); break;
+		}
+
+		if (ev.type == MET::Up) {
+			m_capturedRegion = REG::None;
+		}
 	}
-
 }
 
