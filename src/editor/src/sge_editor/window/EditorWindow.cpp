@@ -1,8 +1,5 @@
 #include "EditorWindow.h"
-
 #include <sge_render/backend/base/Renderer.h>
-
-#include <imgui_impl_win32.h>
 
 namespace sge
 {
@@ -22,24 +19,19 @@ namespace sge
 		}
 	}
 
-	void EditorWindow::onNativeUIMouseEvent(UIMouseEvent& ev)  {
-		using REG = CapturedRegion;
-		using MET = UIMouseEventType;
+	void EditorWindow::onNativeUIMouseEvent(UIMouseEvent& ev)
+	{
+		using EVT  = UIMouseEventType;
+		auto& io = EditorGui::GetIO();
 
-		auto& io  = EditorGui::GetIO();
-
-		if (ev.type == MET::Down) {
-			m_capturedRegion = io.WantCaptureMouse ? REG::EditorGuiWindow : REG::MainWindow;
+		io.AddMousePosEvent(ev.pos.x, ev.pos.y);
+		switch (ev.type) {
+			case EVT::Down:		io.AddMouseButtonEvent(Util::getGuiButton(ev.button), true ); break;
+			case EVT::Up:		io.AddMouseButtonEvent(Util::getGuiButton(ev.button), false); break;
+			case EVT::Scroll:	io.AddMouseWheelEvent(ev.scroll.x, ev.scroll.y);			  break;
 		}
 
-		switch (m_capturedRegion) {
-			case REG::MainWindow:	   		 Base::onNativeUIMouseEvent(ev); break;
-			case REG::EditorGuiWindow: m_editorGuiHandle.onUIMouseEvent(ev); break;
-		}
 
-		if (ev.type == MET::Up) {
-			m_capturedRegion = REG::None;
-		}
+		if (!io.WantCaptureMouse) { Base::onNativeUIMouseEvent(ev); }
 	}
 }
-

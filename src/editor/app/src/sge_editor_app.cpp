@@ -11,9 +11,10 @@
 
 namespace sge 
 {
-	class MainWin : public EditorWindow {
-	public:
+	class MainWin : public EditorWindow 
+	{
 		using Base = EditorWindow;
+	public:
 		 
 		virtual void MainWin::onCreate(CreateDesc& desc) override {
 			Base::onCreate(desc);
@@ -47,10 +48,10 @@ namespace sge
 			}
 			{//test mesh
 				EditMesh editMesh;
-#if 1
+			#if 1
 //				editMesh.loadObj("Assets/Mesh/standford_bunny.obj");
 				editMesh.loadObj("Assets/Mesh/monkey.obj");
-#else
+			#else
 				auto& positions = editMesh.pos;
 				positions.emplace_back(   0.0f,  0.5f, 0.0f );
 				positions.emplace_back(  0.45f, -0.5f, 0.0f );
@@ -59,7 +60,8 @@ namespace sge
 				editMesh.indicies.emplace_back(0);
 				editMesh.indicies.emplace_back(1);
 				editMesh.indicies.emplace_back(2);
-#endif
+			#endif
+
 				auto& colors = editMesh.color;
 				colors.resize(editMesh.pos.size(), { 168, 255, 255, 255 });
 				m_mesh.create(editMesh);				
@@ -191,8 +193,12 @@ namespace sge
 			}
 			{
 				NativeUIWindow::CreateDesc desc;
-//				desc.rect = {10,10,1920,1080};
+				desc.type = NativeUIWindow::CreateDesc::Type::ToolWindow;
+				desc.isMainWindow   = true;
+				desc.centerToScreen = true;
+				desc.rect = {0,0,1280,720};
 				m_mainWin.create(desc);
+//				m_mainWin.setWindowTitle("");
 			}
 		}
 

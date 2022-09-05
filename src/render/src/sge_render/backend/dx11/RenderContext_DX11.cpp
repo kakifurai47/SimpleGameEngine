@@ -91,7 +91,6 @@ namespace sge
 									DXGI_FORMAT_UNKNOWN,
 									0);
 
-		SGE_DUMP_VAR(newSize);
 		Util::throwIfError(hr);
 	}
 

@@ -16,7 +16,7 @@ namespace sge {
 		auto hInstance = ::GetModuleHandle(nullptr);		
 		WNDCLASSEX wc = {};
 		
-		const wchar_t* szWindowClass = L"MyWindow";
+		const wchar_t* clsName = L"MyWindow";
 		
 		wc.cbSize			 = sizeof(WNDCLASSEX);
 		wc.style			 = CS_HREDRAW | CS_VREDRAW;
@@ -26,21 +26,59 @@ namespace sge {
 		wc.hInstance		 = hInstance;
 		wc.hIcon			 = LoadIcon(hInstance, IDI_APPLICATION);
 		wc.hCursor			 = LoadCursor(NULL, IDC_ARROW);
-		wc.hbrBackground	 = (HBRUSH)(COLOR_WINDOW + 1);
-		wc.lpszMenuName		 = NULL;
-		wc.lpszClassName	 = szWindowClass;
+		wc.hbrBackground	 = nullptr; //(HBRUSH)(COLOR_WINDOW + 1);
+		wc.lpszMenuName		 = nullptr;
+		wc.lpszClassName	 = clsName;
 		wc.hIconSm			 = LoadIcon(hInstance, IDI_APPLICATION);
+
+		if (!desc.closeButton) {
+			wc.style |= CS_NOCLOSE;
+		}
+
+		DWORD dwStyle {};
+		DWORD dwExStyle = WS_EX_ACCEPTFILES;
+
+		if (desc.alwaysOnTop) dwExStyle |= WS_EX_TOPMOST;
+
+		switch (desc.type) {
+			case CreateDesc::Type::ToolWindow:
+			case CreateDesc::Type::NormalWindow: {
+				dwStyle |= WS_OVERLAPPED | WS_SYSMENU;
+
+				if (desc.closeButton) dwStyle |= WS_SYSMENU;
+				if (desc.resizable  ) dwStyle |= WS_THICKFRAME;
+				if (desc.titleBar   ) dwStyle |= WS_CAPTION;
+				if (desc.minButton  ) dwStyle |= WS_MINIMIZEBOX;
+				if (desc.maxButton  ) dwStyle |= WS_MAXIMIZEBOX;
+			}break;
+
+			case CreateDesc::Type::PopupWindow: {
+				dwStyle |= WS_POPUP | WS_BORDER;
+			}break;
+
+			default: SGE_ASSERT(desc.type == CreateDesc::Type::None); break;
+		}
+
+		if (desc.type == CreateDesc::Type::ToolWindow) {
+			dwExStyle |= WS_EX_TOOLWINDOW;
+		}
+
+		auto& rect = desc.rect;
+		if (desc.centerToScreen) {
+			auto screenSize = Vec2f((float)GetSystemMetrics(SM_CXSCREEN), (float)GetSystemMetrics(SM_CYSCREEN));
+			rect.pos = (screenSize - rect.size) / 2;
+		}
 		
 		WNDCLASSEX tmpWc;
-		bool registered = (::GetClassInfoEx(hInstance, szWindowClass, &tmpWc) != 0);
+		bool registered = (::GetClassInfoEx(hInstance, clsName, &tmpWc) != 0);
 
 		if (!registered) {
-			if (!::RegisterClassEx(&wc)) {				
+			if (!::RegisterClassEx(&wc)) {
 				throw SGE_ERROR("registerclassex");
 			}
 		}
 
-		m_hwmd = ::CreateWindowEx(0, szWindowClass, szWindowClass, WS_OVERLAPPEDWINDOW,
+		m_hwmd = ::CreateWindowEx(0, clsName, clsName, WS_OVERLAPPEDWINDOW,
 								  int(desc.rect.x),
 								  int(desc.rect.y),
 								  int(desc.rect.w),
@@ -77,6 +115,7 @@ namespace sge {
 				return 0;
 			}break;
 
+//			case WM_MOVE:
 			case WM_SIZE: {
 				if (auto* thisObj = s_getThis(hwnd)) {
 					RECT clientRect;
@@ -134,7 +173,7 @@ namespace sge {
 
 		POINT curPos;
 		::GetCursorPos(&curPos);
-		::ScreenToClient(hwnd, &curPos);	
+		::ScreenToClient(hwnd, &curPos);
 
 		Win32Util::convert(ev.pos, curPos);
 

@@ -5,49 +5,50 @@
 #include <sge_render/backend/base/Renderer.h>
 #include <sge_render/shader/Material.h>
 
-#include <imgui_impl_win32.h>
-
-
-#include <imgui_impl_dx11.h>
-#include <sge_render/backend/dx11/Renderer_DX11.h>
-
 namespace sge {
 
 	void EditorGuiHandle::create(CreateDesc& desc) 
 	{
+		m_mainWindow = desc.window;
+
 		auto* renderer = Renderer::current();
 		
 		IMGUI_CHECKVERSION();
 		EditorGui::CreateContext();
 
 		ImGuiIO& io = EditorGui::GetIO(); (void)io;
-//		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-//		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-//		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-//
-//		ImGuiStyle& style = ImGui::GetStyle();
-//		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) 
-//		{
-//		    style.WindowRounding			  = 0.0f;
-//		    style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-//		}
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
-
-
-	#if SGE_OS_WINDOWS
-		auto* win = static_cast<NativeUIWindow_Win32*>(desc.window);
-		ImGui_ImplWin32_Init(win->m_hwmd);
-	#else
-	#endif
-
-	#if 0 //For dx11 impl checking
+		ImGuiStyle& style = ImGui::GetStyle();
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) 
 		{
-			auto* rd11 = Renderer_DX11::current();
-			ImGui_ImplDX11_Init(rd11->d3dDevice(), rd11->d3dDeviceContext());
+		    style.WindowRounding			  = 0.0f;
+		    style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
-	#endif
+
+		{//ImGui_ImplWin32_Init
+
+			// INT64 perf_frequency, perf_counter;
+			// if (!::QueryPerformanceFrequency((LARGE_INTEGER*)&perf_frequency)) return false;
+			// if (!::QueryPerformanceCounter((LARGE_INTEGER*)&perf_counter)) 	  return false;
+
+			io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;         // We can honor GetMouseCursor() values (optional)
+			io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor io.WantSetMousePos requests (optional, rarely used)
+			io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;    // We can create multi-viewports on the Platform side (optional)
+			io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can call io.AddMouseViewportEvent() with correct data (optional)
+
+			EditorGui::GetMainViewport()->PlatformHandle = desc.window;
+
+//			if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+//			{
+//				ImGui_ImplWin32_InitPlatformInterface();
+//			}
+
+		}
 
 		{//Material
 			auto shad  = renderer->createShader("Assets/Shaders/editorgui.shader");
@@ -110,24 +111,16 @@ namespace sge {
 		}
 	}
 
-	EditorGuiHandle::~EditorGuiHandle() {
-	#if SGE_OS_WINDOWS
-		ImGui_ImplWin32_Shutdown();
-	#else
-	#endif
+	EditorGuiHandle::~EditorGuiHandle() 
+	{
 		EditorGui::DestroyContext();
 	}
 
-	void EditorGuiHandle::beginRender() 
-	{
-	#if SGE_OS_WINDOWS
-		ImGui_ImplWin32_NewFrame();
-	#else
-	#endif
+	void EditorGuiHandle::beginRender() {
+		auto& io = EditorGui::GetIO();
 
-	#if 0
-		ImGui_ImplDX11_NewFrame();
-	#endif
+		auto& rect     = m_mainWindow->clientRect();
+		io.DisplaySize = {rect.size.x, rect.size.y};
 
 		EditorGui::NewFrame();
 	}
@@ -200,21 +193,22 @@ namespace sge {
 
 	}
 
-	void EditorGuiHandle::onUIMouseEvent(UIMouseEvent& ev) {
-		using T = UIMouseEventType;
-
-		auto& io = EditorGui::GetIO();
-
-		switch (ev.type) {
-			case T::Down:	io.AddMouseButtonEvent(Util::getGuiButton(ev.button), true ); break;
-			case T::Up:		io.AddMouseButtonEvent(Util::getGuiButton(ev.button), false); break;
-
-			case T::Scroll: {
-				auto s = ev.scroll * 0.01f;
-				io.AddMouseWheelEvent(s.x , s.y);
-			}break;
+	void EditorGuiHandle::EditorGui_ImplWindow_CreateWindow(ImGuiViewport* viewport)
+	{
+		MyWindow::CreateDesc desc;
+		Util::setWindowCreateDesc(desc, viewport->Flags);
+		
 
 
-		}
+
+
+
 	}
+
+	void EditorGuiHandle::EditorGui_ImplRenderer_CreateWindow(ImGuiViewport* viewport)
+	{
+//		auto* renderer = Renderer::current();
+
+	}
+
 }
