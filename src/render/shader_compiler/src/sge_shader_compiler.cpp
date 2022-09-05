@@ -56,15 +56,15 @@ namespace sge {
 			proj->setProjectRoot(path);
 			//---------
 
-			StrView shaderFilename[] = {
+			StrView shaderFilenames[] = {
 				"Assets/Shaders/terrain.shader",
 				"Assets/Shaders/test.shader",
 				"Assets/Shaders/editorgui.shader",
 			};
 
-			for (size_t i = 0; i < shaderFilename->size(); i++) 
+			for (size_t i = 0; i < array_size(shaderFilenames); i++)
 			{
-				compileShader(shaderFilename[i]);
+				compileShader(shaderFilenames[i]);
 			}
 
 			SGE_LOG("----------end------------");
