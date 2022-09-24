@@ -28,8 +28,8 @@ namespace sge
 				 Renderer();
 		virtual ~Renderer();
 
+		SPtr<Shader>			createShader	(StrView filename);
 		SPtr<Material>			createMaterial	()									{ return onCreateMaterial ();			  }
-		SPtr<Shader>			createShader	(StrView 				 filename)	{ return onCreateShader	  (filename);	  }
 		SPtr<Texture2D>			createTexture2D (Texture2D_CreateDesc&		 desc)	{ return onCreateTexture2D(desc);		  }	
 		SPtr<RenderContext>		createContext	(RenderContext_CreateDesc&	 desc)	{ return onCreateContext  (desc);		  }
 		SPtr<RenderGpuBuffer>	createGpuBuffer	(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc);		  }
