@@ -77,8 +77,8 @@ namespace sge
 		return new Material_DX11();
 	}
 
-	Shader* Renderer_DX11::onCreateShader (StrView shadFilename) {
-		return ShaderManager_DX11::current()->find(shadFilename);
+	Shader* Renderer_DX11::onCreateShader(StrView filename) {
+		return new Shader_DX11(filename);
 	}
 
 	Texture2D* Renderer_DX11::onCreateTexture2D(Texture2D_CreateDesc& desc) {

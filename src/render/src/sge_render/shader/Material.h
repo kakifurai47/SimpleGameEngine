@@ -1,6 +1,5 @@
 #pragma once
 #include "Shader.h"
-#include "ShaderManager.h"
 #include "../buffer/RenderGpuBuffer.h"
 #include "../texture/Texture.h"
 

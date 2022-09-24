@@ -24,6 +24,7 @@
 
 #include <sge_core/pointer/ComPtr.h>
 #include <sge_core/pointer/SPtr.h>
+#include <sge_core/pointer/WPtr.h>
 
 #include <sge_core/meta/meta_common.h>
 #include <sge_core/meta/vlist.h>

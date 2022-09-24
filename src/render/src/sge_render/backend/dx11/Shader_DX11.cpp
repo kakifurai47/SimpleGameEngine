@@ -64,25 +64,23 @@ namespace sge {
 	{
 	}
 
-	void Shader_DX11::onCreate(StrView compiledPath) {
+	Shader_DX11::Shader_DX11(StrView filename)
+		: Base(filename)
+	{
+		auto* proj = ProjectSettings::instance();
+		TempString passPath;
+
 		size_t n = m_info.passes.size();		    
 		m_dx11ShadPasses.reserve(n);
 
 		for (size_t i = 0; i < n; i++) {
-			auto  passPath  = Fmt("{}/dx11/pass{}", compiledPath, i);
+			FmtTo(passPath, "{}/{}/dx11/pass{}", proj->importedPath(), filename, i);			
 			m_dx11ShadPasses.emplace_back(passPath, m_info.passes[i]);
 		}
-	}
 
-	void Shader_DX11::onResetPasses(Vector<Pass*, 1>& outPasses) {
-		outPasses.clear();
-		outPasses.reserve(m_dx11ShadPasses.size());
+		m_shadPasses.reserve(n);
 		for (auto& p : m_dx11ShadPasses) {
-			outPasses.emplace_back(&p);
+			m_shadPasses.emplace_back(&p);
 		}
-	}
-
-	void Shader_DX11::onDestroy() {
-		ShaderManager_DX11::current()->erase(m_key);
 	}
 }

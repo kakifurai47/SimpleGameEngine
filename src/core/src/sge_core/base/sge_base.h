@@ -47,8 +47,6 @@
 #include <EASTL/unordered_map.h>
 
 #include <EASTL/unique_ptr.h>
-#include <EASTL/shared_ptr.h>
-#include <EASTL/weak_ptr.h>
 
 #include "sge_macro.h"
 
@@ -114,8 +112,7 @@ namespace sge
 
 	using Json = nlohmann::json;
 
-	template<class T> using UPtr = eastl::unique_ptr<T>;
-	template<class T> using WPtr = eastl::weak_ptr<T>;
+	template<class T> using UPtr = eastl::unique_ptr<T>;	
 
 	template<class T> using Span = eastl::span<T>;
 	using ByteSpan = Span<const u8>;
@@ -258,7 +255,8 @@ namespace sge
 
 	class RefCountBase : public NonCopyable {
 	public:
-		std::atomic_int m_refCount = 0;
+		std::atomic_int m_refCount  = 0;
+		std::atomic_int m_weakCount = 0;
 	};
 
 	class Object : public RefCountBase {
@@ -266,5 +264,10 @@ namespace sge
 		virtual ~Object() = default;
 	};
 
-	template<class T> inline void sge_delete (T* p) { delete p; }
+	template<class T> inline void sge_destroy (T* p) { p->~T();			   }
+	template<class T> inline void sge_release (T* p) { operator delete(p); }
+
+	template<class T> inline void sge_delete  (T* p) { sge_destroy(p); sge_release(p); }
+
+
 }

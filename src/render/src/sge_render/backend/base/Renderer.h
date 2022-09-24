@@ -29,18 +29,22 @@ namespace sge
 		virtual ~Renderer();
 
 		SPtr<Material>			createMaterial	()									{ return onCreateMaterial ();			  }
-		SPtr<Shader>			createShader	(StrView shadFilename)				{ return onCreateShader	  (shadFilename); }
+		SPtr<Shader>			createShader	(StrView 				 filename)	{ return onCreateShader	  (filename);	  }
 		SPtr<Texture2D>			createTexture2D (Texture2D_CreateDesc&		 desc)	{ return onCreateTexture2D(desc);		  }	
 		SPtr<RenderContext>		createContext	(RenderContext_CreateDesc&	 desc)	{ return onCreateContext  (desc);		  }
 		SPtr<RenderGpuBuffer>	createGpuBuffer	(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc);		  }
 
+
 	protected:
 		virtual Material*		 onCreateMaterial () = 0;
-		virtual Shader*			 onCreateShader	  (StrView	shadFilename) = 0;
+		virtual Shader*			 onCreateShader	  (StrView	filename) = 0;
 		virtual Texture2D*		 onCreateTexture2D(Texture2D_CreateDesc&	   desc) = 0;
 		virtual RenderContext*	 onCreateContext  (RenderContext_CreateDesc&   desc) = 0;
 		virtual RenderGpuBuffer* onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) = 0;
 
 		static Renderer*	s_current;
+		Map<u128, Shader*>  m_shaders;
+		
+
 	};
 }

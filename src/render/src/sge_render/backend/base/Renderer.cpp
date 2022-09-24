@@ -31,4 +31,19 @@ namespace sge
 		SGE_ASSERT(s_current == this);
 		s_current = nullptr;
 	}
+
+	SPtr<Shader> Renderer::createShader(StrView filename)
+	{
+		auto id = File::getId(filename);
+
+		auto it = m_shaders.find(id);
+		if (it != m_shaders.end()) {
+			return it->second;
+		}
+
+		auto s = onCreateShader(filename);
+		m_shaders[id] = s;
+		return s;
+	}
+
 }

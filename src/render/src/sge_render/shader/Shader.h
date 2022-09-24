@@ -53,24 +53,18 @@ namespace sge {
 
 		virtual ~Shader() = default;
 
+		Shader(StrView filename);
+
+
 		const ShaderInfo*	info  () const { return &m_info;	  }
 			  Span<Pass*>	passes()	   { return m_shadPasses; }
-			  u128			key	  ()	   { return m_key;		  }
-
-		void create (StrView filename, const u128& key);
-		void destroy() { onDestroy(); }
 
 	friend class ShaderPass;
 	protected:
-		virtual void onCreate     (StrView		   compiledPath) = 0;
-		virtual void onResetPasses(Vector<Pass*, 1>& outPasses)  = 0;
-		virtual void onDestroy	  ()							 = 0;
 
 		ShaderInfo	m_info;
 		String		m_filename;
-		u128		m_key;
 
 		Vector<Pass*, 1> m_shadPasses;
 	};
-	template<> inline void sge_delete(Shader* s) { s->destroy(); }
 }

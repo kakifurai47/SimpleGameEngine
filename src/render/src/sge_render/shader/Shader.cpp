@@ -16,17 +16,14 @@ namespace sge {
 	{
 	}
 
-	void Shader::create(StrView filename, const u128& key) {
-		m_filename	= filename;
-		m_key		= key;
-
+	Shader::Shader(StrView filename)
+		: m_filename(filename)
+	{
 		auto importPath = ProjectSettings::instance()->importedPath();
 
 		auto compiledPath = Fmt("{}/{}", importPath, filename);
 		auto infoFilename = Fmt("{}/info.json",  compiledPath);
 
 		JsonUtil::readFile(infoFilename, m_info);
-		onCreate     (compiledPath);
-		onResetPasses(m_shadPasses);
 	}
 }

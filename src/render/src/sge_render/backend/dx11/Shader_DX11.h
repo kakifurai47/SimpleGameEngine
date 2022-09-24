@@ -43,13 +43,13 @@ namespace sge {
 	};
 
 	class Shader_DX11 : public Shader {
+		using Base = Shader;
 	public:
 		using VertexStage = ShaderVertexStage_DX11;
 		using  PixelStage  = ShaderPixelStage_DX11;
 
-		virtual void onCreate	  (StrView		   compiledPath) override;
-		virtual void onResetPasses(Vector<Pass*, 1>&  outPasses) override;
-		virtual void onDestroy	  ()							 override;
+		Shader_DX11(StrView filename);
+
 	protected:
 		Vector<ShaderPass_DX11, 1> m_dx11ShadPasses;
 	};
