@@ -46,24 +46,6 @@ namespace sge
 
 		TypeInfo() = default;
 
-		template<class T>
-		TypeInfo(T, const char* name_)
-			: name(name_)
-			, size(sizeof(T))
-			, containerElement(Util::getContainerElementInfo<T>())
-		{
-		}
-
-		template<class T, class BASE>
-		TypeInfo(T, const char* name_, BASE)
-			: name(name_)
-			, size(sizeof(T))
-			, containerElement(Util::getContainerElementInfo<T>())
-			, base(sge_typeof<BASE>())
-		{
-			static_assert(std::is_base_of<BASE, T>::value);
-		}
-
 		bool isKindOf(const TypeInfo* t) const
 		{
 			const TypeInfo* p = this;
@@ -78,9 +60,9 @@ namespace sge
 
 
 
-		const char* const	  name	 = "";
-		const size_t		  size	 = 0;
-		const TypeInfo* const base	 = nullptr;
+		const char*      name	 = "";
+		const TypeInfo*  base	 = nullptr;
+			  size_t     size	 = 0;
 
 //		bool			 isContainer			 = false;
 		const TypeInfo*  containerElement		 = nullptr;
@@ -96,17 +78,21 @@ namespace sge
 	class TypeInfoInit_NoBase : public TypeInfo
 	{
 	public:
-		TypeInfoInit_NoBase(const char* name_) : TypeInfo(T{}, name_)
-		{
+		TypeInfoInit_NoBase(const char* name_) {
+			this->name			   = name_;
+			this->size			   = sizeof(T);
+			this->containerElement = Util::getContainerElementInfo<T>();
 		}
 	};
 
 	template<class T, class BASE>
-	class TypeInfoInit : public TypeInfo
+	class TypeInfoInit : public TypeInfoInit_NoBase<T>
 	{
 	public:
-		TypeInfoInit(const char* name_) : TypeInfo(T{}, name_, BASE{})
+		TypeInfoInit(const char* name_) : TypeInfoInit_NoBase(name_)
 		{
+			static_assert(std::is_base_of<BASE, T>::value);
+			base = sge_typeof<BASE>();
 		}
 	};
 

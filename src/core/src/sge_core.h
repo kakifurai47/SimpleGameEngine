@@ -12,6 +12,10 @@
 #include <sge_core/graph/Color.h>
 #include <sge_core/math/Tuple.h>
 
+#include <sge_core/math/Vec2.h>
+#include <sge_core/math/Vec3.h>
+#include <sge_core/math/Vec4.h>
+
 #include <sge_core/math/Mat4.h>
 #include <sge_core/math/Quat4.h>
 
@@ -30,5 +34,7 @@
 #include <sge_core/meta/vlist.h>
 #include <sge_core/meta/tlist.h>
 #include <sge_core/meta/type_trait.h>
+
+#include <sge_core/reflection/sge_reflection.h>
 
 #include <sge_core/native_ui/NativeUI.h>

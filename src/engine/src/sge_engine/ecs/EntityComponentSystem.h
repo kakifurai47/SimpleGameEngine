@@ -3,8 +3,6 @@
 #include <sge_core/base/sge_base.h>
 #include <sge_core/reflection/sge_reflection.h>
 
-#include <sge_core/math/Quat4.h>
-
 
 namespace sge {
 
@@ -14,17 +12,19 @@ namespace sge {
 	class Component : public Object
 	{
 	public:
-		static bool allowMultiple() { return false; }
+		SGE_TYPE_INFO(Component, Object);
 
-		virtual ~Component();
+		virtual ~Component()		= default;
 		virtual ComponentSystem* system() = 0;
+		virtual bool	  allowMultiple() = 0;
 	private:
 	};
+
 
 	class ComponentSystem : public NonCopyable
 	{
 	public:
-		SPtr<Component>	createComponent() { return onCreateComponent(); }
+		SPtr<Component>   createComponent();
 		void destroyComponent(Component* c);
 
 	protected:
@@ -77,5 +77,23 @@ namespace sge {
 		m_components.emplace_back(p);
 		return newC;
 	}
+
+	template<class SYSTEM, bool ALLOW_MULTIPLE>
+	class Component_Impl : public Component
+	{
+	public:
+		using System = SYSTEM;
+		static constexpr bool s_allowMultiple = ALLOW_MULTIPLE;
+
+		virtual ~Component_Impl() {
+			System::instance()->destroyComponent(this);
+		}
+
+		virtual ComponentSystem* system() override { return System::instance(); }
+		virtual bool	  allowMultiple() override { return s_allowMultiple;	}
+	};
+
+
+
 }
 

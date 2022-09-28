@@ -9,8 +9,52 @@
 
 #include <sge_editor/window/EditorWindow.h>
 
+#include <sge_engine/ecs/EntityComponentSystem.h>
+
 namespace sge 
 {
+	class Transform;
+	class TransformSystem;
+
+	class TransformSystem : public ComponentSystem
+	{
+	public:
+		static TransformSystem* instance() {
+			static TransformSystem s;
+			SGE_DUMP_VAR("Transform123");
+			return &s;
+		}
+
+	protected:
+		virtual Component* onCreateComponent() { return nullptr; }
+		virtual void onDestroyComponent(Component* c) {}
+	};
+
+	class Transform : public Component_Impl<TransformSystem, false>
+	{
+	public:
+		SGE_TYPE_INFO(Transform, Component)
+
+		float x, y , z;
+	};
+
+	Span<FieldInfo> Transform::TI_Base::s_fields() {
+		return {};
+	}
+
+
+	SGE_GET_TYPE_IMPL(Transform)
+
+
+
+
+
+	class GameObject : public Entity
+	{
+	};
+
+
+
 	class MainWin : public EditorWindow 
 	{
 		using Base = EditorWindow;
@@ -24,6 +68,16 @@ namespace sge
 			{
 				m_terrain.createFromHeightMapFile(4, "Assets/Terrain/TerrainHeight_Small.png");
 			}
+
+			{
+				Transform t;
+
+				auto* i = sge_typeof<Transform>();
+				SGE_DUMP_VAR(i->base->name);
+				SGE_DUMP_VAR(i->name);
+				SGE_DUMP_VAR(i->size);
+			}
+
 
 			m_camera.setPos({0, 10, 10});
 			m_camera.setAim({0,  0,  0});
@@ -76,7 +130,7 @@ namespace sge
 				using Modifier  = UIEventModifier;
 				using Button = UIMouseEventButton;
 
-				switch (ev.firstPressedButton) {
+				switch (ev.capturedButton)  {
 					case (Button::Left):	{ auto d = ev.deltaPos *   0.01f;  m_camera.orbit(d);				} break;
 					case (Button::Middle):  { auto d = ev.deltaPos *   0.01f;  m_camera.move ({ d.x, d.y , 0});	} break;
 					case (Button::Right):	{ auto d = ev.deltaPos * -0.005f;  m_camera.dolly(d.x + d.y);		} break;				
@@ -101,18 +155,44 @@ namespace sge
 				EditorGui::ShowDemoWindow(&m_showDemoWindow);
 			}
 
-			if (m_showAnotherwindow) {
-				EditorGui::Begin("Another Window", &m_showAnotherwindow);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-				EditorGui::Text("Hello from another window!");
-				if (EditorGui::Button("Close Me"))
-				{
+			if (m_showComponentWindow)
+			{
+				EditorGui::Begin("Component Window", &m_showComponentWindow);
 
-					m_showAnotherwindow = false;
+
+				if (EditorGui::CollapsingHeader("Transform"))
+				{
+				    EditorGui::Text("ABOUT THIS DEMO:");
+				    EditorGui::BulletText("Sections below are demonstrating many aspects of the library.");
+				    EditorGui::BulletText("The \"Examples\" menu above leads to more demo contents.");
+				    EditorGui::BulletText("The \"Tools\" menu above gives access to: About Box, Style Editor,\n"
+				                      "and Metrics/Debugger (general purpose Dear ImGui debugging tool).");
+					EditorGui::Separator();
+
+				    EditorGui::Text("PROGRAMMER GUIDE:");
+				    EditorGui::BulletText("See the ShowDemoWindow() code in imgui_demo.cpp. <- you are here!");
+				    EditorGui::BulletText("See comments in imgui.cpp.");
+				    EditorGui::BulletText("See example applications in the examples/ folder.");
+				    EditorGui::BulletText("Read the FAQ at http://www.dearimgui.org/faq/");
+				    EditorGui::BulletText("Set 'io.ConfigFlags |= NavEnableKeyboard' for keyboard controls.");
+				    EditorGui::BulletText("Set 'io.ConfigFlags |= NavEnableGamepad' for gamepad controls.");
+				    EditorGui::Separator();
+
+					EditorGui::Text("USER GUIDE:");
+					EditorGui::ShowUserGuide();
 				}
 
-				
+
+
+
 				EditorGui::End();
 			}
+
+
+			
+
+
+
 
 			m_renderRequest.model	= Mat4f::s_identity();
 			m_renderRequest.view	= m_camera.viewMat ();
@@ -126,10 +206,10 @@ namespace sge
 			m_terrain.render(m_renderRequest);
 			m_editorGuiHandle.render(m_renderRequest);
 
-//			if (EditorGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-//				EditorGui::UpdatePlatformWindows();
-//				EditorGui::RenderPlatformWindowsDefault();
-//			}
+			if (EditorGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+				EditorGui::UpdatePlatformWindows();
+				EditorGui::RenderPlatformWindowsDefault();
+			}
 
 			m_renderRequest.swapBuffers();
 
@@ -148,8 +228,9 @@ namespace sge
 		
 		SPtr<Material>		m_mat;
 		RenderTerrain		m_terrain;
-		bool				m_showDemoWindow	= true;
-		bool				m_showAnotherwindow = true;
+		bool				m_showDemoWindow	  = true;
+		bool				m_showAnotherwindow   = true;
+		bool				m_showComponentWindow = true;
 	};
 	
 	class EditorApp : public NativeUIApp 
@@ -193,7 +274,7 @@ namespace sge
 			}
 			{
 				NativeUIWindow::CreateDesc desc;
-				desc.type = NativeUIWindow::CreateDesc::Type::ToolWindow;
+//				desc.type = NativeUIWindow::CreateDesc::Type::ToolWindow;
 				desc.isMainWindow   = true;
 				desc.centerToScreen = true;
 				desc.rect = {0,0,1280,720};

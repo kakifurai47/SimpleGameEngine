@@ -7,7 +7,7 @@ namespace sge
 	template<> \
 	const TypeInfo* sge_typeof<TYPE>() \
 	{ \
-		static TypeInfo info(TYPE{}, #TYPE); \
+		static TypeInfoInit_NoBase<TYPE> info(#TYPE); \
 		return &info; \
 	} \
 	\

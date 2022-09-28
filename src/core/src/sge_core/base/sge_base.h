@@ -145,6 +145,11 @@ namespace sge
 		using Base::begin;
 		using Base::end;
 
+		using ElementType = T;
+		
+		static const constexpr size_t kElementCount	  = N;
+		static const constexpr bool	  kEnableOverflow = bEnableOverflow;
+
 		void appendRange(const Span<T>& r) { Base::insert(end(), r.begin(), r.end()); }
 
 		Span<      T> span()			{ return Span<      T>(begin(), end()); }
@@ -183,6 +188,12 @@ namespace sge
 	class StringT : public StringT_Base<T, N, bEnableOverflow>::type {
 		using Base = typename StringT_Base<T, N, bEnableOverflow>::type;
 	public:
+
+		using ElementType = T;
+		
+		static const constexpr size_t kElementCount		= N;
+		static const constexpr bool	  kEnableOverflow	= bEnableOverflow;
+
 		StringT() = default;
 		StringT(const T* begin, const T* end) : Base(begin, end) {}
 		StringT(StrViewT<T> view) : Base(view.data(), view.size()) {}
@@ -257,11 +268,6 @@ namespace sge
 	public:
 		std::atomic_int m_refCount  = 0;
 		std::atomic_int m_weakCount = 0;
-	};
-
-	class Object : public RefCountBase {
-	public:
-		virtual ~Object() = default;
 	};
 
 	template<class T> inline void sge_destroy (T* p) { p->~T();			   }

@@ -44,7 +44,7 @@ namespace sge {
 		void test_reflect()
 		{
 //			test_typeInfo();
-			test_cast();
+//			test_cast();
 		}
 
 	};
