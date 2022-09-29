@@ -6,7 +6,12 @@
 
 namespace sge {
 
-	namespace EditorGui = ImGui;
+//	namespace EditorGui = ImGui;
+
+	namespace EditorGui
+	{
+		using namespace ImGui;
+	};
 
 	struct EditorGuiUtil
 	{

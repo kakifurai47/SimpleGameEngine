@@ -9,45 +9,37 @@
 
 #include <sge_editor/window/EditorWindow.h>
 
-#include <sge_engine/ecs/EntityComponentSystem.h>
+#include <sge_engine/Transform.h>
+#include <sge_engine/ecs/Entity.h>
 
 namespace sge 
 {
-	class Transform;
-	class TransformSystem;
 
-	class TransformSystem : public ComponentSystem
+
+
+
+
+
+
+
+	namespace EditorGui
 	{
-	public:
-		static TransformSystem* instance() {
-			static TransformSystem s;
-			SGE_DUMP_VAR("Transform123");
-			return &s;
+		void DrawTransform(const Transform& t)
+		{
+			ImGui::SliderFloat("x", (float*)&t.x, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("y", (float*)&t.y, 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("z", (float*)&t.z, 0.0f, 1.0f, "%.2f");
 		}
 
-	protected:
-		virtual Component* onCreateComponent() { return nullptr; }
-		virtual void onDestroyComponent(Component* c) {}
-	};
+		void DrawObject(const Object& o)
+		{
+			if (o.typeInfo() == sge_typeof<Transform>()) { DrawTransform(*static_cast<const Transform*>(&o)); }
 
-	class Transform : public Component_Impl<TransformSystem, false>
-	{
-	public:
-		SGE_TYPE_INFO(Transform, Component)
 
-		float x, y , z;
-	};
+			
+		}
 
-	Span<FieldInfo> Transform::TI_Base::s_fields() {
-		return {};
 	}
-
-
-	SGE_GET_TYPE_IMPL(Transform)
-
-
-
-
 
 	class GameObject : public Entity
 	{
@@ -70,12 +62,12 @@ namespace sge
 			}
 
 			{
-				Transform t;
-
-				auto* i = sge_typeof<Transform>();
-				SGE_DUMP_VAR(i->base->name);
-				SGE_DUMP_VAR(i->name);
-				SGE_DUMP_VAR(i->size);
+//				Transform t;
+//
+//				auto* i = sge_typeof<Transform>();
+//				SGE_DUMP_VAR(i->base->name);
+//				SGE_DUMP_VAR(i->name);
+//				SGE_DUMP_VAR(i->size);
 			}
 
 
@@ -155,44 +147,47 @@ namespace sge
 				EditorGui::ShowDemoWindow(&m_showDemoWindow);
 			}
 
-			if (m_showComponentWindow)
+			
+
+
+			if (m_showTransformSystemWindow)
 			{
-				EditorGui::Begin("Component Window", &m_showComponentWindow);
+				EditorGui::Begin("TransformSystem", &m_showTransformSystemWindow);
 
+				auto* s = Transform::System::instance();
 
-				if (EditorGui::CollapsingHeader("Transform"))
-				{
-				    EditorGui::Text("ABOUT THIS DEMO:");
-				    EditorGui::BulletText("Sections below are demonstrating many aspects of the library.");
-				    EditorGui::BulletText("The \"Examples\" menu above leads to more demo contents.");
-				    EditorGui::BulletText("The \"Tools\" menu above gives access to: About Box, Style Editor,\n"
-				                      "and Metrics/Debugger (general purpose Dear ImGui debugging tool).");
-					EditorGui::Separator();
-
-				    EditorGui::Text("PROGRAMMER GUIDE:");
-				    EditorGui::BulletText("See the ShowDemoWindow() code in imgui_demo.cpp. <- you are here!");
-				    EditorGui::BulletText("See comments in imgui.cpp.");
-				    EditorGui::BulletText("See example applications in the examples/ folder.");
-				    EditorGui::BulletText("Read the FAQ at http://www.dearimgui.org/faq/");
-				    EditorGui::BulletText("Set 'io.ConfigFlags |= NavEnableKeyboard' for keyboard controls.");
-				    EditorGui::BulletText("Set 'io.ConfigFlags |= NavEnableGamepad' for gamepad controls.");
-				    EditorGui::Separator();
-
-					EditorGui::Text("USER GUIDE:");
-					EditorGui::ShowUserGuide();
-				}
-
-
-
-
+				ImGui::Text(" component count : %I64u", s->m_components.size());
 				EditorGui::End();
 			}
+
 
 
 			
 
 
+			if (m_showComponentWindow)
+			{
+				EditorGui::Begin("Entity Window", &m_showComponentWindow);
 
+				auto cs = m_gameobject.components();
+
+				for (size_t i = 0; i < cs.size(); i++)
+				{
+					if (i == 0) EditorGui::SetNextItemOpen(true, ImGuiCond_Once);
+
+					if (EditorGui::TreeNode((void*)(intptr_t)i, cs[i]->typeInfo()->name))
+					{
+						EditorGui::DrawObject(*cs[i]);
+						EditorGui::TreePop();
+					}
+				}
+				
+
+				if (EditorGui::Button("Add Transform"))	   m_gameobject.addComponent   <Transform>();
+				if (EditorGui::Button("Remove Transform")) m_gameobject.removeComponent<Transform>();
+
+				EditorGui::End();
+			}
 
 			m_renderRequest.model	= Mat4f::s_identity();
 			m_renderRequest.view	= m_camera.viewMat ();
@@ -225,12 +220,18 @@ namespace sge
 		Camera3f m_camera;
 
 		float alpha = 0;
+
+		GameObject			m_gameobject;
+
 		
 		SPtr<Material>		m_mat;
 		RenderTerrain		m_terrain;
-		bool				m_showDemoWindow	  = true;
-		bool				m_showAnotherwindow   = true;
-		bool				m_showComponentWindow = true;
+		bool				m_showDemoWindow			= true;
+		bool				m_showAnotherwindow			= true;
+		bool				m_showComponentWindow		= true;
+		bool				m_showTransformSystemWindow = true;
+
+		Vector<bool>		m_showComponentWindows;
 	};
 	
 	class EditorApp : public NativeUIApp 
