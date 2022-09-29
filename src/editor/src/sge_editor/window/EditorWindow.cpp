@@ -16,6 +16,7 @@ namespace sge
 			EditorGuiHandle::CreateDesc desc;
 			desc.window = this;
 			m_editorGuiHandle.create(desc);
+			m_editorGuiHandle.setMonitorInfos(monitorInfos());
 		}
 	}
 
@@ -28,10 +29,14 @@ namespace sge
 		switch (ev.type) {
 			case EVT::Down:		io.AddMouseButtonEvent(Util::getGuiButton(ev.button), true ); break;
 			case EVT::Up:		io.AddMouseButtonEvent(Util::getGuiButton(ev.button), false); break;
-			case EVT::Scroll:	io.AddMouseWheelEvent(ev.scroll.x, ev.scroll.y);			  break;
+			case EVT::Scroll:	io.AddMouseWheelEvent (ev.scroll.x, ev.scroll.y);			  break;
 		}
 
-
 		if (!io.WantCaptureMouse) { Base::onNativeUIMouseEvent(ev); }
+	}
+
+	void EditorWindow::onMonitorsUpdated (Span<MonitorInfo> infos)  {
+		Base::onMonitorsUpdated(infos);
+		m_editorGuiHandle.setMonitorInfos(infos);
 	}
 }

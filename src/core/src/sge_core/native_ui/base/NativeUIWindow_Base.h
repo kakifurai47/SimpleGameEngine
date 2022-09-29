@@ -45,37 +45,80 @@ namespace sge {
 		bool		alwaysOnTop		: 1;
 	};
 
+	struct MonitorInfo {
+		bool isPrimary = false;
+		Rect2f rect     {};
+		Rect2f workRect {};
+		float  dpiScale = 0.0f;
+	};
 
 	class NativeUIWindow_Base : public NonCopyable {
+		using This = NativeUIWindow_Base;
 	public:
 		using CreateDesc = NativeUIWindow_Base_CreateDesc;
+		
 
-		void create		(CreateDesc& desc) { onCreate(desc);  }
+		void create		(CreateDesc& desc)	{ onCreate(desc);	}
+		void destroy()						{ onDestroy();		}
 
 		void update(float deltaTime)       { onUpdate(deltaTime); }
 		void paintNeeded()				   { onPaintNeeded();	  }
 
-		const Rect2f& clientRect() { return m_clientRect; }
+		void resetCapture(This* win)	   { onResetCapture(win); }
+		
+		Span<MonitorInfo> monitorInfos()		{ return m_monitorInfos; }
+
+		const Vec2f&	  pos		  () const  { return m_winPos;		}
+		const Rect2f&	  clientRect  () const	{ return m_clientRect;  }
+		bool			  isMinimized () const	{ return m_isMinimized; }
+		bool			  isCaptured  () const	{ return m_isCaptured;  }
+
+		void setPos (const Vec2f& newPos)  { onSetPos(newPos);   }
+		void setSize(const Vec2f& newSize) { onSetSize(newSize); }
+
 
 	protected:
 		virtual void onCreate	   (CreateDesc& desc) {};
+		virtual void onDestroy	   ()	{};
 		virtual void onCloseButton ()	{};
+
 
 		virtual void onPaint	  () {};
 		virtual void onPaintNeeded() {};
 
 		virtual void onUpdate(float deltaTime) {};
+
+
+		virtual void onResetCapture		 (This* win) {};
+		virtual void onCaptureChanged	 (bool  isCaptured_) { m_isCaptured = isCaptured_; }
 		
 		virtual void onUIMouseEvent		 (UIMouseEvent& ev) {};
 		virtual void onNativeUIMouseEvent(UIMouseEvent& ev);
 
-		virtual void onClientRectChanged(const Rect2f& rc) { m_clientRect = rc; }
+		virtual void onPositionChanged	 (const Vec2f& pos) { m_winPos = pos; }
 
-		UIMouseEventButton m_firstPressedMouseButton = UIMouseEventButton::None;
-		UIMouseEventButton m_pressedMouseButtons	 = UIMouseEventButton::None;
-		Vec2f m_mousePos {0, 0};
-		
-		Rect2f m_clientRect {0,0,0,0};
+		virtual void onClientRectChanged (const Rect2f& rc, bool isMinimized_) {
+			m_clientRect  = rc;
+			m_isMinimized = isMinimized_; 
+		}
+
+		virtual void onMonitorsUpdated  (Span<MonitorInfo> infos) { m_monitorInfos.appendRange(infos);  }
+
+		virtual void onSetPos (const Vec2f& newPos ) {}
+		virtual void onSetSize(const Vec2f& newSize) {}
+
+	private:
+
+		UIMouseEventButton m_pressedMouseButtons = UIMouseEventButton::None;
+
+		bool   m_isMinimized = false;
+		bool   m_isCaptured  = false;
+
+		Vec2f  m_mousePos   {};
+		Rect2f m_clientRect {};
+		Vec2f  m_winPos     {};
+
+		Vector<MonitorInfo, 2> m_monitorInfos;
 	};
 
 }

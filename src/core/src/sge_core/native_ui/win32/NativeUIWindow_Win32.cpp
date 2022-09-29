@@ -8,7 +8,6 @@
 
 namespace sge {
 
-
 	void NativeUIWindow_Win32::onCreate(CreateDesc& desc)
 	{
 		Base::onCreate(desc);
@@ -78,21 +77,57 @@ namespace sge {
 			}
 		}
 
-		m_hwmd = ::CreateWindowEx(0, clsName, clsName, WS_OVERLAPPEDWINDOW,
+		m_hwnd = ::CreateWindowEx(0, clsName, clsName, WS_OVERLAPPEDWINDOW,
 								  int(desc.rect.x),
 								  int(desc.rect.y),
 								  int(desc.rect.w),
 								  int(desc.rect.h),
 								  nullptr, nullptr, hInstance, this);
 
-		if (!m_hwmd) {
+		if (!m_hwnd) {
 			throw SGE_ERROR("CreateWindowEx");
 		}
-		::ShowWindow(m_hwmd, SW_NORMAL);
+		::ShowWindow(m_hwnd, SW_NORMAL);
+		_updateMonitorInfos(m_hwnd);
+	}
+
+	void NativeUIWindow_Win32::onDestroy() {
+		::DestroyWindow(m_hwnd); 
 	}
 
 	void NativeUIWindow_Win32::onPaintNeeded() {
-		::InvalidateRect(m_hwmd, nullptr, false);
+		::InvalidateRect(m_hwnd, nullptr, false);
+	}
+
+	void NativeUIWindow_Win32::onResetCapture(NativeUIWindow_Base* win)  {
+		::ReleaseCapture();
+		if (auto* w = static_cast<NativeUIWindow_Win32*>(win))
+		{
+			::SetCapture(w->m_hwnd);
+		}
+	}
+
+	void NativeUIWindow_Win32::onSetPos(const Vec2f& newPos)
+	{
+		RECT rect =
+		{
+			(LONG)newPos.x, (LONG)newPos.y, (LONG)newPos.x, (LONG)newPos.y
+		};
+
+		::AdjustWindowRectEx(&rect, WS_CAPTION | WS_BORDER, FALSE, WS_CAPTION | WS_BORDER);
+		::SetWindowPos(m_hwnd, nullptr, 0, 0, rect.left, rect.top, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+	}
+
+	void NativeUIWindow_Win32::onSetSize(const Vec2f& newSize)
+	{
+		RECT rect =
+		{
+			(LONG)0, (LONG)0, (LONG)newSize.x, (LONG)newSize.y
+		};
+		
+		::AdjustWindowRectEx(&rect, WS_CAPTION | WS_BORDER, FALSE, WS_CAPTION | WS_BORDER);
+		::SetWindowPos(m_hwnd, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+
 	}
 
 	LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -101,27 +136,40 @@ namespace sge {
 			case WM_CREATE: {
 				auto* createS = reinterpret_cast<CREATESTRUCT*>(lParam);
 				auto* thisObj = reinterpret_cast<This*>(createS->lpCreateParams);
-				thisObj->m_hwmd = hwnd;
+				thisObj->m_hwnd  = hwnd;
 				::SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)thisObj);
 			}break;
 
 			case WM_PAINT: {
 				PAINTSTRUCT ps;
-				BeginPaint(hwnd, &ps);
+				HDC hdc;
+				hdc = ::BeginPaint(hwnd, &ps);
 				if (auto* thisObj = s_getThis(hwnd)) {
 					thisObj->onPaint();
 				}
-				EndPaint(hwnd, &ps);
+				::EndPaint(hwnd, &ps);
 				return 0;
 			}break;
 
-//			case WM_MOVE:
+			case WM_MOVE: {
+				if (auto* thisObj = s_getThis(hwnd)) {
+					Vec2f newPos = { (float)LOWORD(lParam), (float)HIWORD(lParam) };
+					thisObj->onPositionChanged(newPos);
+					return 0;
+				}
+			}break;
+
 			case WM_SIZE: {
 				if (auto* thisObj = s_getThis(hwnd)) {
-					RECT clientRect;
-					::GetClientRect(hwnd, &clientRect);
-					Rect2f newClientRect = Win32Util::toRect2f(clientRect);
-					thisObj->onClientRectChanged(newClientRect);
+					Rect2f newClientRect { 0,  0, (float)LOWORD(lParam), (float)HIWORD(lParam) };
+					thisObj->onClientRectChanged(newClientRect, wParam == SIZE_MINIMIZED);
+					return 0;
+				}
+			}break;
+
+			case WM_DISPLAYCHANGE: {
+				if (auto* thisObj = s_getThis (hwnd)) {
+					thisObj->_updateMonitorInfos(hwnd);
 					return 0;
 				}
 			}break;
@@ -141,7 +189,7 @@ namespace sge {
 			case WM_DESTROY: {
 				if (auto* thisObj = s_getThis(hwnd)) {
 					::SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)nullptr);
-					thisObj->m_hwmd = nullptr;
+					thisObj->m_hwnd = nullptr;
 					sge_delete(thisObj);
 				}
 				return 0;
@@ -163,6 +211,39 @@ namespace sge {
 		return ::DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
+	BOOL WINAPI NativeUIWindow_Win32::s_monitorEnumPorc(HMONITOR hMonitor, HDC hdc, LPRECT lPrect, LPARAM lParam)
+	{
+		auto* infos = reinterpret_cast<Vector<MonitorInfo, 2>*>(lParam);
+		if  (!infos) return FALSE;
+
+		MONITORINFO info {};
+		info.cbSize = sizeof(MONITORINFO);
+		if (!::GetMonitorInfo(hMonitor, &info)) { return TRUE; }
+		
+		auto& newInfo		= infos->emplace_back();
+
+		newInfo.rect		= Win32Util::toRect2f(info.rcMonitor);
+		newInfo.workRect	= Win32Util::toRect2f(info.rcWork	);
+		newInfo.isPrimary   = info.dwFlags & MONITORINFOF_PRIMARY;
+
+		UINT xdpi = 96, ydpi = 96;
+		xdpi = ::GetDeviceCaps(hdc, LOGPIXELSX);
+		ydpi = ::GetDeviceCaps(hdc, LOGPIXELSY);
+		
+		newInfo.dpiScale = xdpi / 96.0f;
+
+		return TRUE;
+	}
+
+	void NativeUIWindow_Win32::_updateMonitorInfos(HWND hwnd) 
+	{
+		Vector<MonitorInfo, 2> infos;
+		HDC hdc = ::GetDC(hwnd);
+		::EnumDisplayMonitors(hdc, (LPCRECT)nullptr, s_monitorEnumPorc, (LPARAM)&infos);
+		::ReleaseDC(hwnd, hdc);
+		onMonitorsUpdated(infos);
+	}
+
 	bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		UIMouseEvent ev;
 
@@ -177,10 +258,10 @@ namespace sge {
 
 		Win32Util::convert(ev.pos, curPos);
 
-		auto button = Button::None;
+
 		switch (HIWORD(wParam)) {
-			case XBUTTON1: button = Button::Button4; break;
-			case XBUTTON2: button = Button::Button5; break;
+			case XBUTTON1: ev.button = Button::Button4; break;
+			case XBUTTON2: ev.button = Button::Button5; break;
 		}
 
 		switch (msg) {
@@ -196,26 +277,33 @@ namespace sge {
 
 		#if (_WIN32_WINNT >= 0x0400) || (_WIN32_WINDOWS > 0x0400)
 			// vertical  scroll wheel 
-			case WM_MOUSEWHEEL:		{ ev.type = Type::Scroll;	ev.scroll.set(0,GET_WHEEL_DELTA_WPARAM(wParam)); } break;
+			case WM_MOUSEWHEEL:		{ ev.type = Type::Scroll;	ev.scroll.set(0,GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA); } break;
 		#endif
 
 		#if (_WIN32_WINNT >= 0x0600)
 			// horizontal scroll wheel 
-			case WM_MOUSEHWHEEL:	{ ev.type = Type::Scroll;	ev.scroll.set(GET_WHEEL_DELTA_WPARAM(wParam),0); } break;
+			case WM_MOUSEHWHEEL:	{ ev.type = Type::Scroll;	ev.scroll.set(GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA,0); } break;
 		#endif
 
 			default:
 				return false;
 		}
-		
-		switch (ev.type) {
-			case Type::Down:		::SetCapture(hwnd); break;
-			case Type::Up:			::ReleaseCapture(); break;
+
+		{
+			auto& b = m_capturedMouseButton;
+
+			switch (ev.type) {
+				case Type::Down: { if (b == Button::None) { b = ev.button; ::SetCapture(hwnd); onCaptureChanged(true) ; } } break;
+				case Type::Up:   { if (b == ev.button) { b = Button::None; ::ReleaseCapture(); onCaptureChanged(false); } } break;
+			}
 		}
 
+		ev.capturedButton = m_capturedMouseButton;
 		onNativeUIMouseEvent(ev);
 		return true;
 	}
+
+
 
 	LRESULT NativeUIWindow_Win32::_handleNativeEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		if (_handleNativeUIMouseEvent(hwnd, msg, wParam, lParam)) return 0;

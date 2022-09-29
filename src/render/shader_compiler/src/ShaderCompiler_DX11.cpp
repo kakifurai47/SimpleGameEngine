@@ -94,18 +94,18 @@ namespace sge {
 				case D3D_REGISTER_COMPONENT_UINT32:		formatType.append("UInt08");	break;
 				case D3D_REGISTER_COMPONENT_SINT32:		formatType.append("Int32");		break;
 				case D3D_REGISTER_COMPONENT_FLOAT32:	formatType.append("Float32");	break;
-				default: throw SGE_ERROR("unspported component type {}", paramDesc.ComponentType);
+				default: throw SGE_ERROR("unspported component type");
 			}
 
 			auto compCount = BitUtil::count1(paramDesc.Mask);
 			if (compCount < 1 || compCount > 4) {
-				throw SGE_ERROR("invalid componenet Count {}", compCount);
+				throw SGE_ERROR("invalid componenet Count");
 			}
 
 			FmtTo(formatType, "x{}", compCount);
 
 			if (!enumTryParse(outInputs.formatType, formatType)) {
-				throw SGE_ERROR("cannot parse Render FormatType enum {}", formatType);
+				throw SGE_ERROR("cannot parse Render FormatType enum");
 			}
 		}
 	}
@@ -167,11 +167,11 @@ namespace sge {
 					case D3D_SVC_VECTOR:		 FmtTo(formatType, "x{}",				   varType.Columns); break;
 					case D3D_SVC_MATRIX_COLUMNS: FmtTo(formatType, "_{}x{}", varType.Rows, varType.Columns); break;
 					case D3D_SVC_MATRIX_ROWS:	 FmtTo(formatType, "_{}x{}", varType.Rows, varType.Columns); break;
-					default: throw SGE_ERROR("unsupported class {}", varType.Class);
+					default: throw SGE_ERROR("unsupported class");
 					}
 
 					if (!enumTryParse(outVar.formatType, formatType)) {
-						throw SGE_ERROR("cannot parse format type {}", formatType);
+						throw SGE_ERROR("cannot parse format type");
 					}
 
 					if (outVar.formatType == FormatType::None) {
@@ -213,7 +213,7 @@ namespace sge {
 				case D3D_SRV_DIMENSION_TEXTURE2DMS		: outTex.formatType = RFT::Texture2DMS;			break;
 				case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY	: outTex.formatType = RFT::Texture2DMSArray;	break;
 
-				default: throw SGE_ERROR("unsupported texture dimension : {}", resDesc.Dimension);
+				default: throw SGE_ERROR("unsupported texture dimension");
 			}
 		}
 	}

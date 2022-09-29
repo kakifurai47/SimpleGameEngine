@@ -36,17 +36,20 @@ namespace sge {
 		using Modifier	 = UIEventModifier;
 		using Button	 = UIMouseEventButton;
 
+		void reset() { *this = {}; }
+
 		bool isUp()		  const	{ return type == Type::Up; }
 		bool isDown()	  const	{ return type == Type::Down; }
 		bool isMove()	  const	{ return type == Type::Move; }
 		bool isScroll()	  const	{ return type == Type::Scroll; }
 		bool isDragging() const { return type == Type::Move && pressedButtons != Button::None; }
 
-		Type		type			   = Type::None;
-		Button		firstPressedButton = Button::None;
-		Button		button			   = Button::None;
-		Button		pressedButtons	   = Button::None;
-		Modifier	modifier		   = Modifier::None;
+		Button		capturedButton	  {};
+
+		Type		type			  {};
+		Button		button			  {};
+		Button		pressedButtons	  {};
+		Modifier	modifier		  {};
 
 		Vec2f pos		{0, 0};
 		Vec2f deltaPos	{0, 0};

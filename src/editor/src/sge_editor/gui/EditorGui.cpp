@@ -7,6 +7,9 @@
 
 namespace sge {
 
+	namespace EditorGui
+	{
+	}
 	void EditorGuiHandle::create(CreateDesc& desc) 
 	{
 		m_mainWindow = desc.window;
@@ -17,6 +20,7 @@ namespace sge {
 		EditorGui::CreateContext();
 
 		ImGuiIO& io = EditorGui::GetIO(); (void)io;
+		io.UserData = this;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -32,86 +36,108 @@ namespace sge {
 
 		{//ImGui_ImplWin32_Init
 
-			// INT64 perf_frequency, perf_counter;
-			// if (!::QueryPerformanceFrequency((LARGE_INTEGER*)&perf_frequency)) return false;
-			// if (!::QueryPerformanceCounter((LARGE_INTEGER*)&perf_counter)) 	  return false;
-
 			io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;         // We can honor GetMouseCursor() values (optional)
 			io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor io.WantSetMousePos requests (optional, rarely used)
-			io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;    // We can create multi-viewports on the Platform side (optional)
-			io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can call io.AddMouseViewportEvent() with correct data (optional)
+//			io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;    // We can create multi-viewports on the Platform side (optional)
+//			io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can call io.AddMouseViewportEvent() with correct data (optional)
 
-			EditorGui::GetMainViewport()->PlatformHandle = desc.window;
+			auto* mainVP  =  EditorGui::GetMainViewport();
+			Util::initViewport(mainVP, desc.window, this);
 
-//			if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-//			{
-//				ImGui_ImplWin32_InitPlatformInterface();
-//			}
-
-		}
-
-		{//Material
-			auto shad  = renderer->createShader("Assets/Shaders/editorgui.shader");
-			m_material = renderer->createMaterial();
-			m_material->setShader(shad);
-		}
-		{//Layout
-			//temporary -> needed to refector veretex;
-			auto& pos = m_vertLayout.elements.emplace_back();
-			pos.formatType = RenderFormatType::Float32x2;
-			pos.semantic   = VertexSemantic::POSITION;
-			pos.offset     = 0;
-
-			auto& uv  = m_vertLayout.elements.emplace_back();
-			uv.formatType  = RenderFormatType::Float32x2;
-			uv.semantic    = VertexSemantic::TEXCOORD0;
-			uv.offset	   = 8;
-
-			auto& col = m_vertLayout.elements.emplace_back();
-			col.formatType  = RenderFormatType::UNorm08x4;
-			col.semantic	= VertexSemantic::COLOR0;
-			col.offset		= 16;
-
-			m_vertLayout.stride = static_cast<size_t>( 8 + 8 + 4 );
-
-			m_mesh.setVertexLayout(&m_vertLayout);
-		}
-		{//IndexFormat
-			auto idxFormat = sizeof(ImDrawIdx) == 2 ? RenderFormatType::UInt16x1 :
-													  RenderFormatType::UInt32x2;
-			m_mesh.setIndexFormat(idxFormat);
-		}
-
-		{//Texture
-			unsigned char* pixels = nullptr;
-			int width = 0, height = 0, bytesPerPixel = 0;
-			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytesPerPixel);
-
-			Texture2D::CreateDesc t2dDesc;
-			t2dDesc.colorType		= ColorType::RGBAb;
-			t2dDesc.mipmapCount		= 1;
-			t2dDesc.size			= {width, height};
-
+			if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 			{
-				auto imageSize = static_cast<size_t>(width * height * bytesPerPixel);
-				t2dDesc.imageToUpload.emplace();
-				auto& img  =  t2dDesc.imageToUpload.value();
-				img.create(ColorType::RGBAb, width, height);
-				img.copy  ( Span<u8>( pixels, imageSize ) );
+				// Register platform interface (will be coupled with a renderer interface)
+				ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+
+				platform_io.Platform_CreateWindow		= EditorGui_ImplWindow_CreateWindow;
+				platform_io.Platform_DestroyWindow		= EditorGui_ImplWindow_DestroyWindow;
+				platform_io.Platform_ShowWindow			= EditorGui_ImplWindow_ShowWindow;
+				platform_io.Platform_SetWindowPos		= EditorGui_ImplWindow_SetWindowPos;
+				platform_io.Platform_GetWindowPos		= EditorGui_ImplWindow_GetWindowPos;
+				platform_io.Platform_SetWindowSize		= EditorGui_ImplWindow_SetWindowSize;
+				platform_io.Platform_GetWindowSize		= EditorGui_ImplWindow_GetWindowSize;
+				platform_io.Platform_SetWindowFocus		= EditorGui_ImplWindow_SetWindowFocus;
+				platform_io.Platform_GetWindowFocus		= EditorGui_ImplWindow_GetWindowFocus;
+				platform_io.Platform_GetWindowMinimized = EditorGui_ImplWindow_GetWindowMinimized;
+				platform_io.Platform_SetWindowTitle		= EditorGui_ImplWindow_SetWindowTitle;
+				platform_io.Platform_SetWindowAlpha		= EditorGui_ImplWindow_SetWindowAlpha;
+				platform_io.Platform_UpdateWindow		= EditorGui_ImplWindow_UpdateWindow;
+//				platform_io.Platform_GetWindowDpiScale	= EditorGui_ImplWindow_GetWindowDpiScale; // FIXME-DPI
+//				platform_io.Platform_OnChangedViewport	= EditorGui_ImplWindow_OnChangedViewport; // FIXME-DPI
+
 			}
-			{
-				auto& ss  = t2dDesc.samplerState;
-				ss.filter = SamplerState::Filter::Linear;
-				ss.minLOD = 0.f;
-				ss.maxLOD = 0.f;
+		}
+
+		{
+			io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
+			io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;  // We can create multi-viewports on the Renderer side (optional)
+		}
+
+		{//ImGui_ImplDX11_Init
+
+			{//Material
+				auto shad  = renderer->createShader("Assets/Shaders/editorgui.shader");
+				m_material = renderer->createMaterial();
+				m_material->setShader(shad);
+			}
+			{//Layout
+				//temporary -> needed to refector veretex;
+				auto& pos = m_vertLayout.elements.emplace_back();
+				pos.formatType = RenderFormatType::Float32x2;
+				pos.semantic   = VertexSemantic::POSITION;
+				pos.offset     = 0;
+
+				auto& uv  = m_vertLayout.elements.emplace_back();
+				uv.formatType  = RenderFormatType::Float32x2;
+				uv.semantic    = VertexSemantic::TEXCOORD0;
+				uv.offset	   = 8;
+
+				auto& col = m_vertLayout.elements.emplace_back();
+				col.formatType  = RenderFormatType::UNorm08x4;
+				col.semantic	= VertexSemantic::COLOR0;
+				col.offset		= 16;
+
+				m_vertLayout.stride = static_cast<size_t>( 8 + 8 + 4 );
+
+				m_mesh.setVertexLayout(&m_vertLayout);
+			}
+			{//IndexFormat
+				auto idxFormat = sizeof(ImDrawIdx) == 2 ? RenderFormatType::UInt16x1 :
+														  RenderFormatType::UInt32x2;
+				m_mesh.setIndexFormat(idxFormat);
 			}
 
-			m_fontsTex2D = renderer->createTexture2D(t2dDesc);
-			m_material->setParam("texture0", m_fontsTex2D);
+			{//Texture
+				unsigned char* pixels = nullptr;
+				int width = 0, height = 0, bytesPerPixel = 0;
+				io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytesPerPixel);
+
+				Texture2D::CreateDesc t2dDesc;
+				t2dDesc.colorType		= ColorType::RGBAb;
+				t2dDesc.mipmapCount		= 1;
+				t2dDesc.size			= {width, height};
+
+				{
+					auto imageSize = static_cast<size_t>(width * height * bytesPerPixel);
+					t2dDesc.imageToUpload.emplace();
+					auto& img  =  t2dDesc.imageToUpload.value();
+					img.create(ColorType::RGBAb, width, height);
+					img.copy  ( Span<u8>( pixels, imageSize ) );
+				}
+				{
+					auto& ss  = t2dDesc.samplerState;
+					ss.filter = SamplerState::Filter::Linear;
+					ss.minLOD = 0.f;
+					ss.maxLOD = 0.f;
+				}
+
+				m_fontsTex2D = renderer->createTexture2D(t2dDesc);
+				m_material->setParam("texture0", m_fontsTex2D);
+			}
 		}
 	}
 
-	EditorGuiHandle::~EditorGuiHandle() 
+	EditorGuiHandle::~EditorGuiHandle()
 	{
 		EditorGui::DestroyContext();
 	}
@@ -193,16 +219,169 @@ namespace sge {
 
 	}
 
+	void EditorGuiHandle::setMonitorInfos(Span<MonitorInfo> infos) 
+	{
+		if (!isCreated()) { return; }
+
+		auto& io = EditorGui::GetPlatformIO();
+		auto& ms = io.Monitors;
+
+		ms.clear();
+		ms.reserve( static_cast<int>(infos.size()) );
+
+		for (auto& i : infos) 
+		{
+			ImGuiPlatformMonitor o;
+			Util::convert	(o, i);
+
+			if (i.isPrimary) { ms.push_front(o); }
+			else			 { ms.push_back (o); }
+		}
+	}
+
+
 	void EditorGuiHandle::EditorGui_ImplWindow_CreateWindow(ImGuiViewport* viewport)
 	{
-		MyWindow::CreateDesc desc;
-		Util::setWindowCreateDesc(desc, viewport->Flags);
+		using T = MyWindow::CreateDesc::Type;
+
+		auto* parentVP = Util::getParentViewport(viewport);
+		if  (!parentVP) throw SGE_ERROR("creating window : w/o parent");
+
+		auto* parentWin = Util::getViewportWindow(parentVP);
+		auto* handle    = Util::getViewportHandle(parentVP);
+
+		if (!parentWin || !handle) { throw SGE_ERROR("creating window : w/o init"); }
 		
+		auto& newWin = handle->m_myWindows.emplace_back();
+		newWin = new MyWindow();
+
+		SGE_DUMP_VAR("create");
+
+		MyWindow::CreateDesc desc;
+
+		desc.rect = { viewport->Pos.x,  viewport->Pos.y,
+					  viewport->Size.x, viewport->Size.y };
+
+		auto& flags = viewport->Flags;
+		if (flags & ImGuiViewportFlags_NoDecoration)	desc.type		 = T::PopupWindow;
+		if (flags & ImGuiViewportFlags_NoTaskBarIcon)	desc.type		 = T::ToolWindow;
+		if (flags & ImGuiViewportFlags_TopMost)			desc.alwaysOnTop = true;
+
+		desc.parent = parentWin;
+
+		newWin->create(desc);
+		Util::initViewport(viewport, newWin, handle);
+	}
+
+	void EditorGuiHandle::EditorGui_ImplWindow_DestroyWindow(ImGuiViewport* viewport)
+	{
+		auto* handle = Util::getViewportHandle(viewport);
+		auto* win    = Util::getViewportWindow(viewport);
+
+		if (!handle || !win) throw SGE_ERROR("destroying window w/o init");
+
+		if (win->isCaptured()) {
+			win->resetCapture(handle->m_mainWindow);
+		}
+
+		if (win != handle->m_mainWindow) 
+		{
+			auto* myWin  = static_cast<MyWindow*>(win);
+			auto& myWins = handle->m_myWindows;
+			myWins.erase_first_unsorted(myWin);
+			myWin->destroy ();			
+		}
+
+		viewport->PlatformUserData = nullptr;
+		viewport->PlatformHandle   = nullptr;
+	}
+
+	void EditorGuiHandle::EditorGui_ImplWindow_ShowWindow(ImGuiViewport* viewport)
+	{
+		SGE_DUMP_VAR("on show window");
+	}
 
 
 
+	void EditorGuiHandle::EditorGui_ImplWindow_SetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
+	{
+		auto* win = Util::getViewportWindow(viewport); 
+		if  (!win) throw SGE_ERROR("get window pos : w/o init");
+		win->setPos( Util::toVec2f(pos) );
+	}
+
+	ImVec2 EditorGuiHandle::EditorGui_ImplWindow_GetWindowPos(ImGuiViewport* viewport) {
+		auto* win = Util::getViewportWindow(viewport); 
+		if  (!win) throw SGE_ERROR("get window pos : w/o init");
+		return Util::toImVec2( win->pos() );
+	}
+
+	void EditorGuiHandle::EditorGui_ImplWindow_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
+	{
+		auto* win = Util::getViewportWindow(viewport); 
+		if  (!win) throw SGE_ERROR("get window pos : w/o init");
+		win->setSize(Util::toVec2f(size));
+	}
+
+	ImVec2 EditorGuiHandle::EditorGui_ImplWindow_GetWindowSize(ImGuiViewport* viewport)
+	{
+		auto* win = Util::getViewportWindow(viewport); 
+		if  (!win) throw SGE_ERROR("get window pos : w/o init");
+
+		return Util::toImVec2( win->clientRect().size );
+	}
 
 
+
+	void EditorGuiHandle::EditorGui_ImplWindow_SetWindowFocus(ImGuiViewport* viewport)
+	{
+//		SGE_DUMP_VAR("on set window focus");
+	}
+
+	bool EditorGuiHandle::EditorGui_ImplWindow_GetWindowFocus(ImGuiViewport* viewport)
+	{
+//		SGE_DUMP_VAR("on get window focus");
+		return {};
+	}
+
+	bool EditorGuiHandle::EditorGui_ImplWindow_GetWindowMinimized(ImGuiViewport* viewport)
+	{
+		auto* win = Util::getViewportWindow(viewport);
+		if  (!win) throw SGE_ERROR("get window pos : w/o init");
+		return win->isMinimized();
+	}
+
+
+
+	void EditorGuiHandle::EditorGui_ImplWindow_SetWindowTitle(ImGuiViewport* viewport, const char* title)
+	{
+//		SGE_DUMP_VAR("on set window title");
+	}
+
+	void EditorGuiHandle::EditorGui_ImplWindow_SetWindowAlpha(ImGuiViewport* viewport, float alpha)
+	{
+//		SGE_DUMP_VAR("on set window alpha");
+	}
+
+	void EditorGuiHandle::EditorGui_ImplWindow_UpdateWindow(ImGuiViewport* viewport)
+	{
+//		auto* handle = Util::getViewportHandle(viewport);
+//		auto* win    = Util::getViewportWindow(viewport);
+
+//		SGE_DUMP_VAR(handle->m_myWindows.size());
+	}
+
+
+
+	float EditorGuiHandle::EditorGui_ImplWindow_GetWindowDpiScale(ImGuiViewport* viewport)
+	{
+//		SGE_DUMP_VAR("get window dpi scale");
+		return {};
+	}
+
+	void EditorGuiHandle::EditorGui_ImplWindow_OnChangedViewport(ImGuiViewport* viewport)
+	{
+//		SGE_DUMP_VAR("on changed viewport");
 	}
 
 	void EditorGuiHandle::EditorGui_ImplRenderer_CreateWindow(ImGuiViewport* viewport)
@@ -210,5 +389,7 @@ namespace sge {
 //		auto* renderer = Renderer::current();
 
 	}
+
+
 
 }

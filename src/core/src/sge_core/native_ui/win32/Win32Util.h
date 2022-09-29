@@ -13,6 +13,15 @@ namespace sge {
 			o.h = static_cast<float>(i.bottom - i.top );
 		}
 
+		static void convert(::RECT& o, const Rect2f& i)
+		{
+			o.left   = static_cast<LONG>(i.x);
+			o.top    = static_cast<LONG>(i.y);
+			o.right  = static_cast<LONG>(i.x + i.w);
+			o.bottom = static_cast<LONG>(i.y + i.h);
+		}
+
+
 		static void convert(Vec2f& out, const POINT& point) {
 			out.x = static_cast<float>(point.x);
 			out.y = static_cast<float>(point.y);

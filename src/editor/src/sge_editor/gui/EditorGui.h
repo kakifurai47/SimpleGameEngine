@@ -13,6 +13,7 @@ namespace sge {
 		using namespace ImGui;
 	};
 
+	class  EditorGuiHandle;
 	struct EditorGuiUtil
 	{
 		template<class T> static inline
@@ -32,21 +33,33 @@ namespace sge {
 		}
 
 		static inline 
-		void setWindowCreateDesc(NativeUIWindow::CreateDesc& desc, ImGuiViewportFlags flags) {
-			using WinType = NativeUIWindow::CreateDesc::Type;
-
-			desc.type = WinType::NormalWindow;
-
-			if (flags & ImGuiViewportFlags_NoDecoration ) desc.type = WinType::PopupWindow;
-			if (flags & ImGuiViewportFlags_NoTaskBarIcon) desc.type = WinType::ToolWindow;
-			if (flags & ImGuiViewportFlags_TopMost)		  desc.alwaysOnTop = true;
+		ImGuiViewport* getParentViewport(ImGuiViewport* viewport) {
+			if (!viewport || viewport->ParentViewportId == 0) return nullptr;
+			return EditorGui::FindViewportByID( viewport->ParentViewportId );
 		}
 
-		static inline 
-		NativeUIWindow* getNativeUIWindow(void* platformHandle) {
-			return reinterpret_cast<NativeUIWindow*>(platformHandle);
+		static inline void initViewport(ImGuiViewport* vp, NativeUIWindow* win, EditorGuiHandle* hdle) 
+		{
+			vp->PlatformUserData      = hdle;
+			vp->PlatformHandle        = win;
+			vp->PlatformRequestResize = false;
 		}
 
+		static inline NativeUIWindow*  getViewportWindow(ImGuiViewport* vp) { return reinterpret_cast<NativeUIWindow* >( vp->PlatformHandle   ); }
+		static inline EditorGuiHandle* getViewportHandle(ImGuiViewport* vp) { return reinterpret_cast<EditorGuiHandle*>( vp->PlatformUserData ); }
+
+
+		static inline ImVec2 toImVec2(const Vec2f & i) { return ImVec2( i.x, i.y ); }
+		static inline Vec2f  toVec2f (const ImVec2& i) { return Vec2f ( i.x, i.y ); }
+
+		static inline void   convert(::ImGuiPlatformMonitor& o, const MonitorInfo& i)
+		{
+			o.MainPos	= toImVec2(i.rect.pos	  );
+			o.MainSize	= toImVec2(i.rect.size	  );
+			o.WorkPos	= toImVec2(i.workRect.pos );
+			o.WorkSize	= toImVec2(i.workRect.size);
+			o.DpiScale	= i.dpiScale;
+		}
 	};
 
 	struct EditorGuiHandle_CreateDesc {
@@ -59,33 +72,41 @@ namespace sge {
 		using CreateDesc = EditorGuiHandle_CreateDesc;
 		using Util		 = EditorGuiUtil;
 
-		class MyWindow : public NativeUIWindow
+		class MyWindow : public NativeUIWindow 
 		{
 		};
 
 		~EditorGuiHandle();
 		
 		void create(CreateDesc& desc);
+		bool isCreated() {
+			return EditorGui::GetCurrentContext() != nullptr;
+		}
 
 		void beginRender();
 		void render(RenderRequest& request);
 
+		void setMonitorInfos(Span<MonitorInfo> infos);
+
+
 	private:		
-		void EditorGui_ImplWindow_CreateWindow		(ImGuiViewport* viewport);
-//		void EditorGui_ImplWindow_DestroyWindow		(ImGuiViewport* viewport);
-//		void EditorGui_ImplWindow_ShowWindow		(ImGuiViewport* viewport);
-//		void EditorGui_ImplWindow_SetWindowPos		(ImGuiViewport* viewport, ImVec2 pos);
-//		void EditorGui_ImplWindow_GetWindowPos		(ImGuiViewport* viewport);
-//		void EditorGui_ImplWindow_SetWindowSize		(ImGuiViewport* viewport, ImVec2 size);
-//		void EditorGui_ImplWindow_GetWindowSize		(ImGuiViewport* viewport);
-//		void EditorGui_ImplWindow_SetWindowFocus	(ImGuiViewport* viewport);
-//		void EditorGui_ImplWindow_GetWindowFocus	(ImGuiViewport* viewport);
-//		void EditorGui_ImplWindow_GetWindowMinimized(ImGuiViewport* viewport);
-//		void EditorGui_ImplWindow_SetWindowTitle	(ImGuiViewport* viewport, const char* title);
-//		void EditorGui_ImplWindow_SetWindowAlpha	(ImGuiViewport* viewport, float alpha);
-//		void EditorGui_ImplWindow_UpdateWindow		(ImGuiViewport* viewport);
-//		void EditorGui_ImplWindow_GetWindowDpiScale (ImGuiViewport* viewport);
-//		void EditorGui_ImplWindow_OnChangedViewport (ImGuiViewport* viewport);
+//		static NativeUIWindow* s_getWindow(ImGuiViewport* vp) { return Util::toNativeUIWindow(vp->PlatformUserData); }
+
+		static void	  EditorGui_ImplWindow_CreateWindow			(ImGuiViewport* viewport);
+		static void	  EditorGui_ImplWindow_DestroyWindow		(ImGuiViewport* viewport);
+		static void	  EditorGui_ImplWindow_ShowWindow			(ImGuiViewport* viewport);
+		static void	  EditorGui_ImplWindow_SetWindowPos			(ImGuiViewport* viewport, ImVec2 pos);
+		static ImVec2 EditorGui_ImplWindow_GetWindowPos			(ImGuiViewport* viewport);
+		static void	  EditorGui_ImplWindow_SetWindowSize		(ImGuiViewport* viewport, ImVec2 size);
+		static ImVec2 EditorGui_ImplWindow_GetWindowSize		(ImGuiViewport* viewport);
+		static void	  EditorGui_ImplWindow_SetWindowFocus		(ImGuiViewport* viewport);
+		static bool	  EditorGui_ImplWindow_GetWindowFocus		(ImGuiViewport* viewport);
+		static bool	  EditorGui_ImplWindow_GetWindowMinimized	(ImGuiViewport* viewport);
+		static void	  EditorGui_ImplWindow_SetWindowTitle		(ImGuiViewport* viewport, const char* title);
+		static void	  EditorGui_ImplWindow_SetWindowAlpha		(ImGuiViewport* viewport, float alpha);
+		static void	  EditorGui_ImplWindow_UpdateWindow			(ImGuiViewport* viewport);
+		static float  EditorGui_ImplWindow_GetWindowDpiScale	(ImGuiViewport* viewport);
+		static void   EditorGui_ImplWindow_OnChangedViewport	(ImGuiViewport* viewport);
 //
 		void EditorGui_ImplRenderer_CreateWindow	(ImGuiViewport* viewport);
 //		void EditorGui_ImplRenderer_DestroyWindow	(ImGuiViewport* viewport);
@@ -97,13 +118,13 @@ namespace sge {
 		
 
 	protected:
-		RenderMesh		    m_mesh;
-		VertexLayout	    m_vertLayout;
-		SPtr<Material>	    m_material;
-		SPtr<Texture2D>	    m_fontsTex2D;
-						    
-		NativeUIWindow*	    m_mainWindow = nullptr;
-		Vector<MyWindow, 5> m_windows;
+		RenderMesh		m_mesh;
+		VertexLayout	m_vertLayout;
+		SPtr<Material>	m_material;
+		SPtr<Texture2D>	m_fontsTex2D;
+								
+		NativeUIWindow*			m_mainWindow = nullptr;
+		Vector<MyWindow*, 5>	m_myWindows;
 	};
 
 
