@@ -159,7 +159,7 @@ namespace sge {
 					case D3D_SVT_UINT:		formatType.append("UInt16");	break;
 					case D3D_SVT_FLOAT:		formatType.append("Float32");	break;
 					case D3D_SVT_DOUBLE:	formatType.append("Float64");	break;
-						default: throw SGE_ERROR("unsupported type {}", varType.Type);
+						default: throw SGE_ERROR("unsupported type");
 					}
 					switch (varType.Class) {
 					
