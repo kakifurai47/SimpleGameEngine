@@ -64,7 +64,7 @@ namespace sge
 		const TypeInfo*  base	 = nullptr;
 			  size_t     size	 = 0;
 
-//		bool			 isContainer			 = false;
+		bool			 isContainer			 = false;
 		const TypeInfo*  containerElement		 = nullptr;
 //		size_t			 containerSize			 = 0;
 //		bool			 containerEnableOverflow = false;
@@ -95,6 +95,11 @@ namespace sge
 			base = sge_typeof<BASE>();
 		}
 	};
+
+	
+
+
+
 
 #define SGE_TYPE_INFO(T, BASE) \
 	private: \
@@ -130,8 +135,13 @@ namespace sge
 		virtual ~Object() = default;
 	};
 
+	template<class T, class ENABLE = void>
+	class TypeClass {
+	public:
+		static const TypeInfo* s_info() { return T::s_typeInfo(); }
+	};
 
-	template<class T> inline const TypeInfo* sge_typeof() { return T::s_typeInfo(); }
+	template<class T> inline const TypeInfo* sge_typeof() { return TypeClass<T>::s_info(); }
 
 	template<> const TypeInfo* sge_typeof<bool>();
 
@@ -154,12 +164,7 @@ namespace sge
 	template<> const TypeInfo* sge_typeof<char16_t>();
 	template<> const TypeInfo* sge_typeof<char32_t>();
 	template<> const TypeInfo* sge_typeof<wchar_t >();
-
-//	template<> const TypeInfo* sge_typeof<Vec2f>();
-
-	class ClassB;
-
-	
+		
 	template<class DST>
 	inline DST sge_cast(Object* src)
 	{
@@ -173,4 +178,22 @@ namespace sge
 		return static_cast<DST>(src);
 	}
 
+#define SGE_CONTAINER_TYPECLASS(CONTAINER) \
+	template<class T> class TypeClass<CONTAINER<T>> { \
+	public: \
+		static const TypeInfo* s_info(); \
+	}; \
+
+	SGE_CONTAINER_TYPECLASS(Vec2)
+	SGE_CONTAINER_TYPECLASS(Vec3)
+	SGE_CONTAINER_TYPECLASS(Vec4)
+
+	SGE_CONTAINER_TYPECLASS(Mat4)
+
+	SGE_CONTAINER_TYPECLASS(ColorR)
+	SGE_CONTAINER_TYPECLASS(ColorRG)
+	SGE_CONTAINER_TYPECLASS(ColorRGB)
+	SGE_CONTAINER_TYPECLASS(ColorRGBA)
+	SGE_CONTAINER_TYPECLASS(ColorL)
+	SGE_CONTAINER_TYPECLASS(ColorLA)
 }
