@@ -21,9 +21,8 @@ namespace sge
 	{
 		static FieldInfo fi[] =
 		{
-			{"x", &Transform::x },
-			{"y", &Transform::y },
-			{"z", &Transform::z },
+			{"Position", &Transform::postion },
+			{"Scale",    &Transform::scale   },
 		};
 		return fi;
 	}

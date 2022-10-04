@@ -26,7 +26,9 @@ namespace sge
 
 
 
-		float x, y, z;
+		Vec3f postion = {0,0,0};
+		Vec3f scale	  = {1,1,1};
+		
 	};
 
 

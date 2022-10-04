@@ -14,38 +14,12 @@
 
 namespace sge 
 {
-
-
-
-
-
-
-
-
-	namespace EditorGui
-	{
-		void DrawTransform(const Transform& t)
-		{
-			ImGui::SliderFloat("x", (float*)&t.x, 0.0f, 1.0f, "%.2f");
-			ImGui::SliderFloat("y", (float*)&t.y, 0.0f, 1.0f, "%.2f");
-			ImGui::SliderFloat("z", (float*)&t.z, 0.0f, 1.0f, "%.2f");
-		}
-
-		void DrawObject(const Object& o)
-		{
-			if (o.typeInfo() == sge_typeof<Transform>()) { DrawTransform(*static_cast<const Transform*>(&o)); }
-
-
-			
-		}
-
-	}
-
 	class GameObject : public Entity
 	{
+
+	public:
+		String name = "GameObject";
 	};
-
-
 
 	class MainWin : public EditorWindow 
 	{
@@ -62,12 +36,8 @@ namespace sge
 			}
 
 			{
-//				Transform t;
-//
-//				auto* i = sge_typeof<Transform>();
-//				SGE_DUMP_VAR(i->base->name);
-//				SGE_DUMP_VAR(i->name);
-//				SGE_DUMP_VAR(i->size);
+
+				
 			}
 
 
@@ -147,20 +117,29 @@ namespace sge
 				EditorGui::ShowDemoWindow(&m_showDemoWindow);
 			}
 
-			
-
-
 			if (m_showTransformSystemWindow)
 			{
 				EditorGui::Begin("TransformSystem", &m_showTransformSystemWindow);
 
 				auto* s = Transform::System::instance();
 
-				ImGui::Text(" component count : %I64u", s->m_components.size());
+				EditorGui::Text("component Count : {0}", s->m_components.size());
 				EditorGui::End();
+
+
+				auto& comps = s->m_components;
+
+				for (auto& c : comps)
+				{
+					
+					auto* t = sge_cast<Transform*>(static_cast<Object*>(c));
+					EditorGui::Text("transform : pos   {0}", t->postion);
+					EditorGui::Text("transform : scale {0}", t->scale);
+					EditorGui::Text("---------------------");
+				}
 			}
 
-
+			
 
 			
 
@@ -168,20 +147,36 @@ namespace sge
 			if (m_showComponentWindow)
 			{
 				EditorGui::Begin("Entity Window", &m_showComponentWindow);
+//				EditorGui::Property<Vec3f>::Show(m_vec3f);
 
-				auto cs = m_gameobject.components();
+				auto& go	= m_gameobject;
+				auto  comps = go.components();
 
-				for (size_t i = 0; i < cs.size(); i++)
+				for (int i = 0; i < comps.size(); i++)
 				{
-					if (i == 0) EditorGui::SetNextItemOpen(true, ImGuiCond_Once);
-
-					if (EditorGui::TreeNode((void*)(intptr_t)i, cs[i]->typeInfo()->name))
-					{
-						EditorGui::DrawObject(*cs[i]);
-						EditorGui::TreePop();
-					}
-				}
+					auto& comp = comps[i];
 				
+					EditorGui::PushId(i);
+
+					EditorGui::ShowProperty(*comp.ptr());
+
+
+					EditorGui::PopId();
+//					SGE_DUMP_VAR(comp->typeInfo()->name);
+//					EditorGui::Property<Component>::Show(*comp.ptr());
+				}
+
+
+				
+//				EditorGui::Text(m_gameobject.name.data());
+//				EditorGui::Field(m_gameobject.name.data(), m_gameobject);
+
+				
+//				auto cs = m_gameobject.components();
+//				EditorGui::Text(m_gameobject.name.data());
+//				EditorGui::Field("Components",  cs);
+
+
 
 				if (EditorGui::Button("Add Transform"))	   m_gameobject.addComponent   <Transform>();
 				if (EditorGui::Button("Remove Transform")) m_gameobject.removeComponent<Transform>();
@@ -222,6 +217,12 @@ namespace sge
 		float alpha = 0;
 
 		GameObject			m_gameobject;
+
+		Vec3f				m_vec3f {};
+
+		Vec3f				m_vec1 {};
+		Vec3f				m_vec2 {};
+
 
 		
 		SPtr<Material>		m_mat;
