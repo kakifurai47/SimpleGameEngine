@@ -16,7 +16,7 @@ namespace sge {
 			SGE_DUMP_VAR(b->size);
 			SGE_DUMP_VAR(b->base->name);
 
-			auto fs = b->fields;
+			auto fs = b->fieldArray;
 
 			for (auto& f : fs) {
 				SGE_DUMP_VAR(f.name);
@@ -41,9 +41,30 @@ namespace sge {
 			SGE_ASSERT(pc == false);
 		}
 
+		void test_iterator()
+		{
+			auto* i = sge_typeof<ClassB>();
+
+			for (auto& f : i->fields())
+			{
+				SGE_DUMP_VAR(f.name, f.offset);
+			}
+		}
+
+
+		void test_container()
+		{
+
+
+
+			auto* p = TypeClass<ColorRGBAf>::s_info();
+			SGE_DUMP_VAR(p->name);
+			SGE_DUMP_VAR(p->containerElement->name);
+		}
+
 		void test_reflect()
 		{
-//			test_typeInfo();
+//			test_typeInfo(); 
 //			test_cast();
 		}
 
@@ -53,7 +74,7 @@ namespace sge {
 void test_reflection()
 {
 	using namespace sge;
-	SGE_TEST_CASE(Test_Reflection, test_reflect());
+	SGE_TEST_CASE(Test_Reflection, test_iterator());
 
 
 }

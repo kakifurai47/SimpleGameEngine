@@ -53,7 +53,7 @@ namespace sge
 		}; \
 		ti.isContainer		= true; \
 		ti.containerElement = sge_typeof<T>(); \
-		ti.fields			= fi; \
+		ti.fieldArray		= fi; \
 		\
 		return &ti; \
 	} \
@@ -71,7 +71,7 @@ namespace sge
 		}; \
 		ti.isContainer		= true; \
 		ti.containerElement = sge_typeof<T>(); \
-		ti.fields			= fi; \
+		ti.fieldArray		= fi; \
 		\
 		return &ti; \
 	} \
@@ -90,7 +90,7 @@ namespace sge
 		}; \
 		ti.isContainer		= true; \
 		ti.containerElement = sge_typeof<T>(); \
-		ti.fields			= fi; \
+		ti.fieldArray		= fi; \
 		\
 		return &ti; \
 	} \
@@ -110,7 +110,7 @@ namespace sge
 		}; \
 		ti.isContainer		= true; \
 		ti.containerElement = sge_typeof<T>(); \
-		ti.fields			= fi; \
+		ti.fieldArray		= fi; \
 		\
 		return &ti; \
 	} \
@@ -158,4 +158,13 @@ namespace sge
 	template class TypeClass<ColorLAf>;
 	template class TypeClass<ColorLAb>;
 	template class TypeClass<ColorLAs>;
+
+
+
+
+
+
+
+
+
 }

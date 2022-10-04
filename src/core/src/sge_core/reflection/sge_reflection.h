@@ -27,15 +27,52 @@ namespace sge
 
 		template<class T, class FIELD>
 		FieldInfo(const char* name_, FIELD T::* fieldPtr_)
-			: fieldType(sge_typeof<FIELD>())
+			: type(sge_typeof<FIELD>())
 			, name(name_)
 			, offset(memberOffset(fieldPtr_))
 		{
 		}
 
-		const TypeInfo* const	fieldType   = nullptr;
-		const char* const		name	    = "";
-		const intptr_t			offset	    = 0;
+		const TypeInfo* const	type	 = nullptr;
+		const char* const		name	 = "";
+		const intptr_t			offset	 = 0;
+		const bool				hasRange = false;
+
+		class Enumerator {
+		public:
+			Enumerator(const TypeInfo* info_)
+				: m_info(info_)
+			{
+			}
+
+			class Iterator {
+			public:
+
+				Iterator(const TypeInfo* info_, size_t idx_)
+					: m_info(info_)
+					, m_idx(idx_)
+				{
+				}
+
+				bool operator!=(const Iterator& r) const { return m_info != r.m_info || m_idx != r.m_idx; }
+
+				void operator++();
+
+				const FieldInfo& operator*();
+
+
+			private:
+				const TypeInfo* m_info = nullptr;
+				size_t			m_idx  = 0;
+			};
+
+			Iterator begin() { return Iterator(m_info,  0); }
+			Iterator end()   { return Iterator(nullptr, 0); }
+
+		private:
+			const TypeInfo* m_info = nullptr;
+
+		};
 	};
 
 
@@ -58,7 +95,7 @@ namespace sge
 
 		template<class T> bool isKindOf() const { return isKindOf(sge_typeof<T>()); }
 
-
+		FieldInfo::Enumerator fields() const { return FieldInfo::Enumerator(this); }
 
 		const char*      name	 = "";
 		const TypeInfo*  base	 = nullptr;
@@ -71,8 +108,30 @@ namespace sge
 
 //		FieldInfo* fields;
 
-		Span<FieldInfo> fields;
+		Span<FieldInfo> fieldArray;
 	};
+
+	inline
+	void FieldInfo::Enumerator::Iterator::operator++()
+	{
+		if (!m_info) return;
+		m_idx++;
+
+		for (;;) {
+			if (!m_info) return;
+			if (m_idx < m_info->fieldArray.size()) return;
+
+			m_info = m_info->base;
+			m_idx  = 0;
+		}
+	}
+
+	inline
+	const FieldInfo& FieldInfo::Enumerator::Iterator::operator*()
+	{
+		return m_info->fieldArray[m_idx];
+	}
+
 
 	template<class T>
 	class TypeInfoInit_NoBase : public TypeInfo
@@ -96,11 +155,6 @@ namespace sge
 		}
 	};
 
-	
-
-
-
-
 #define SGE_TYPE_INFO(T, BASE) \
 	private: \
 		class TI_Base : public TypeInfoInit<T, BASE> \
@@ -113,13 +167,17 @@ namespace sge
 	public: \
 		static  const TypeInfo* s_typeInfo(); \
 		virtual const TypeInfo*   typeInfo() const override { return sge_typeof<T>(); } \
+	\
+	protected: \
+		virtual char* _this() override { return reinterpret_cast<char*>(this); } \
+	public: \
 //-----
 
 #define SGE_GET_TYPE_IMPL(T) \
 	const TypeInfo* T::s_typeInfo() { \
 		class TI : public TI_Base { \
 		public: \
-			TI() : TI_Base() { fields = s_fields(); } \
+			TI() : TI_Base() { fieldArray = s_fields(); } \
 		}; \
 		static TI ti; \
 		return &ti; \
@@ -129,10 +187,21 @@ namespace sge
 	class Object : public RefCountBase {
 		using This = Object;
 	public:
+		virtual ~Object() = default;
+
 		static  const TypeInfo* s_typeInfo();
 		virtual const TypeInfo*   typeInfo() const { return sge_typeof<This>(); }
 
-		virtual ~Object() = default;
+		template<class T>
+		T& memberValue(const FieldInfo& fi)
+		{
+			auto* p = _this();
+			SGE_ASSERT(p && fi.type == sge_typeof<T>());
+			return *reinterpret_cast<T*>(p + fi.offset);
+		}
+
+	protected:
+		virtual char* _this() { return nullptr; };
 	};
 
 	template<class T, class ENABLE = void>
@@ -196,4 +265,6 @@ namespace sge
 	SGE_CONTAINER_TYPECLASS(ColorRGBA)
 	SGE_CONTAINER_TYPECLASS(ColorL)
 	SGE_CONTAINER_TYPECLASS(ColorLA)
+
+#undef SGE_CONTAINER_TYPECLASS
 }
