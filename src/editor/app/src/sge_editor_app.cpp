@@ -14,6 +14,51 @@
 
 namespace sge 
 {
+	//class RenderSystem : public ComponentSystem
+	//{
+	//public:
+	//	static RenderSystem* instance();
+
+	//protected:
+	//	virtual Component* onCreateComponent()				override;
+	//	virtual void	   onDestroyComponent(Component* c) override {}
+
+	//};
+
+	//RenderSystem* RenderSystem::instance()
+	//{
+	//	static RenderSystem sys;
+	//	return &sys;
+	//}
+
+	//class Render : public Component_Impl<RenderSystem, false>
+	//{
+	//public:
+	//	SGE_TYPE_INFO(Render, Component);
+
+
+
+	//	SPtr<Object> m_material;
+	//};
+
+//	Span<FieldInfo> Render::TI_Base::s_fields()
+//	{
+//		static FieldInfo fi[] =
+//		{
+//			{"Material", &Render::m_material },
+//		};
+//
+//		return{};
+////		return fi;
+//	}	
+//	
+//	SGE_GET_TYPE_IMPL(Render)
+//
+//	Component* RenderSystem::onCreateComponent()
+//	{
+//		return new Render();
+//	}
+
 	class GameObject : public Entity
 	{
 
@@ -129,9 +174,9 @@ namespace sge
 
 				auto& comps = s->m_components;
 
+
 				for (auto& c : comps)
 				{
-					
 					auto* t = sge_cast<Transform*>(static_cast<Object*>(c));
 					EditorGui::Text("transform : pos   {0}", t->postion);
 					EditorGui::Text("transform : scale {0}", t->scale);
@@ -151,30 +196,9 @@ namespace sge
 
 				auto& go	= m_gameobject;
 				auto  comps = go.components();
-
-				for (int i = 0; i < comps.size(); i++)
-				{
-					auto& comp = comps[i];
 				
-					EditorGui::PushId(i);
+				EditorGui::ShowProperty(comps);
 
-					EditorGui::ShowProperty(*comp.ptr());
-
-
-					EditorGui::PopId();
-//					SGE_DUMP_VAR(comp->typeInfo()->name);
-//					EditorGui::Property<Component>::Show(*comp.ptr());
-				}
-
-
-				
-//				EditorGui::Text(m_gameobject.name.data());
-//				EditorGui::Field(m_gameobject.name.data(), m_gameobject);
-
-				
-//				auto cs = m_gameobject.components();
-//				EditorGui::Text(m_gameobject.name.data());
-//				EditorGui::Field("Components",  cs);
 
 
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sge_core/native_ui/NativeUI.h>
-#include <sge_editor/gui/EditorGui.h>
+#include <sge_editor/gui/EditorGuiHandle.h>
 #include <sge_render/backend/base/RenderContext.h>
 
 namespace sge

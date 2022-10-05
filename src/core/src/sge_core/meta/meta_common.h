@@ -1,6 +1,10 @@
 #pragma once
 
 #include <EASTL/optional.h>
+#include <sge_core/base/sge_base.h>
+#include <sge_core/pointer/SPtr.h>
+#include <sge_core/pointer/WPtr.h>
+
 
 namespace sge {
 	namespace meta 
@@ -23,6 +27,13 @@ namespace sge {
 		
 		template<bool B> using is_cond   = cond<B, std::true_type, std::false_type>;
 		template<bool B> using is_cond_t = typename is_cond<B>::type;
+
+		template<class T> T* to_ptr(T&       t) { return &t;      }
+		template<class T> T* to_ptr(T*       t) { return  t;      }
+		template<class T> T* to_ptr(UPtr<T>& t) { return t.ptr(); }
+		template<class T> T* to_ptr(SPtr<T>& t) { return t.ptr(); }
+		template<class T> T* to_ptr(WPtr<T>& t) { return t.ptr(); }
+
 	}
 	template<class T> using Opt = meta::opt<T>;
 }

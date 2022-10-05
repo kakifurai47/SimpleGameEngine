@@ -22,6 +22,9 @@ namespace meta {
 	
 	template<class T>					struct is_vector					: std::false_type {};
 	template<class E, size_t N, bool B>	struct is_vector<Vector<E, N, B>>	: std::true_type  {};
+
+	template<class T>				    struct is_span						: std::false_type {};
+	template<class T>				    struct is_span<Span<T>>				: std::true_type  {};
 	
 	template<class T>					struct is_string					: std::false_type {};
 	template<class E, size_t N, bool B>	struct is_string<StringT<E, N, B>>	: std::true_type  {};
