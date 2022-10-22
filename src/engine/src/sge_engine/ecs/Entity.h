@@ -1,25 +1,38 @@
 #pragma once
 
-//#include <sge_core/base/sge_base.h>
-//#include <sge_core/pointer/WPtr.h>
-//#include <sge_core/pointer/SPtr.h>
-//
-//
-#include "Component.h"
+#include <sge_engine/ecs/Component/CTransform.h>
 
 namespace sge
 {
 
-	class Entity : public NonCopyable
-	{
-	public:		
+	enum class EntityId : u64 { None = 0 };
 
-		Span<SPtr<Component>>	    components() { return m_components; }
+
+	class Entity : public Object
+	{
+	public:
+
+		Entity(EntityId id_) : m_id(id_) {
+			m_transform = addComponent<CTransform>();
+		}
+
+		void setName(StrView name_) { m_name = name_; }
+
+		Span<SPtr<Component>> components()		 { return m_components; }
+		CTransform*			  transform ()		 { return m_transform;  }
+		EntityId			  id()		   const { return m_id;			}
+		StrView				  name()	   const { return m_name;		}
 
 		template<class T> WPtr<T> addComponent();
 		template<class T> WPtr<T> getComponent();
 		template<class T> void removeComponent();
+
 	protected:
+
+		EntityId				m_id;
+		String					m_name;
+
+		CTransform*				m_transform = nullptr;
 		Vector<SPtr<Component>> m_components;
 	};
 
@@ -28,9 +41,9 @@ namespace sge
 		auto*  t = m_components.begin();
 		for (; t < m_components.end(); t++) 
 		{
-			if (sge_cast<T*>(*t))
-			{
-				m_components.erase_unsorted(t);
+			if (sge_cast<T*>(*t)) {
+				t->internal_set_entity(nullptr);
+				m_components.erase_unsorted (t);
 				return;
 			}
 		}		
@@ -48,15 +61,15 @@ namespace sge
 	template<class T> 
 	WPtr<T> Entity::addComponent() 
 	{
-//		if (!T::s_allowMultiple()) 
-//		{
-//			if ( auto* p = getComponent<T>().ptr()) {
-//				throw SGE_ERROR("adding component : existing type");
-//				return p;
-//			}
-//		}
+		if (!T::s_allowMultiple())
+		{
+			if ( auto* p = getComponent<T>().ptr()) {
+				throw SGE_ERROR("adding component : existing type");
+			}
+		}
 		SPtr<T> p = T::System::instance()->createComponent<T>();
 		m_components.emplace_back(p);
+		p->internal_set_entity(this);
 
 		return p.ptr();
 	}

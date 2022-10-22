@@ -32,7 +32,12 @@ namespace sge
 		void setMonitorInfos(Span<MonitorInfo> infos);
 
 
-	private:		
+	private:
+
+		void _createFontTexture();
+
+
+
 //		static NativeUIWindow* s_getWindow(ImGuiViewport* vp) { return Util::toNativeUIWindow(vp->PlatformUserData); }
 
 		static void	  EditorGui_ImplWindow_CreateWindow			(ImGuiViewport* viewport);

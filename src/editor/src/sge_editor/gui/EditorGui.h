@@ -15,17 +15,51 @@ namespace sge {
 		bool hasRange = false;
 	};
 
-
 	class EditorGui 
 	{
 		using Util	   = EditorGuiUtil;
 		using PropAttr = PropertyAttribute;
 	public:
 
-		static bool Begin	(const char* name, bool* open)	{ return ImGui::Begin(name, open);	}
-		static void End		()								{ ImGui::End();						}
-		static void NewFrame()								{ ImGui::NewFrame();				}
-		static void Render	()								{ ImGui::Render();					}
+		class Window : public NonCopyable
+		{
+		public:
+			Window(StrView name, bool* p_open = nullptr, ImGuiWindowFlags flags = 0) 
+			{
+				Begin(name, p_open, flags);
+			}
+
+			~Window() { ImGui::End(); }
+		};
+
+		class TreeNode : public NonCopyable
+		{
+		public:
+			TreeNode(StrView label, size_t idx, ImGuiTreeNodeFlags flags = 0) {
+				m_isOpen = ImGui::TreeNodeEx((void*)(intptr_t)idx, flags, TempString(label).c_str());
+			}
+
+			~TreeNode() {
+				if(m_isOpen) ImGui::TreePop();
+			}
+
+			bool isOpen() const { return m_isOpen; }
+
+
+		private:
+			bool m_isOpen = false;
+		};
+
+
+
+		static bool Begin	(StrView name, bool* p_open, ImGuiWindowFlags flags = ImGuiWindowFlags_MenuBar)	
+		{
+			return ImGui::Begin(TempString(name).c_str(), p_open, flags);
+		}
+
+		static void End		()	{ ImGui::End();								}
+		static void NewFrame()	{ ImGui::NewFrame();						}
+		static void Render	()	{ ImGui::Render();							}
 
 		static void UpdatePlatformWindows		() { ImGui::UpdatePlatformWindows();		}
 		static void RenderPlatformWindowsDefault() { ImGui::RenderPlatformWindowsDefault(); }
@@ -41,14 +75,17 @@ namespace sge {
 						  static void PopId ()     { ImGui::PopID();    }
 
 
-		static void				CreateContext		() { ImGui::CreateContext();			}
+		static void				CreateContext		();
+
 		static ImGuiContext*	GetCurrentContext	() { return ImGui::GetCurrentContext(); }
 		static void				DestroyContext		() { return ImGui::DestroyContext();	}
+
+		static bool IsItemClicked() { return ImGui::IsItemClicked(); }
+
 
 		static void ShowDemoWindow(bool* open) { ImGui::ShowDemoWindow(open); }
 
 		static bool Button(const char* label, const Vec2f& size = { 0,0 }) { return ImGui::Button(label, Util::toImVec2(size)); }
-
 
 		template<class FMT_STR, class... ARGs>
 		static void Text(FMT_STR&& str, ARGs&&... args)
@@ -57,6 +94,11 @@ namespace sge {
 			FmtTo(temp, str, args...);
 			ImGui::Text(temp.data ());
 		}
+
+		
+		static void Text(StrView str) { TempString temp(str); Text(temp.c_str()); }
+
+
 
 		template<class T> inline static void Drag		(const char* label, T&		value);
 		template<>		  inline static void Drag<i32>	(const char* label, i32&	value) { ImGui::DragInt	  (label, &value);	   }
@@ -73,11 +115,20 @@ namespace sge {
 			else			  { Drag  (att.name, value); }
 		}
 
+		inline static void ShowColor(Color4f& value, const PropAttr& att)
+		{
+			ImGui::ColorEdit4(att.name, value.data);
+		}
+		
 
-		template<class T> inline static void ShowProperty(T&     value, const PropAttr& att = {})	{ Property<T>::Show(value, att); }
-		template<>		  inline static void ShowProperty(i32&   value, const PropAttr& att)		{ ShowNumbers(value, att);		 }
-		template<>		  inline static void ShowProperty(f32&   value, const PropAttr& att)		{ ShowNumbers(value, att);		 }
-		template<>		  inline static void ShowProperty(Vec3f& value, const PropAttr& att)		{ ShowNumbers(value, att);		 }
+
+
+		template<class T> inline static void ShowProperty(T&		value, const PropAttr& att = {})	{ Property<T>::Show(value, att); }
+		template<>		  inline static void ShowProperty(i32&		value, const PropAttr& att)			{ ShowNumbers(value, att);		 }
+		template<>		  inline static void ShowProperty(f32&		value, const PropAttr& att)			{ ShowNumbers(value, att);		 }
+		template<>		  inline static void ShowProperty(Vec3f&	value, const PropAttr& att)			{ ShowNumbers(value, att);		 }
+		template<>		  inline static void ShowProperty(Color4f&	value, const PropAttr& att)			{ ShowColor  (value, att);		 }
+
 
 		template<class T, class ENABLE = void> struct Property {};
 
@@ -100,12 +151,12 @@ namespace sge {
 
 					i++;
 
-					if (fieldType == sge_typeof<i32>   ()) { PushId(i); ShowProperty(obj.memberValue<i32>   (field), fieldAtt); PopId(); continue; }
-					if (fieldType == sge_typeof<f32>   ()) { PushId(i); ShowProperty(obj.memberValue<f32>   (field), fieldAtt); PopId(); continue; }
-					if (fieldType == sge_typeof<Vec3f> ()) { PushId(i); ShowProperty(obj.memberValue<Vec3f> (field), fieldAtt); PopId(); continue; }
+					if (fieldType == sge_typeof<i32>   ()) { PushId(i); ShowProperty(obj.memberValue<i32>	(field), fieldAtt); PopId(); continue; }
+					if (fieldType == sge_typeof<f32>   ()) { PushId(i); ShowProperty(obj.memberValue<f32>	(field), fieldAtt); PopId(); continue; }
+					if (fieldType == sge_typeof<Vec3f> ()) { PushId(i); ShowProperty(obj.memberValue<Vec3f>	(field), fieldAtt); PopId(); continue; }
 					if (fieldType -> isKindOf  <Object>()) { PushId(i); ShowProperty(obj.memberValue<Object>(field), fieldAtt); PopId(); continue; }
 
-					SGE_ASSERT(false);
+					SGE_ASSERT("EditorGui : Unsupported format", false);
 				}
 			}
 		};
@@ -124,15 +175,19 @@ namespace sge {
 					auto* item = meta::to_ptr(container[i]);
 					auto* info = item->typeInfo();
 
-					bool open = ImGui::TreeNodeEx((void*)(intptr_t)i, flag, info->name);
+					EditorGui::TreeNode node(info->name, i, flag);
 
-					if (open) {
+					if (node.isOpen()) {
 						EditorGui::ShowProperty(*item);
-						ImGui::TreePop();
 					}
 				}
 			}
 		};
+
+
+
+
+
 
 
 	};

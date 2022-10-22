@@ -4,6 +4,7 @@
 
 namespace sge
 {
+	class Entity;
 	class ComponentSystem;
 
 	class Component : public Object
@@ -14,6 +15,14 @@ namespace sge
 		virtual ~Component() = default;
 		virtual ComponentSystem* system() = 0;
 		virtual bool	  allowMultiple() = 0;
+
+		void internal_set_entity(Entity* entity) { m_entity = entity; }
+
+		Entity* entity() { return m_entity; }
+
+	private:
+
+		Entity* m_entity = nullptr;
 	};
 
 	template<class SYSTEM, bool allow_multiple>

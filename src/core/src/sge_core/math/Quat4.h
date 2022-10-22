@@ -58,16 +58,22 @@ namespace sge {
 	
 				T dot(const Quat4& r) const { return (x * r.x + y * r.y) + (z * r.z + w * r.w); }
 	
-		Quat4 operator*(const Quat4& r) const;
-		Vec3  operator*(const Vec3&  v) const;
+		SGE_INLINE Quat4 operator*(const Quat4& r) const;
+		SGE_INLINE Vec3  operator*(const Vec3&  v) const;
 	
-		Quat4 operator+(const Quat4& r) const { return Quat4(x+r.x, y+r.y, z+r.z, w+r.w); }
-		Quat4 operator-(const Quat4& r) const { return Quat4(x-r.x, y-r.y, z-r.z, w-r.w); }
+		SGE_INLINE Quat4 operator+(const Quat4& r) const { return Quat4(x+r.x, y+r.y, z+r.z, w+r.w); }
+		SGE_INLINE Quat4 operator-(const Quat4& r) const { return Quat4(x-r.x, y-r.y, z-r.z, w-r.w); }
 	
-		Quat4 operator*(const T&    v) const { return Quat4(x*v, y*v, z*v, w*v); }
-		Quat4 operator/(const T&    v) const { return Quat4(x/v, y/v, z/v, w/v); }
+		SGE_INLINE Quat4 operator*(const T&    v) const { return Quat4(x * v, y * v, z * v, w * v); }
+		SGE_INLINE Quat4 operator/(const T&    v) const { return Quat4(x / v, y / v, z / v, w / v); }
 	
-		Quat4 operator-() const { return Quat4(-x, -y, -z, -w); }
+		SGE_INLINE Quat4 operator-() const { return Quat4(-x, -y, -z, -w); }
+
+		SGE_INLINE bool operator==(const Quat4& r) const { return x == r.x && y == r.y && z == r.z && w == r.w; }
+		SGE_INLINE bool operator!=(const Quat4& r) const { return x != r.x || y != r.y || z != r.z || w != r.w; }
+
+
+
 	};
 	
 	namespace Math {

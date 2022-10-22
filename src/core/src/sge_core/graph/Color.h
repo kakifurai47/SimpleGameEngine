@@ -287,6 +287,10 @@ constexpr ColorType ColorType_make(ColorModel model, ColorCompressType compress)
 	using Color4f = ColorRGBAf;
 	using Color4b = ColorRGBAb;
 
+	using ColorRf = ColorR<float>;
+	using ColorRb = ColorR<u8>;
+	using ColorRs = ColorR<u16>;
+
 	using ColorLf = ColorL<float>;
 	using ColorLb = ColorL<u8>;
 	using ColorLs = ColorL<u16>;
@@ -319,13 +323,17 @@ constexpr ColorType ColorType_make(ColorModel model, ColorCompressType compress)
 	constexpr
 	int ColorUtil::pixelSizeInBytes(ColorType t) {
 		switch (t) {
-			case ColorType::RGBAb: return sizeof(ColorRGBAb);
-			case ColorType::RGBAs: return sizeof(ColorRGBAs);
-			case ColorType::RGBAf: return sizeof(ColorRGBAf);
+			case ColorType::RGBAb : return sizeof(ColorRGBAb);
+			case ColorType::RGBAs : return sizeof(ColorRGBAs);
+			case ColorType::RGBAf : return sizeof(ColorRGBAf);
 
-			case ColorType::Lb: return sizeof(ColorLb);
-			case ColorType::Ls: return sizeof(ColorLs);
-			case ColorType::Lf: return sizeof(ColorLf);			
+			case ColorType::Rf    : return sizeof(ColorRf);
+			case ColorType::Rb    : return sizeof(ColorRb);
+			case ColorType::Rs    : return sizeof(ColorRs);
+
+			case ColorType::Lb    : return sizeof(ColorLb);
+			case ColorType::Ls    : return sizeof(ColorLs);
+			case ColorType::Lf    : return sizeof(ColorLf);
 		}
 	
 		SGE_ASSERT(false);

@@ -22,11 +22,8 @@ namespace sge
 			vp->PlatformRequestResize = false;
 		}
 
-		static inline NativeUIWindow*  getViewportWindow(ImGuiViewport* vp) { return reinterpret_cast<NativeUIWindow* >( vp->PlatformHandle   ); }
-		static inline EditorGuiHandle* getViewportHandle(ImGuiViewport* vp) { return reinterpret_cast<EditorGuiHandle*>( vp->PlatformUserData ); }
-
-
-
+		static inline NativeUIWindow*  getNativeUIWindow (ImGuiViewport* vp) { return reinterpret_cast<NativeUIWindow* >( vp->PlatformHandle   ); }
+		static inline EditorGuiHandle* getEditorGuiHandle(ImGuiViewport* vp) { return reinterpret_cast<EditorGuiHandle*>( vp->PlatformUserData ); }
 	};
 
 
@@ -37,7 +34,6 @@ namespace sge
 	void EditorGuiHandle::create(CreateDesc& desc) 
 	{
 		using Helper = EditorGuiHandle_InternalHelper;
-
 
 		m_mainWindow = desc.window;
 
@@ -51,8 +47,8 @@ namespace sge
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+//		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+//		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
 		ImGuiStyle& style = ImGui::GetStyle();
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) 
@@ -110,14 +106,14 @@ namespace sge
 			{//Layout
 				//temporary -> needed to refector veretex;
 				auto& pos = m_vertLayout.elements.emplace_back();
-				pos.formatType = RenderFormatType::Float32x2;
-				pos.semantic   = VertexSemantic::POSITION;
-				pos.offset     = 0;
+				pos.formatType  = RenderFormatType::Float32x2;
+				pos.semantic    = VertexSemantic::POSITION;
+				pos.offset      = 0;
 
 				auto& uv  = m_vertLayout.elements.emplace_back();
-				uv.formatType  = RenderFormatType::Float32x2;
-				uv.semantic    = VertexSemantic::TEXCOORD0;
-				uv.offset	   = 8;
+				uv.formatType   = RenderFormatType::Float32x2;
+				uv.semantic     = VertexSemantic::TEXCOORD0;
+				uv.offset	    = 8;
 
 				auto& col = m_vertLayout.elements.emplace_back();
 				col.formatType  = RenderFormatType::UNorm08x4;
@@ -134,38 +130,15 @@ namespace sge
 				m_mesh.setIndexFormat(idxFormat);
 			}
 
-			{//Texture
-				unsigned char* pixels = nullptr;
-				int width = 0, height = 0, bytesPerPixel = 0;
-				io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytesPerPixel);
-
-				Texture2D::CreateDesc t2dDesc;
-				t2dDesc.colorType		= ColorType::RGBAb;
-				t2dDesc.mipmapCount		= 1;
-				t2dDesc.size			= {width, height};
-
-				{
-					auto imageSize = static_cast<size_t>(width * height * bytesPerPixel);
-					t2dDesc.imageToUpload.emplace();
-					auto& img  =  t2dDesc.imageToUpload.value();
-					img.create(ColorType::RGBAb, width, height);
-					img.copy  ( Span<u8>( pixels, imageSize ) );
-				}
-				{
-					auto& ss  = t2dDesc.samplerState;
-					ss.filter = SamplerState::Filter::Linear;
-					ss.minLOD = 0.f;
-					ss.maxLOD = 0.f;
-				}
-
-				m_fontsTex2D = renderer->createTexture2D(t2dDesc);
-				m_material->setParam("texture0", m_fontsTex2D);
-			}
 		}
 	}
 
 	EditorGuiHandle::~EditorGuiHandle()
 	{
+		auto* vp = EditorGui::GetMainViewport();
+		vp->PlatformUserData      = nullptr;
+		vp->PlatformHandle        = nullptr;
+
 		EditorGui::DestroyContext();
 	}
 
@@ -174,6 +147,10 @@ namespace sge
 
 		auto& rect     = m_mainWindow->clientRect();
 		io.DisplaySize = {rect.size.x, rect.size.y};
+
+		if (!m_fontsTex2D) {
+			_createFontTexture();
+		}
 
 		EditorGui::NewFrame();
 	}
@@ -239,7 +216,8 @@ namespace sge
 			);
 
 			//change to cbuffer;
-			m_material->setParam("ProjectionMatrix", mvp);
+			m_material->setParam("ProjectionMatrix",  mvp);
+			m_material->setParam("texture0", m_fontsTex2D);
 		}
 
 		request.drawMesh(SGE_LOC, m_mesh, m_material);
@@ -267,6 +245,40 @@ namespace sge
 	}
 
 
+	void EditorGuiHandle::_createFontTexture()
+	{
+		auto& io = ImGui::GetIO();
+
+		unsigned char* pixels = nullptr;
+		int width	      = 0;
+		int height	      = 0;
+		int bytesPerPixel = 0;
+
+//		io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
+		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytesPerPixel);
+		
+
+		using Color = ColorRGBAb;
+
+		Texture2D_CreateDesc desc;
+
+		desc.size	   = { width, height };
+		desc.colorType = Color::kColorType;
+
+		desc.imageToUpload.emplace();
+		auto& img = desc.imageToUpload.value();
+		img.create(Color::kColorType, width, height);
+//		img.copy  (ByteSpan(pixels, width * height));
+		img.copy  (ByteSpan(pixels, width * height * bytesPerPixel));
+
+//		auto& ss  = desc.samplerState;
+//		ss.filter = SamplerState::Filter::Linear;
+//		ss.minLOD = 0.f;
+//		ss.maxLOD = 0.f;
+
+		m_fontsTex2D = Renderer::current()->createTexture2D(desc);
+	}
+
 	void EditorGuiHandle::EditorGui_ImplWindow_CreateWindow(ImGuiViewport* viewport)
 	{
 		using Helper = EditorGuiHandle_InternalHelper;
@@ -276,15 +288,13 @@ namespace sge
 		auto* parentVP  = Helper::getParentViewport(viewport);
 		if  (!parentVP) throw SGE_ERROR("creating window : w/o parent");
 
-		auto* parentWin = Helper::getViewportWindow(parentVP);
-		auto* handle    = Helper::getViewportHandle(parentVP);
+		auto* parentWin = Helper::getNativeUIWindow (parentVP);
+		auto* handle    = Helper::getEditorGuiHandle(parentVP);
 
 		if (!parentWin || !handle) { throw SGE_ERROR("creating window : w/o init"); }
 		
 		auto& newWin = handle->m_myWindows.emplace_back();
 		newWin = new MyWindow();
-
-		SGE_DUMP_VAR("create");
 
 		MyWindow::CreateDesc desc;
 
@@ -306,8 +316,8 @@ namespace sge
 	{
 		using Helper = EditorGuiHandle_InternalHelper;
 
-		auto* handle = Helper::getViewportHandle(viewport);
-		auto* win    = Helper::getViewportWindow(viewport);
+		auto* handle = Helper::getEditorGuiHandle(viewport);
+		auto* win    = Helper::getNativeUIWindow(viewport);
 
 		if (!handle || !win) throw SGE_ERROR("destroying window w/o init");
 
@@ -338,40 +348,46 @@ namespace sge
 	{
 		using Helper = EditorGuiHandle_InternalHelper;
 
-//		auto* win = Util::getViewportWindow(viewport); 
-//		if  (!win) throw SGE_ERROR("get window pos : w/o init");
-//		win->setPos( Util::toVec2f(pos) );
+		auto* win = Helper::getNativeUIWindow(viewport);
+		if  (!win) throw SGE_ERROR("get window pos : w/o init");
+		win->setPos( Util::toVec2f(pos) );
 	}
 
-	ImVec2 EditorGuiHandle::EditorGui_ImplWindow_GetWindowPos(ImGuiViewport* viewport) {
-//		auto* win = Util::getViewportWindow(viewport); 
-//		if  (!win) throw SGE_ERROR("get window pos : w/o init");
-//		return Util::toImVec2( win->pos() );
-		return {};
+	ImVec2 EditorGuiHandle::EditorGui_ImplWindow_GetWindowPos(ImGuiViewport* viewport) 
+	{
+		using Helper = EditorGuiHandle_InternalHelper;
+
+		auto* win = Helper::getNativeUIWindow(viewport);
+		if  (!win) throw SGE_ERROR("get window pos : w/o init");
+		return Util::toImVec2( win->pos() );
+
+//		return {};
 	}
 
 	void EditorGuiHandle::EditorGui_ImplWindow_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 	{
-//		auto* win = Util::getViewportWindow(viewport); 
-//		if  (!win) throw SGE_ERROR("get window pos : w/o init");
-//		win->setSize(Util::toVec2f(size));
+		using Helper = EditorGuiHandle_InternalHelper;
+
+		auto* win = Helper::getNativeUIWindow(viewport);
+		if  (!win) throw SGE_ERROR("get window pos : w/o init");
+		win->setSize(Util::toVec2f(size));
 	}
 
 	ImVec2 EditorGuiHandle::EditorGui_ImplWindow_GetWindowSize(ImGuiViewport* viewport)
 	{
-//		auto* win = Util::getViewportWindow(viewport); 
-//		if  (!win) throw SGE_ERROR("get window pos : w/o init");
-//
-//		return Util::toImVec2( win->clientRect().size );
+		using Helper = EditorGuiHandle_InternalHelper;
 
-		return {};
+		auto* win = Helper::getNativeUIWindow(viewport);
+		if  (!win) throw SGE_ERROR("get window pos : w/o init");
+
+		return Util::toImVec2( win->clientRect().size );
 	}
 
 
 
 	void EditorGuiHandle::EditorGui_ImplWindow_SetWindowFocus(ImGuiViewport* viewport)
 	{
-//		SGE_DUMP_VAR("on set window focus");
+	//	SGE_DUMP_VAR("on set window focus");
 	}
 
 	bool EditorGuiHandle::EditorGui_ImplWindow_GetWindowFocus(ImGuiViewport* viewport)
@@ -393,6 +409,13 @@ namespace sge
 
 	void EditorGuiHandle::EditorGui_ImplWindow_SetWindowTitle(ImGuiViewport* viewport, const char* title)
 	{
+		using Helper = EditorGuiHandle_InternalHelper;
+
+		auto* win = Helper::getNativeUIWindow(viewport);
+		if  (!win) throw SGE_ERROR("get window pos : w/o init");
+
+		win->setTitle(title);
+
 //		SGE_DUMP_VAR("on set window title");
 	}
 
