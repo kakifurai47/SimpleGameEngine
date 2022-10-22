@@ -138,6 +138,13 @@ namespace sge
 	template class TypeClass<Mat4f>;
 	template class TypeClass<Mat4d>;
 
+	//Quat
+	SGE_TYPECLASS_FIELD_4(Quat4, x, y, z, w)
+
+	template class TypeClass<Quat4f>;
+	template class TypeClass<Quat4d>;
+
+
 	//Color
 	SGE_TYPECLASS_FIELD_1(ColorR,    r)
 	SGE_TYPECLASS_FIELD_2(ColorRG,   r, g)
@@ -158,13 +165,5 @@ namespace sge
 	template class TypeClass<ColorLAf>;
 	template class TypeClass<ColorLAb>;
 	template class TypeClass<ColorLAs>;
-
-
-
-
-
-
-
-
 
 }

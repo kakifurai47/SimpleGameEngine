@@ -19,24 +19,81 @@ namespace sge
 		}
 	};
 
+	template<auto MEM_FUNC_PTR>
+	struct Setter
+	{
+	private:
+		template<class T> struct MemFunc {};
+
+		template<class OBJ, class FIELD>
+		struct MemFunc<void(OBJ::*)(const FIELD&)> 
+		{
+			using Obj   = OBJ;
+			using Field = FIELD;
+		};
+
+		using T		= decltype(MEM_FUNC_PTR);
+		using Obj	= typename MemFunc<T>::Obj;
+		using Field = typename MemFunc<T>::Field;
+
+	public:
+		static void callback(Obj* obj, const Field& value) {
+			SGE_ASSERT(obj && MEM_FUNC_PTR);
+			(obj->*MEM_FUNC_PTR)(value);
+		}
+	};
+
+	template<auto MEM_FUNC_PTR>
+	struct Getter
+	{	
+	private:
+		template<class T> struct MemFunc {};
+
+		template<class OBJ, class FIELD>
+		struct MemFunc<const FIELD& (OBJ::*)() const> 
+		{
+			using Obj   = OBJ;
+			using Field = FIELD;
+		};
+
+		using T		= decltype(MEM_FUNC_PTR);
+		using Obj	= typename MemFunc<T>::Obj;
+		using Field = typename MemFunc<T>::Field;
+
+	public:
+		static const Field& callback(const Obj* obj) {
+			SGE_ASSERT(obj && MEM_FUNC_PTR);
+			return (obj->*MEM_FUNC_PTR)();
+		}
+	};
+
 	class FieldInfo
 	{
 	public:
+										 using Callback			= void		   (*)(void);
+		template<class OBJ, class FIELD> using GetterCallback	= const FIELD& (*)(const OBJ* obj);
+		template<class OBJ, class FIELD> using SetterCallback	= void		   (*)(		 OBJ* obj, const FIELD&);
 
 		FieldInfo() = default;
 
-		template<class T, class FIELD>
-		FieldInfo(const char* name_, FIELD T::* fieldPtr_)
+		template<class OBJ, class FIELD>
+		FieldInfo(const char* name_, FIELD OBJ::* fieldPtr_)
 			: type(sge_typeof<FIELD>())
 			, name(name_)
 			, offset(memberOffset(fieldPtr_))
 		{
 		}
 
-		const TypeInfo* const	type	 = nullptr;
-		const char* const		name	 = "";
-		const intptr_t			offset	 = 0;
-		const bool				hasRange = false;
+		template<class OBJ, class FIELD>
+		FieldInfo(const char* name_, FIELD OBJ::* fieldPtr_, GetterCallback<OBJ, FIELD> getFunc_,
+														     SetterCallback<OBJ, FIELD> setFunc_)
+			: type(sge_typeof<FIELD>())
+			, name(name_)
+			, offset(memberOffset(fieldPtr_))
+			, setterFunc(reinterpret_cast<Callback>(setFunc_))
+			, getterFunc(reinterpret_cast<Callback>(getFunc_))
+		{
+		}
 
 		class Enumerator {
 		public:
@@ -71,10 +128,46 @@ namespace sge
 
 		private:
 			const TypeInfo* m_info = nullptr;
-
 		};
+
+			  void* getValuePtr(	  void* obj) const { return reinterpret_cast<	   u8*>(obj) + offset; }
+		const void* getValuePtr(const void* obj) const { return reinterpret_cast<const u8*>(obj) + offset; }
+
+		template<class FIELD, class OBJ>
+		const FIELD& getValue(const OBJ* obj) const
+		{
+			SGE_ASSERT(obj && sge_typeof<FIELD>() == type);
+			if (!getterFunc) {
+				return *reinterpret_cast<const FIELD*>(getValuePtr(obj));
+			}
+
+			auto func = reinterpret_cast<GetterCallback<OBJ, FIELD>>(getterFunc);
+			return (*func)(obj);
+
+//			return *reinterpret_cast<GetterCallback<OBJ, FIELD>>(getterFunc)(obj);
+
+		}
+
+		template<class FIELD, class OBJ>
+		void setValue (OBJ* obj, const FIELD& value)
+		{
+			SGE_ASSERT(obj && sge_typeof<FIELD>() == type);
+			if (!setterFunc) {
+				*reinterpret_cast<FIELD*>(getValuePtr(obj)) = value;
+			}
+			(*reinterpret_cast<SetterCallback<OBJ, FIELD>>(setterFunc))(obj, value);
+		}
+
+		const TypeInfo* const	type	   = nullptr;
+		const char* const		name	   = "";
+		const intptr_t			offset	   = 0;
+		const bool				hasRange   = false;
+		const Callback			setterFunc = nullptr;
+		const Callback			getterFunc = nullptr;
 	};
 
+#define SGE_FIELD_INFO_CALLBACK(CLASS, NAME, MEM_FIELD) \
+	FieldInfo(#NAME, &CLASS::MEM_FIELD, Getter<&CLASS::get##NAME>::callback, Setter<&CLASS::set##NAME>::callback) \
 
 	class TypeInfo
 	{
@@ -108,7 +201,7 @@ namespace sge
 
 //		FieldInfo* fields;
 
-		Span<FieldInfo> fieldArray;
+		Span<const FieldInfo> fieldArray;
 	};
 
 	inline
@@ -164,12 +257,14 @@ namespace sge
 			\
 			static Span<FieldInfo> s_fields(); \
 		}; \
+	using This = T; \
+	using Base = BASE; \
 	public: \
 		static  const TypeInfo* s_typeInfo(); \
 		virtual const TypeInfo*   typeInfo() const override { return sge_typeof<T>(); } \
 	\
 	protected: \
-		virtual char* _this() override { return reinterpret_cast<char*>(this); } \
+		virtual u8* _this() override { return reinterpret_cast<u8*>(this); } \
 	public: \
 //-----
 
@@ -201,7 +296,7 @@ namespace sge
 		}
 
 	protected:
-		virtual char* _this() { return nullptr; };
+		virtual u8* _this() { return nullptr; };
 	};
 
 	template<class T, class ENABLE = void>
@@ -258,6 +353,8 @@ namespace sge
 	SGE_CONTAINER_TYPECLASS(Vec4)
 
 	SGE_CONTAINER_TYPECLASS(Mat4)
+
+	SGE_CONTAINER_TYPECLASS(Quat4)
 
 	SGE_CONTAINER_TYPECLASS(ColorR)
 	SGE_CONTAINER_TYPECLASS(ColorRG)
