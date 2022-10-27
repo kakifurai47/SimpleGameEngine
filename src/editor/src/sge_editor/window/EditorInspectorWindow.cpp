@@ -1,5 +1,6 @@
 #include "EditorInspectorWindow.h"
 #include <sge_editor/EditorContext.h>
+#include <sge_engine/ecs/Component/CMeshRenderer.h>
 
 namespace sge
 {
@@ -28,12 +29,10 @@ namespace sge
 		EditorGui::Text("{} : id {} ", select->name(), enumInt(select->id()));
 		EditorGui::ShowProperty (comps);
 
-
-
-
-
-
-
+		if (EditorGui::Button("Add RenderMesh"))
+		{
+			select->addComponent<CMeshRenderer>();
+		}
 
 	}
 

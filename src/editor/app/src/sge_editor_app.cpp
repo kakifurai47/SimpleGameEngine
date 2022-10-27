@@ -7,68 +7,11 @@
 #include <sge_render/shader/RenderState.h>
 #include <sge_render/terrain/RenderTerrain.h>
 
-#include <sge_editor/window/EditorWindow.h>
-
-#include <sge_engine/Transform.h>
-#include <sge_engine/ecs/Entity.h>
-
 namespace sge 
 {
-	//class RenderSystem : public ComponentSystem
-	//{
-	//public:
-	//	static RenderSystem* instance();
-
-	//protected:
-	//	virtual Component* onCreateComponent()				override;
-	//	virtual void	   onDestroyComponent(Component* c) override {}
-
-	//};
-
-	//RenderSystem* RenderSystem::instance()
-	//{
-	//	static RenderSystem sys;
-	//	return &sys;
-	//}
-
-	//class Render : public Component_Impl<RenderSystem, false>
-	//{
-	//public:
-	//	SGE_TYPE_INFO(Render, Component);
-
-
-
-	//	SPtr<Object> m_material;
-	//};
-
-//	Span<FieldInfo> Render::TI_Base::s_fields()
-//	{
-//		static FieldInfo fi[] =
-//		{
-//			{"Material", &Render::m_material },
-//		};
-//
-//		return{};
-////		return fi;
-//	}	
-//	
-//	SGE_GET_TYPE_IMPL(Render)
-//
-//	Component* RenderSystem::onCreateComponent()
-//	{
-//		return new Render();
-//	}
-
-	class GameObject : public Entity
+	class MainWin : public EditorMainWindow 
 	{
-
-	public:
-		String name = "GameObject";
-	};
-
-	class MainWin : public EditorWindow 
-	{
-		using Base = EditorWindow;
+		using Base = EditorMainWindow;
 	public:
 		 
 		virtual void MainWin::onCreate(CreateDesc& desc) override {
@@ -81,8 +24,7 @@ namespace sge
 			}
 
 			{
-
-				
+				EditorContext::createContext();
 			}
 
 
@@ -94,7 +36,7 @@ namespace sge
 
 				t2dDesc.imageToUpload.emplace();
 				auto& image = t2dDesc.imageToUpload.value();
-				image.load("Assets/Textures/banana.png");
+				image.load("Assets/Textures/Debug.png");
 
 				t2dDesc.colorType = image.colorType();
 				t2dDesc.size = image.size();
@@ -111,7 +53,8 @@ namespace sge
 				EditMesh editMesh;
 			#if 1
 //				editMesh.loadObj("Assets/Mesh/standford_bunny.obj");
-				editMesh.loadObj("Assets/Mesh/monkey.obj");
+//				editMesh.loadObj("Assets/Mesh/monkey.obj");
+				editMesh.loadObj("Assets/Mesh/box.obj");
 			#else
 				auto& positions = editMesh.pos;
 				positions.emplace_back(   0.0f,  0.5f, 0.0f );
@@ -125,7 +68,7 @@ namespace sge
 
 				auto& colors = editMesh.color;
 				colors.resize(editMesh.pos.size(), { 168, 255, 255, 255 });
-				m_mesh.create(editMesh);				
+				m_mesh.create(editMesh);
 			}
 		}
 
@@ -162,51 +105,20 @@ namespace sge
 				EditorGui::ShowDemoWindow(&m_showDemoWindow);
 			}
 
-			if (m_showTransformSystemWindow)
+			if (m_showSceneInfoWindow)
 			{
-				EditorGui::Begin("TransformSystem", &m_showTransformSystemWindow);
+				EditorGui::Begin("SceneInfo Window", &m_showSceneInfoWindow);
 
-				auto* s = Transform::System::instance();
+				PropertyAttribute att;
+				att.name = "background color";
 
-				EditorGui::Text("component Count : {0}", s->m_components.size());
-				EditorGui::End();
-
-
-				auto& comps = s->m_components;
-
-
-				for (auto& c : comps)
-				{
-					auto* t = sge_cast<Transform*>(static_cast<Object*>(c));
-					EditorGui::Text("transform : pos   {0}", t->postion);
-					EditorGui::Text("transform : scale {0}", t->scale);
-					EditorGui::Text("---------------------");
-				}
-			}
-
-			
-
-			
-
-
-			if (m_showComponentWindow)
-			{
-				EditorGui::Begin("Entity Window", &m_showComponentWindow);
-//				EditorGui::Property<Vec3f>::Show(m_vec3f);
-
-				auto& go	= m_gameobject;
-				auto  comps = go.components();
-				
-				EditorGui::ShowProperty(comps);
-
-
-
-
-				if (EditorGui::Button("Add Transform"))	   m_gameobject.addComponent   <Transform>();
-				if (EditorGui::Button("Remove Transform")) m_gameobject.removeComponent<Transform>();
-
+				EditorGui::ShowColor(m_backgroundCol, att);
 				EditorGui::End();
 			}
+
+			m_controlTab.     draw(m_scene, m_renderRequest);
+			m_hierachyWindow. draw(m_scene, m_renderRequest);
+			m_inspectorWindow.draw(m_scene, m_renderRequest);
 
 			m_renderRequest.model	= Mat4f::s_identity();
 			m_renderRequest.view	= m_camera.viewMat ();
@@ -214,10 +126,12 @@ namespace sge
 
 			m_renderRequest.camera_pos = m_camera.pos();
 			
-			m_renderRequest.clearFrameBuffers()->setColor({ 1.f, 1.f, 1.f, 1 });
+			m_renderRequest.clearFrameBuffers()->setColor(m_backgroundCol);
+
+			RenderSystem::instance()->render(m_renderRequest);
 
 			m_renderRequest.drawMesh(SGE_LOC, m_mesh, m_mat);
-			m_terrain.render(m_renderRequest);
+//			m_terrain.render(m_renderRequest);
 			m_editorGuiHandle.render(m_renderRequest);
 
 			if (EditorGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
@@ -238,25 +152,18 @@ namespace sge
 		RenderMesh m_mesh;
 		Camera3f m_camera;
 
-		float alpha = 0;
+		Color4f				m_backgroundCol {};
 
-		GameObject			m_gameobject;
+		EditorControlTab		m_controlTab;
+		EditorHierachyWindow	m_hierachyWindow;
+		EditorInspectorWindow	m_inspectorWindow;
 
-		Vec3f				m_vec3f {};
-
-		Vec3f				m_vec1 {};
-		Vec3f				m_vec2 {};
-
-
+		Scene				m_scene;
 		
 		SPtr<Material>		m_mat;
 		RenderTerrain		m_terrain;
 		bool				m_showDemoWindow			= true;
-		bool				m_showAnotherwindow			= true;
-		bool				m_showComponentWindow		= true;
-		bool				m_showTransformSystemWindow = true;
-
-		Vector<bool>		m_showComponentWindows;
+		bool				m_showSceneInfoWindow		= true;		
 	};
 	
 	class EditorApp : public NativeUIApp 
@@ -275,7 +182,7 @@ namespace sge
 				SGE_LOG("dir = {}", dir);
 			}
 
-		#if 0 // for quick testing
+		#if 1 // for quick testing
 			{
 				SHELLEXECUTEINFO ShExecInfo = { 0 };
 				ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);

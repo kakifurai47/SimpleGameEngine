@@ -7,22 +7,23 @@ namespace sge
 		return &sys;
 	}
 
-	Component* TransformSystem::onCreateComponent() 
+	template<>
+	SPtr<CTransform> TransformSystem::newComponent()
 	{
 		auto* c  =  new CTransform();
 		m_components.emplace_back(c);
 		return c;
 	}
 
-	void TransformSystem::onDestroyComponent(Component* c)
-	{
-		m_components.erase_first_unsorted( static_cast<CTransform*>( c ) );
+	void TransformSystem::onDestroyComponent(Component* c) {
+		m_components.erase_first_unsorted(static_cast<CTransform*>(c));
 	}
 
 	Span<FieldInfo> CTransform::TI_Base::s_fields()
 	{
 		static FieldInfo fi[] = {
 			SGE_FIELD_INFO_CALLBACK(This, Position, m_position),
+			SGE_FIELD_INFO_CALLBACK(This, Rotation, m_rotation),
 			SGE_FIELD_INFO_CALLBACK(This, Scale,	m_scale),
 		};
 		return fi;

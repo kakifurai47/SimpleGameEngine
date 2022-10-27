@@ -6,5 +6,6 @@
 
 #include <sge_engine/ecs/Entity.h>
 
-#include <sge_engine/ecs/Component/CRender.h>
+#include <sge_engine/ecs/Component/CRenderer.h>
+#include <sge_engine/ecs/Component/CMeshRenderer.h>
 #include <sge_engine/ecs/Component/CTransform.h>

@@ -19,6 +19,10 @@ namespace sge
 		template<class T> SGE_INLINE constexpr T max(const T& a, const T& b) { return a > b ? a : b; }
 		template<class T> SGE_INLINE constexpr T min(const T& a, const T& b) { return a < b ? a : b; }
 
+		template<class T> constexpr T clamp		(const T& v, const T& a, const T& b) { return max(a, min(v, b)); }
+		template<class T> constexpr T clamp01	(const T& v)						 { return clamp(v, 0, 1);	 }
+		template<class T> constexpr T saturate	(const T& v)						 { return clamp01(v);		 }
+
 		template < class T > constexpr T	inf		()				{ return std::numeric_limits<T>::infinity(); }
 		template < class T > constexpr bool	isInf	( const T& v )	{ return std::numeric_limits<T>::has_infinity && v == inf<T>(); }
 
@@ -52,14 +56,26 @@ namespace sge
 		template<class T> constexpr T	degrees	(T rad) { return rad * (static_cast<T>(180) / PI<T>()); }
 	
 	
-		SGE_INLINE float  sin(float  rad) { return ::sinf(rad); }
-		SGE_INLINE double sin(double rad) { return ::sin (rad); }
-	
-		SGE_INLINE float  cos(float  rad) { return ::cosf(rad); }
-		SGE_INLINE double cos(double rad) { return ::cos (rad); }
-	
-		SGE_INLINE float  tan(float  rad) { return ::tanf(rad); }
-		SGE_INLINE double tan(double rad) { return ::tan (rad); }
+		SGE_INLINE float  sin (float  rad) { return ::sinf(rad); }
+		SGE_INLINE double sin (double rad) { return ::sin (rad); }
+
+		SGE_INLINE float  cos (float  rad) { return ::cosf(rad); }
+		SGE_INLINE double cos (double rad) { return ::cos (rad); }
+
+		SGE_INLINE float  tan (float  rad) { return ::tanf(rad); }
+		SGE_INLINE double tan (double rad) { return ::tan (rad); }
+
+		SGE_INLINE float  asin(float    x) { return ::asin(x);   }
+		SGE_INLINE double asin(double   x) { return ::asin(x);   }
+
+		SGE_INLINE float  acos(float    x) { return ::acos(x);   }
+		SGE_INLINE double acos(double   x) { return ::acos(x);   }
+
+		SGE_INLINE float  atan2(float   y, float x) { return ::atan2(y, x); }
+		SGE_INLINE double atan2(double  y, float x) { return ::atan2(y, x); }
+
+
+
 	
 #if SGE_OS_MACOSX
 		SGE_INLINE void sincos( float  rad, float  & out_sin, float  & out_cos ) { ::__sincosf(rad, &out_sin, &out_cos); }
@@ -71,6 +87,8 @@ namespace sge
 		SGE_INLINE void sincos( float  rad, float  & out_sin, float  & out_cos ) { out_sin = sin(rad); out_cos = cos(rad); }
 		SGE_INLINE void sincos( double rad, double & out_sin, double & out_cos ) { out_sin = sin(rad); out_cos = cos(rad); }
 #endif
+
+
 
 		//template<class T> SGE_INLINE constexpr T abs(const T& v) { T mask = v >> bit_size<T>() - 1; return (v ^ mask) - mask; }
 		template<class T> SGE_INLINE constexpr T abs(const T& v) { return v < 0 ? -v : v; }

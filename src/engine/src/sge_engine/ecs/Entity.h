@@ -61,13 +61,15 @@ namespace sge
 	template<class T> 
 	WPtr<T> Entity::addComponent() 
 	{
+		static_assert(std::is_base_of_v<Component, T>);
+
 		if (!T::s_allowMultiple())
 		{
 			if ( auto* p = getComponent<T>().ptr()) {
 				throw SGE_ERROR("adding component : existing type");
 			}
 		}
-		SPtr<T> p = T::System::instance()->createComponent<T>();
+		SPtr<T> p = T::System::instance()->newComponent<T>();
 		m_components.emplace_back(p);
 		p->internal_set_entity(this);
 

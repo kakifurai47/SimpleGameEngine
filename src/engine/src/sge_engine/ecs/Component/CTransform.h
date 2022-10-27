@@ -15,9 +15,11 @@ namespace sge
 
 		Span<CTransform*> components() { return m_components; }
 
+		template<class T>
+		SPtr<T> newComponent ();
 	protected:
-		virtual Component* onCreateComponent()				override;
-		virtual void	   onDestroyComponent(Component* c) override;
+
+		virtual void onDestroyComponent(Component* c) override;
 
 		Vector<CTransform*> m_components;
 	};
@@ -69,7 +71,7 @@ namespace sge
 		Vector<CTransform*>	m_childs;
 	};
 
-
+	template<> SPtr<CTransform> TransformSystem::newComponent<CTransform>();
 
 
 

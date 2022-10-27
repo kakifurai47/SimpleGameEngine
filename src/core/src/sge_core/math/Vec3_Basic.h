@@ -127,5 +127,36 @@ namespace sge {
 			&& Math::equals0(z, epsilon);
 	}
 
+	namespace Math
+	{
+		template<class T, class DATA>
+		SGE_INLINE void sincos(const Vec3_Basic<T, DATA>& rad, Vec3_Basic<T, DATA>& out_sin, Vec3_Basic<T, DATA>& out_cos) {
+			sincos(rad.x, out_sin.x, out_cos.x);
+			sincos(rad.y, out_sin.y, out_cos.y);
+			sincos(rad.z, out_sin.z, out_cos.z);
+		}
+
+		template<class T, class DATA>
+		SGE_INLINE Vec3_Basic<T, DATA> degrees(const Vec3_Basic<T, DATA>& rad)
+		{
+			auto r = static_cast<T>(180) / PI<T>();
+			return rad * r;
+		}
+
+		template<class T, class DATA>
+		SGE_INLINE Vec3_Basic<T, DATA> radians(const Vec3_Basic<T, DATA>& deg)
+		{
+			auto r = PI<T>() / static_cast<T>(180);
+			return deg * r;
+		}
+
+
+
+
+
+
+	}
+
+
 }
 

@@ -34,7 +34,7 @@ namespace sge
 		static constexpr bool s_allowMultiple() { return allow_multiple; }
 
 		virtual ~Component_Impl() {
-			System::instance()->destroyComponent(this);
+			system()->destroyComponent(this);
 		}
 
 		virtual bool	  allowMultiple() override { return s_allowMultiple();  }

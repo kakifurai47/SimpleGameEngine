@@ -18,8 +18,9 @@ namespace sge
 				auto selectId = EditorContext::instance()->editorSelection.lastSelect();
 				if  (selectId != EntityId::None)
 				{
-					if( auto* selEntity = scene.findEntityById(selectId) ) {
-						selEntity->transform()->addChild(e->transform());
+					if( auto* selected = scene.findEntityById(selectId) ) 
+					{
+						selected->transform()->addChild(e->transform());
 					}
 				}
 			}

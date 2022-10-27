@@ -13,6 +13,8 @@ namespace sge {
 	struct PropertyAttribute { //<== put this in sge_reflection
 		const char* name = "";
 		bool hasRange = false;
+		float min = 0.0f;
+		float max = 0.0f;
 	};
 
 	class EditorGui 
@@ -95,80 +97,120 @@ namespace sge {
 			ImGui::Text(temp.data ());
 		}
 
-		
 		static void Text(StrView str) { TempString temp(str); Text(temp.c_str()); }
 
-
-
-		template<class T> inline static void Drag		(const char* label, T&		value);
-		template<>		  inline static void Drag<i32>	(const char* label, i32&	value) { ImGui::DragInt	  (label, &value);	   }
-		template<>		  inline static void Drag<f32>	(const char* label, f32&	value) { ImGui::DragFloat (label, &value);	   }
-		template<>		  inline static void Drag<Vec3f>(const char* label, Vec3f&	value) { ImGui::DragFloat3(label, value.data); }
-
-		template<class T> inline static void Slider		  (const char* label, T&		value);
-		template<>		  inline static void Slider<i32>  (const char* label, i32&		value) {ImGui::SliderInt   (label, &value,		0, 1); }
-		template<>		  inline static void Slider<f32>  (const char* label, f32&		value) {ImGui::SliderFloat (label, &value,		0, 1); }
-		template<>		  inline static void Slider<Vec3f>(const char* label, Vec3f&	value) {ImGui::SliderFloat3(label, value.data,	0, 1); }
-
-		template<class T> inline static void ShowNumbers(T& value, const PropAttr& att) {
-			if (att.hasRange) { Slider(att.name, value); }
-			else			  { Drag  (att.name, value); }
-		}
-
-		inline static void ShowColor(Color4f& value, const PropAttr& att)
-		{
-			ImGui::ColorEdit4(att.name, value.data);
-		}
+		inline static bool Drag(const char* label, i32&	  value, float speed = 1.0f, f32 min = 0,    f32 max = 0)    { return ImGui::DragInt   (label, &value,     speed, (int)min, (int)max); }//temp
+		inline static bool Drag(const char* label, f32&	  value, float speed = 1.0f, f32 min = 0.0f, f32 max = 0.0f) { return ImGui::DragFloat (label, &value,     speed,	   min,		 max); }
+		inline static bool Drag(const char* label, Vec3f& value, float speed = 1.0f, f32 min = 0.0f, f32 max = 0.0f) { return ImGui::DragFloat3(label, value.data, speed,	   min,		 max); }
 		
+		inline static bool Slider(const char* label, i32&	value, f32 min, f32 max) { return ImGui::SliderInt   (label, &value,	 (int)min, (int)max); }
+		inline static bool Slider(const char* label, f32&	value, f32 min, f32 max) { return ImGui::SliderFloat (label, &value,		  min,		max); }
+		inline static bool Slider(const char* label, Vec3f&	value, f32 min, f32 max) { return ImGui::SliderFloat3(label, value.data,	  min,		max); }
+
+		template<class T> inline static bool ShowNumbers(T& value, const PropAttr& att) {
+			if (att.hasRange) { return Slider(att.name, value,		 att.min, att.max); }
+			else			  { return Drag  (att.name, value, 1.0f, att.min, att.max); }
+		}
+
+		inline static bool ShowRotation(Quat4f& value, const PropAttr& att)
+		{
+			auto deg = Math::degrees( value.euler() );
+
+			PropAttr att_;
+
+			//TODO : cache euler to have valid conversion from quat -> euler
+
+			att_.name = att.name; // <- temp
+			att_.hasRange = true;
+			att_.min =   0.f;
+			att_.max = 89.0f;
+
+			if (ShowNumbers(deg, att_)) {
+				value = Quat4f::s_euler( Math::radians( deg ) );
+				return true;
+			}
+			return false;
+		}
+
+		inline static bool ShowColor(Color4f& value, const PropAttr& att)
+		{
+			return ImGui::ColorEdit4(att.name, value.data);
+		}
 
 
 
-		template<class T> inline static void ShowProperty(T&		value, const PropAttr& att = {})	{ Property<T>::Show(value, att); }
-		template<>		  inline static void ShowProperty(i32&		value, const PropAttr& att)			{ ShowNumbers(value, att);		 }
-		template<>		  inline static void ShowProperty(f32&		value, const PropAttr& att)			{ ShowNumbers(value, att);		 }
-		template<>		  inline static void ShowProperty(Vec3f&	value, const PropAttr& att)			{ ShowNumbers(value, att);		 }
-		template<>		  inline static void ShowProperty(Color4f&	value, const PropAttr& att)			{ ShowColor  (value, att);		 }
+		template<class T> inline static bool ShowProperty(T&		value, const PropAttr& att = {})	{ return Property<T>::Show(value, att); }
+		template<>		  inline static bool ShowProperty(i32&		value, const PropAttr& att)			{ return ShowNumbers (value, att);		}
+		template<>		  inline static bool ShowProperty(f32&		value, const PropAttr& att)			{ return ShowNumbers (value, att);		}
+		template<>		  inline static bool ShowProperty(Vec3f&	value, const PropAttr& att)			{ return ShowNumbers (value, att);		}
+		template<>		  inline static bool ShowProperty(Quat4f&	value, const PropAttr& att)			{ return ShowRotation(value, att);		}
+		template<>		  inline static bool ShowProperty(Color4f&	value, const PropAttr& att)			{ return ShowColor   (value, att);		}
 
+		template<class T>
+		static bool ShowFieldProperty(Object& object, const FieldInfo& info, const PropAttr& att)
+		{
+			auto& oldValue = info.getValue<T>(&object);
+			auto  newValue = oldValue;
+
+			if (ShowProperty(newValue, att)) {
+				info.setValue<T>(&object, newValue);
+				return true;
+			}
+			return false;
+		}
 
 		template<class T, class ENABLE = void> struct Property {};
 
 		template<class T>
 		struct Property<T, std::enable_if_t<std::is_base_of_v<Object, T>>> 
 		{
-			static void Show(T& obj, const PropAttr& att)
+			static bool Show(T& obj, const PropAttr& att)
 			{
 				auto* info = obj.typeInfo();
 
 				int i = 0;
-				
+
+				bool changed = false;
+
 				for (auto& field : info->fields()) 
 				{
 					auto*  fieldType = field.type;
 
 					PropAttr fieldAtt;
 					fieldAtt.name = field.name;
-					fieldAtt.hasRange  =  true;
+					fieldAtt.hasRange  = false;
 
 					i++;
 
-					if (fieldType == sge_typeof<i32>   ()) { PushId(i); ShowProperty(obj.memberValue<i32>	(field), fieldAtt); PopId(); continue; }
-					if (fieldType == sge_typeof<f32>   ()) { PushId(i); ShowProperty(obj.memberValue<f32>	(field), fieldAtt); PopId(); continue; }
-					if (fieldType == sge_typeof<Vec3f> ()) { PushId(i); ShowProperty(obj.memberValue<Vec3f>	(field), fieldAtt); PopId(); continue; }
-					if (fieldType -> isKindOf  <Object>()) { PushId(i); ShowProperty(obj.memberValue<Object>(field), fieldAtt); PopId(); continue; }
+					if (fieldType == sge_typeof<i32>   ()) { PushId(i); ShowFieldProperty<i32>   (obj, field, fieldAtt); PopId(); continue; }
+					if (fieldType == sge_typeof<f32>   ()) { PushId(i); ShowFieldProperty<f32>   (obj, field, fieldAtt); PopId(); continue; }
+					if (fieldType == sge_typeof<Vec3f> ()) { PushId(i); ShowFieldProperty<Vec3f> (obj, field, fieldAtt); PopId(); continue; }
+					if (fieldType == sge_typeof<Quat4f>()) { PushId(i); ShowFieldProperty<Quat4f>(obj, field, fieldAtt); PopId(); continue; }
+
+					if (fieldType -> isKindOf  <Object>()) { 
+						PushId(i);
+						ShowProperty(obj.memberValue<Object>(field), fieldAtt);
+						PopId();
+						continue; 
+					}
 
 					SGE_ASSERT("EditorGui : Unsupported format", false);
 				}
+
+				return changed; //temp
 			}
 		};
 
 		template<class T>
 		struct Property<T, std::enable_if_t< meta::is_vector<T>::value || meta::is_span<T>::value >>
 		{
-			static void Show(T& container, const PropAttr& att)
+			static bool Show(T& container, const PropAttr& att)
 			{
 				auto flag = ImGuiTreeNodeFlags_OpenOnArrow |
 							ImGuiTreeNodeFlags_OpenOnDoubleClick |
 							ImGuiTreeNodeFlags_SpanAvailWidth;
+
+				bool changed = false;
 
 				for (size_t i = 0; i < container.size(); i++)
 				{
@@ -181,6 +223,7 @@ namespace sge {
 						EditorGui::ShowProperty(*item);
 					}
 				}
+				return changed;
 			}
 		};
 
