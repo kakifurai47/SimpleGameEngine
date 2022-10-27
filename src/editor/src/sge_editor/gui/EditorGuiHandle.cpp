@@ -252,13 +252,13 @@ namespace sge
 		unsigned char* pixels = nullptr;
 		int width	      = 0;
 		int height	      = 0;
-		int bytesPerPixel = 0;
+//		int bytesPerPixel = 0;
 
-//		io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
-		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytesPerPixel);
+		io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
+//		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytesPerPixel);
 		
 
-		using Color = ColorRGBAb;
+		using Color = ColorRb;
 
 		Texture2D_CreateDesc desc;
 
@@ -268,8 +268,8 @@ namespace sge
 		desc.imageToUpload.emplace();
 		auto& img = desc.imageToUpload.value();
 		img.create(Color::kColorType, width, height);
-//		img.copy  (ByteSpan(pixels, width * height));
-		img.copy  (ByteSpan(pixels, width * height * bytesPerPixel));
+		img.copy  (ByteSpan(pixels, width * height));
+//		img.copy  (ByteSpan(pixels, width * height * bytesPerPixel));
 
 //		auto& ss  = desc.samplerState;
 //		ss.filter = SamplerState::Filter::Linear;
