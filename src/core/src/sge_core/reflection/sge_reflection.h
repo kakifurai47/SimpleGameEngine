@@ -111,7 +111,10 @@ namespace sge
 				{
 				}
 
-				bool operator!=(const Iterator& r) const { return m_info != r.m_info || m_idx != r.m_idx; }
+				bool operator!=(const Iterator& r) const 
+				{
+					return m_info != r.m_info || m_idx != r.m_idx; 
+				}
 
 				void operator++();
 
@@ -123,8 +126,10 @@ namespace sge
 				size_t			m_idx  = 0;
 			};
 
-			Iterator begin() { return Iterator(m_info,  0); }
-			Iterator end()   { return Iterator(nullptr, 0); }
+			//Avoid looping empty span
+//			Iterator begin() { return Iterator(m_info != nullptr && m_info->fieldArray.size() > 0 ? m_info : nullptr, 0); }
+			Iterator begin();
+			Iterator end();
 
 		private:
 			const TypeInfo* m_info = nullptr;
@@ -149,7 +154,7 @@ namespace sge
 		}
 
 		template<class FIELD, class OBJ>
-		void setValue (OBJ* obj, const FIELD& value)
+		void setValue (OBJ* obj, const FIELD& value) const
 		{
 			SGE_ASSERT(obj && sge_typeof<FIELD>() == type);
 			if (!setterFunc) {
@@ -205,6 +210,16 @@ namespace sge
 	};
 
 	inline
+	FieldInfo::Enumerator::Iterator FieldInfo::Enumerator::begin() {
+		return Iterator(m_info != nullptr && m_info->fieldArray.size() > 0 ? m_info : nullptr, 0);
+	}
+
+	inline
+	FieldInfo::Enumerator::Iterator FieldInfo::Enumerator::end() {
+		return Iterator(nullptr, 0);
+	}
+
+	inline
 	void FieldInfo::Enumerator::Iterator::operator++()
 	{
 		if (!m_info) return;
@@ -220,8 +235,7 @@ namespace sge
 	}
 
 	inline
-	const FieldInfo& FieldInfo::Enumerator::Iterator::operator*()
-	{
+	const FieldInfo& FieldInfo::Enumerator::Iterator::operator*() {
 		return m_info->fieldArray[m_idx];
 	}
 
