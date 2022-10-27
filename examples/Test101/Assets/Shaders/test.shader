@@ -10,10 +10,10 @@ Shader {
 	
 	Pass {
 		//Queue	"Transparent"
-		Cull		Off
+		Cull		Back
 		BlendRGB 	Add One OneMinusSrcAlpha
 		BlendAlpha	Add One OneMinusSrcAlpha
-		DepthTest	Always
+		DepthTest	LessEqual
 		DepthWrite	false
 
 		VsFunc		vs_main

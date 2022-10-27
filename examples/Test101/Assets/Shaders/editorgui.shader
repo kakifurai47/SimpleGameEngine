@@ -4,6 +4,15 @@ Shader {
 	}
 
 	Pass {
+		// Queue	"Transparent"
+		Cull		Off
+
+		DepthTest	Always
+//		DepthWrite	false
+
+		BlendRGB 	Add One OneMinusSrcAlpha
+		BlendAlpha	Add One OneMinusSrcAlpha
+		
 		VsFunc		vs_main
 		PsFunc		ps_main
 	}
@@ -15,14 +24,11 @@ Shader {
 //    float4x4 ProjectionMatrix;
 //};
 
-float4x4 ProjectionMatrix;
-
-
 struct VS_INPUT
 {
     float2 pos : POSITION;
-    float2 uv  : TEXCOORD0;
     float4 col : COLOR0;
+    float2 uv  : TEXCOORD0;
 };
 
 struct PS_INPUT
@@ -31,6 +37,12 @@ struct PS_INPUT
     float4 col : COLOR0;
     float2 uv  : TEXCOORD0;
 };
+
+float4x4 ProjectionMatrix;
+
+Texture2D     texture0;
+SamplerState  sampler0;
+
 
 PS_INPUT vs_main(VS_INPUT input)
 {
@@ -41,11 +53,9 @@ PS_INPUT vs_main(VS_INPUT input)
     return output;
 }
 
-sampler     sampler0;
-Texture2D   texture0;
 
 float4 ps_main(PS_INPUT input) : SV_Target
 {
-    float4 out_col = input.col * texture0.Sample(sampler0, input.uv);
+    float4 out_col = input.col * texture0.Sample(sampler0, input.uv).r;
     return out_col;
 }
