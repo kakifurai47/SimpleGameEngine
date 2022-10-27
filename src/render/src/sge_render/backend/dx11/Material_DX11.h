@@ -69,9 +69,15 @@ namespace sge {
 
 	protected:		
 		virtual void onBind(RenderContext* ctx, const VertexLayout* layout) override;
+		void _BindStage(RenderContext_DX11* ctx);
+
 
 		VertexStage_DX11  m_dx11VertexStage;
 		PixelStage_DX11   m_dx11PixelStage;
+
+		ComPtr<DX11_ID3DRasterizerState>	m_rasterizerState;
+		ComPtr<DX11_ID3DDepthStencilState>	m_depthStencilState;
+		ComPtr<DX11_ID3DBlendState>			m_blendState;
 	};
 
 	class Material_DX11 : public Material {

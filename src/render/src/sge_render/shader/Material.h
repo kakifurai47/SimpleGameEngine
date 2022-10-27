@@ -118,7 +118,9 @@ namespace sge {
 
 		virtual ~MaterialPass() = default;
 
-		void bind(RenderContext* ctx, const VertexLayout* layout) { onBind(ctx, layout); }
+		void bind(RenderContext* ctx, const VertexLayout* layout)   { onBind(ctx, layout); }
+
+		const ShaderInfo::Pass* info() { return m_shadPass ? m_shadPass->info() : nullptr; }
 
 		void setParam	(StrView name, const Material_ValuePtr& valPtr);
 		void setTexParam(StrView name, Texture* tex);
@@ -132,8 +134,10 @@ namespace sge {
 		PixelStage*  m_pixelStage  = nullptr;
 	};
 
-	class Material : public RefCountBase {
+	class Material : public Object {
 	public:
+		SGE_TYPE_INFO(Material, Object);
+
 		using Pass = MaterialPass;
 
 		virtual ~Material() = default;

@@ -10,20 +10,25 @@ namespace sge
 		E(One, ) \
 		E(Zero, ) \
 		\
-		E(SrcColor, ) \
-		E(SrcAlpha, ) \
-		E(DstColor, ) \
-		E(DstAlpha, ) \
+		E(SrcColor,	  ) \
+		E(SrcAlpha,	  ) \
+		E(DstColor,	  ) \
+		E(DstAlpha,	  ) \
+		E(ConstColor, ) \
 		\
 		E(OneMinusSrcColor, ) \
 		E(OneMinusSrcAlpha, ) \
 		E(OneMinusDstColor, ) \
 		E(OneMinusDstAlpha, ) \
+		E(OneMinusConstColor, ) \
+		\
+		E(SrcAlphaSaturate, ) \
 //------
 	SGE_ENUM_CLASS(RenderState_BlendFactor, : u8)
 
 
 #define RenderState_BlendOp_ENUM_LIST(E) \
+		E(Disable, ) \
 		E(Add,) \
 		E(Sub,) \
 		E(RevSub,) \
@@ -41,6 +46,7 @@ namespace sge
 	SGE_ENUM_CLASS(RenderState_CullType, : u8)
 
 #define RenderState_DepthTestOp_ENUM_LIST(E) \
+	E(None, ) \
 	E(Less,	) \
 	E(LessEqual, ) \
 	E(Equal, ) \
@@ -58,15 +64,16 @@ namespace sge
 		using Factor  = RenderState_BlendFactor;
 
 		struct Function {
-			BlendOp	op		  = BlendOp::Add;
-
-			Factor  srcFactor = Factor::One;
-			Factor  dstFactor = Factor::Zero;
+			BlendOp	op		  = BlendOp::Disable;
+			Factor  srcFactor = Factor::SrcAlpha;
+			Factor  dstFactor = Factor::OneMinusSrcAlpha;
 		};
-		bool isEnable = false;
+
+		bool isEnable() const { return rgbFunc.op != BlendOp::Disable || alphaFunc.op != BlendOp::Disable; }
 
 		Function rgbFunc;
 		Function alphaFunc;
+//		Color4f	 constColor = Color4f(1, 1, 1, 1);
 	};
 
 	struct RenderState_DepthTest {
@@ -74,6 +81,8 @@ namespace sge
 
 		DepthTestOp	op = DepthTestOp::LessEqual;
 		bool writeMask = true;
+
+		bool isEnable() const { return op != DepthTestOp::Always; }
 	};
 
 	struct RenderState {
@@ -90,16 +99,16 @@ namespace sge
 
 	template<class SE> inline
 		void onSerDes(SE& se, RenderState_Blend::Function& blendFunc) {
+		SGE_SERDES_IO(se, blendFunc, op);
 		SGE_SERDES_IO(se, blendFunc, srcFactor);
 		SGE_SERDES_IO(se, blendFunc, dstFactor);
-		SGE_SERDES_IO(se, blendFunc, op);
 	}
 
 	template<class SE> inline
 		void onSerDes(SE& se, RenderState_Blend& blend) {
-		SGE_SERDES_IO(se, blend, isEnable);
 		SGE_SERDES_IO(se, blend, rgbFunc);
 		SGE_SERDES_IO(se, blend, alphaFunc);
+//		SGE_SERDES_IO(se, blend, constColor);
 	}
 
 	template<class SE> inline

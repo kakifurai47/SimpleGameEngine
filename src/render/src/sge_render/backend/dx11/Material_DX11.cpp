@@ -26,10 +26,10 @@ namespace sge
 				UINT  bindPoint	= cbInfo->bindPoint;
 
 				auto* gpuBuffer = static_cast<RenderGpuBuffer_DX11*>(cb.gpuBuffer.ptr());
-				if (!gpuBuffer) throw SGE_ERROR("const buffer is null");
+				if  (!gpuBuffer) throw SGE_ERROR("const buffer is null");
 
 				auto* d3dBuf = gpuBuffer->d3dBuf();
-				if (!d3dBuf) throw SGE_ERROR("d3dbuffer is null");
+				if  (!d3dBuf) throw SGE_ERROR("d3dbuffer is null");
 
 				matStage->setConstBuffer(dc, bindPoint, d3dBuf);
 			}
@@ -129,7 +129,122 @@ namespace sge
 	void MaterialPass_DX11::onBind(RenderContext* ctx, const VertexLayout* layout) {
 		auto* dx11Ctx = static_cast<RenderContext_DX11*>(ctx);
 		m_dx11VertexStage.bind(dx11Ctx, layout);
-		 m_dx11PixelStage.bind(dx11Ctx);
+		m_dx11PixelStage.bind(dx11Ctx);
+		_BindStage(dx11Ctx);
+
+	}
+
+	void MaterialPass_DX11::_BindStage(RenderContext_DX11* ctx)
+	{
+		using Util = DX11Util;
+
+		auto* renderer = ctx->renderer();
+
+		if (!m_rasterizerState) {
+			HRESULT hr;
+			auto* dev = renderer->d3dDevice();
+			auto& rs = info()->renderState;
+
+			D3D11_RASTERIZER_DESC rasterDesc = {};
+			rasterDesc.AntialiasedLineEnable = true;
+			rasterDesc.CullMode				 = Util::getDxCullMode(rs.cullType);
+			rasterDesc.DepthBias			 = 0;
+			rasterDesc.DepthBiasClamp		 = 0.0f;
+			rasterDesc.DepthClipEnable		 = true;
+
+			rasterDesc.FillMode = rs.isWireFrame ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+//			rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
+			
+			rasterDesc.FrontCounterClockwise = true;
+			rasterDesc.MultisampleEnable	 = false;
+			rasterDesc.ScissorEnable		 = true;
+			rasterDesc.SlopeScaledDepthBias  = 0.0f;
+
+			hr = dev->CreateRasterizerState(&rasterDesc, m_rasterizerState.ptrForInit());
+			Util::throwIfError(hr);
+		}
+
+		if (!m_depthStencilState) {
+			HRESULT hr;
+			auto* dev = renderer->d3dDevice();
+			auto& rs = info()->renderState;
+
+			D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
+
+			bool depthTest = rs.depthTest.isEnable();
+			if  (depthTest) {
+				depthStencilDesc.DepthEnable = true;
+				depthStencilDesc.DepthFunc = Util::getDxDepthTestOp(rs.depthTest.op);
+			}
+			else {
+				depthStencilDesc.DepthEnable = false;
+				depthStencilDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+			}
+
+			depthStencilDesc.DepthWriteMask = rs.depthTest.writeMask ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+
+			depthStencilDesc.StencilEnable    = false;
+			depthStencilDesc.StencilReadMask  = 0xFF;
+			depthStencilDesc.StencilWriteMask = 0xFF;
+
+			hr = dev->CreateDepthStencilState(&depthStencilDesc, m_depthStencilState.ptrForInit());
+			Util::throwIfError(hr);
+
+		}
+
+		if (!m_blendState) {
+			HRESULT hr;
+			auto* dev = renderer->d3dDevice();
+			auto& rs = info()->renderState;
+
+			D3D11_BLEND_DESC blendStateDesc = {};
+			blendStateDesc.AlphaToCoverageEnable = false;
+			blendStateDesc.IndependentBlendEnable = false;
+			auto& rtDesc = blendStateDesc.RenderTarget[0];
+
+			rtDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+			bool blendEnable = rs.blend.isEnable();
+			if (blendEnable) {
+				rtDesc.BlendEnable = true;
+
+				if (rs.blend.rgbFunc.op == RenderState_BlendOp::Disable) {
+					rtDesc.BlendOp   = D3D11_BLEND_OP_ADD;
+					rtDesc.SrcBlend  = D3D11_BLEND_ONE;
+					rtDesc.DestBlend = D3D11_BLEND_ZERO;
+				}
+				else {
+					rtDesc.BlendOp	 = Util::getDxBlendOp(rs.blend.rgbFunc.op);
+					rtDesc.SrcBlend	 = Util::getDxBlendFactor(rs.blend.rgbFunc.srcFactor);
+					rtDesc.DestBlend = Util::getDxBlendFactor(rs.blend.rgbFunc.dstFactor);
+				}
+
+				if (rs.blend.alphaFunc.op == RenderState_BlendOp::Disable) {
+					rtDesc.BlendOpAlpha		= D3D11_BLEND_OP_ADD;
+					rtDesc.SrcBlendAlpha	= D3D11_BLEND_ONE;
+					rtDesc.DestBlendAlpha	= D3D11_BLEND_ZERO;
+				}
+				else {
+					rtDesc.BlendOpAlpha		= Util::getDxBlendOp(rs.blend.alphaFunc.op);
+					rtDesc.SrcBlendAlpha	= Util::getDxBlendFactor(rs.blend.alphaFunc.srcFactor);
+					rtDesc.DestBlendAlpha	= Util::getDxBlendFactor(rs.blend.alphaFunc.dstFactor);
+				}
+			}
+			else {
+				rtDesc.BlendEnable = false;
+			}
+
+			hr = dev->CreateBlendState(&blendStateDesc, m_blendState.ptrForInit());
+			Util::throwIfError(hr);
+		}
+
+		auto* d3dCtx = renderer->d3dDeviceContext();
+
+		d3dCtx->RSSetState(m_rasterizerState);
+		d3dCtx->OMSetDepthStencilState(m_depthStencilState, 1);
+		
+		Color4f blendColor(1,1,1,1);
+		d3dCtx->OMSetBlendState(m_blendState, blendColor.data, 0xffffffff);
+
 	}
 
 	MaterialPass_DX11::MaterialPass_DX11(Material* material, ShaderPass* shadPass)

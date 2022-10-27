@@ -110,12 +110,18 @@ namespace sge
 //		viewport.MinDepth	= 0;
 //		viewport.MaxDepth	= 1;
 
+		D3D11_RECT scissorRect = {};
+		scissorRect.left	= 0;
+		scissorRect.top		= 0;
+		scissorRect.right	= static_cast<LONG>(m_frameBufferSize.x);
+		scissorRect.bottom	= static_cast<LONG>(m_frameBufferSize.y);
+
 		ctx->RSSetViewports(1, &viewport);
+		ctx->RSSetScissorRects(1, &scissorRect);
 	}
 
 	void RenderContext_DX11::onEndRender()
 	{
-	
 	}
 
 
@@ -128,8 +134,6 @@ namespace sge
 		if (m_depthStencilView && cmd.depth.has_value()) {
 			ctx->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, *cmd.depth, 0);
 		}
-
-//		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 	}
 
 	void RenderContext_DX11::onCommand_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
@@ -138,10 +142,10 @@ namespace sge
 	}
 
 	void RenderContext_DX11::onCommand_DrawCall(RenderCommand_DrawCall& cmd) {
-		SGE_ASSERT(cmd.vertexLayout != nullptr);
+		SGE_ASSERT(cmd.vertexLayout);
 
 		auto* vertexBuffer = static_cast<RenderGpuBuffer_DX11*>(cmd.vertexBuffer.ptr());
-		SGE_ASSERT(vertexBuffer != nullptr);
+		SGE_ASSERT(vertexBuffer);
 
 		SGE_ASSERT(cmd.vertexCount > 0);
 		SGE_ASSERT(cmd.primitive != RenderPrimitiveType::None);
@@ -149,7 +153,7 @@ namespace sge
 		RenderGpuBuffer_DX11* indexBuffer = nullptr;
 		if (cmd.indexCount > 0) {
 			indexBuffer = static_cast<RenderGpuBuffer_DX11*>(cmd.indexBuffer.ptr());
-			SGE_ASSERT(indexBuffer != nullptr);
+			SGE_ASSERT(indexBuffer);
 		}
 
 		auto* ctx = m_renderer->d3dDeviceContext();
@@ -201,7 +205,7 @@ namespace sge
 //			wireframe = true; //test;
 			rasterDesc.FillMode = wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
 	
-			rasterDesc.FrontCounterClockwise = false;
+			rasterDesc.FrontCounterClockwise = true;
 			rasterDesc.MultisampleEnable	 = false;
 			rasterDesc.ScissorEnable		 = false;
 			rasterDesc.SlopeScaledDepthBias  = 0.0f;

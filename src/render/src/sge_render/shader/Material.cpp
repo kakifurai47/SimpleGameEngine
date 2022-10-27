@@ -144,6 +144,20 @@ namespace sge {
 		if ( m_pixelStage)  m_pixelStage->setTexParam(name, tex);
 	}
 
+	Span<FieldInfo> Material::TI_Base::s_fields()
+	{
+//		TODO : add SPtr<T> reflection
+//		static FieldInfo fi[] = {
+//			{"Shader", &Material::m_shader },
+//		};
+//		return fi;
+		return {};
+	}
+
+	SGE_GET_TYPE_IMPL(Material)
+
+
+
 	Material::Pass* Material::getPass(size_t index) {
 		if (index >= m_matPasses.size()) {
 			SGE_ASSERT(false);

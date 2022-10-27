@@ -16,6 +16,20 @@ namespace sge {
 	{
 	}
 
+	Span<FieldInfo> Shader::TI_Base::s_fields() {
+		//TODO add string reflection
+
+//		static FieldInfo fi[] = {
+//			{"Filename", &Shader::m_filename},
+//		};
+//		return fi;
+		return {};
+	}
+
+	SGE_GET_TYPE_IMPL(Shader);
+
+
+
 	Shader::Shader(StrView filename)
 		: m_filename(filename)
 	{

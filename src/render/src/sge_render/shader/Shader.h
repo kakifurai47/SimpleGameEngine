@@ -40,6 +40,9 @@ namespace sge {
 
 		ShaderVertexStage* vertexStage() { return m_vertexStage; }
 		ShaderPixelStage*   pixelStage() { return  m_pixelStage; }
+
+		const Info*				  info() { return m_passInfo;	 }
+
 	protected:
 		Info* m_passInfo = nullptr;
 
@@ -47,8 +50,10 @@ namespace sge {
 		ShaderPixelStage*   m_pixelStage = nullptr;
 	};
 
-	class Shader : public RefCountBase {
+	class Shader : public Object {
 	public:
+		SGE_TYPE_INFO(Shader, Object)
+
 		using Pass = ShaderPass;
 
 		virtual ~Shader() = default;
