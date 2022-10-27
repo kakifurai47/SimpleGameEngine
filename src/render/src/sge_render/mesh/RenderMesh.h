@@ -47,7 +47,7 @@ namespace sge
 		size_t m_baseVertex = 0;
 	};
 
-	class RenderMesh : public NonCopyable {
+	class RenderMesh : public RefCountBase {
 	public:
 		using MappedWriter = RenderGpuBuffer::MappedWriter;
 		using SubMesh	   = RenderSubMesh;
