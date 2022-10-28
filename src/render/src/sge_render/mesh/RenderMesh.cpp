@@ -58,6 +58,17 @@ namespace sge {
 							colorCount, uvCount, normalCount, tangentCount, binormalCount);
 		}
 
+		for (auto p : src.pos)
+		{
+			if (p.x > m_AABB.maximumPoint.x) m_AABB.maximumPoint.x = p.x;
+			if (p.y > m_AABB.maximumPoint.y) m_AABB.maximumPoint.y = p.y;
+			if (p.z > m_AABB.maximumPoint.z) m_AABB.maximumPoint.z = p.z;
+
+			if (p.x < m_AABB.minimumPoint.x) m_AABB.minimumPoint.x = p.x;
+			if (p.y < m_AABB.minimumPoint.y) m_AABB.minimumPoint.y = p.y;
+			if (p.z < m_AABB.minimumPoint.z) m_AABB.minimumPoint.z = p.z;
+		}
+
 		setSubMeshCount(1);
 		m_subMeshes[0].create(src);
 	}
@@ -102,6 +113,16 @@ namespace sge {
 			auto& sm = m_subMeshes[i];
 			sm.m_mesh = this;
 		}
+	}
+
+	void RenderMesh::_calculateAABB()
+	{
+
+		
+
+
+
+
 	}
 
 	void RenderSubMesh::create(const EditMesh& src) {

@@ -4,6 +4,9 @@
 
 #include <sge_render/buffer/RenderGpuBuffer.h>
 #include <sge_render/vertex/Vertex.h>
+#include <sge_render/mesh/AABB.h>
+
+
 
 namespace sge 
 {
@@ -76,6 +79,8 @@ namespace sge
 		SGE_INLINE size_t _vertexStride() const { return m_vertexLayout->stride; }
 		SGE_INLINE size_t  _indexStride() const { return m_indexFormat == RenderFormatType::UInt32x1 ? 4 : 2; }
 
+		void _calculateAABB();
+
 	friend class RenderSubMesh;
 	protected:
 		RenderPrimitiveType	m_primitive		= RenderPrimitiveType::Triangles;
@@ -89,7 +94,9 @@ namespace sge
 		Vector<SubMesh, 1> m_subMeshes;
 
 		size_t m_vertexCount = 0;
-		size_t  m_indexCount = 0;
+		size_t m_indexCount  = 0;
+
+		AABB3f m_AABB;
 	};
 
 	SGE_INLINE RenderPrimitiveType RenderSubMesh::primitive	  () const { return m_mesh->m_primitive;	}
