@@ -47,6 +47,9 @@ namespace sge
 		const Quat4f& getRotation() const { return m_rotation; }
 		const Vec3f&  getScale   () const { return m_scale;	   }
 
+		const Mat4f&  getModelMat();
+
+
 	private:
 
 		template<class T>

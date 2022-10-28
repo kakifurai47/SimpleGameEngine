@@ -130,7 +130,7 @@ namespace sge
 
 			RenderSystem::instance()->render(m_renderRequest);
 
-			m_renderRequest.drawMesh(SGE_LOC, m_mesh, m_mat);
+//			m_renderRequest.drawMesh(SGE_LOC, m_mesh, m_mat);
 //			m_terrain.render(m_renderRequest);
 			m_editorGuiHandle.render(m_renderRequest);
 

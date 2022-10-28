@@ -2,6 +2,7 @@
 
 #include "Vec4.h"
 #include "Rect2.h"
+#include "Quat4.h"
 
 namespace sge {
 
@@ -37,6 +38,7 @@ namespace sge {
 		using Scalar = ElementType;
 		using Vec4	 = typename DATA::Vec4;
 		using Vec3	 = sge::Vec3<T>;
+		using Quat4  = sge::Quat4<T>;
 		using Rect2	 = sge::Rect2<T>;
 
 		using DATA::cx;
@@ -54,8 +56,9 @@ namespace sge {
 		static SGE_INLINE		Mat4	s_scale		(const Vec3 & s);
 		static SGE_INLINE		Mat4	s_shear		(const Vec3 & v);
 
-		static SGE_INLINE		Mat4	s_TRS(const Vec3 & translate, const Vec3 & rotate, const Vec3 & scale);
-		static SGE_INLINE		Mat4	s_TS (const Vec3 & translate, const Vec3 & scale);
+		static SGE_INLINE		Mat4	s_TRS(const Vec3 & translate, const Vec3  & rotate, const Vec3 & scale);
+		static SGE_INLINE		Mat4	s_TRS(const Vec3 & translate, const Quat4 & rotate, const Vec3 & scale);
+		static SGE_INLINE		Mat4	s_TS (const Vec3 & translate, const Vec3  & scale);
 
 		static SGE_INLINE		Mat4	s_perspective	(T fovy_rad, T aspect, T zNear, T zFar);
 		static SGE_INLINE		Mat4	s_ortho			(T left, T right, T bottom, T top, T zNear, T zFar);
@@ -130,7 +133,24 @@ namespace sge {
 			fmt::format_to(ctx.out(), "Mat4(\n  {},\n  {},\n  {},\n  {})", cx, cy, cz, cw);
 		}
 	};
-		
+
+	template<class T, class DATA>
+	SGE_INLINE Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_TRS(const Vec3& t, const Quat4& r, const Vec3& s)
+	{
+		const T x2 = r.x + r.x;  const T y2 = r.y + r.y;  const T z2 = r.z + r.z;
+		const T xx = r.x *  x2;  const T xy = r.x *  y2;  const T xz = r.x *  z2;
+		const T yy = r.y *  y2;  const T yz = r.y *  z2;  const T zz = r.z *  z2;
+		const T wx = r.w *  x2;  const T wy = r.w *  y2;  const T wz = r.w *  z2;
+
+		return Mat4(
+			{ s.x * (1 - (yy + zz)),	xy + wz,					xz - wy,				 0  },
+			{ xy - wz,					s.y *( 1 - (xx + zz) ),		yz + wx,				 0  },
+			{ xz + wy,					yz - wx,					s.z * ( 1 - (xx + yy) ), 0  },
+			{ t.x,						t.y,						t.z,					 1  }
+		);
+	}
+
+
 	using Mat4f_Basic = Mat4_Basic<float >;
 	using Mat4d_Basic = Mat4_Basic<double>;
 

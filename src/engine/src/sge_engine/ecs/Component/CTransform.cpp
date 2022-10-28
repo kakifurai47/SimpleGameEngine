@@ -55,4 +55,15 @@ namespace sge
 			m_parent->m_childs.emplace_back(this);
 		}
 	}
+
+	const Mat4f& CTransform::getModelMat()
+	{
+		if (m_isDirty)
+		{
+			m_modelMat = Mat4f::s_TRS(m_position, m_rotation, m_scale);
+		}
+
+		return m_modelMat;
+	}
+
 }

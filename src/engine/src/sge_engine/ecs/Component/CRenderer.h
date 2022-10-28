@@ -1,6 +1,8 @@
 #pragma once
 
 #include <sge_engine/ecs/ComponentSystem.h>
+#include <sge_render/mesh/RenderMesh.h>
+#include <sge_render/shader/Material.h>
 
 namespace sge
 {
@@ -39,6 +41,9 @@ namespace sge
 	{
 	public:
 		SGE_TYPE_INFO(CRenderer, Component);
+
+		void setMaterial(Material* mat) { m_material = mat; }
+
 
 	friend class RenderSystem;
 	protected:

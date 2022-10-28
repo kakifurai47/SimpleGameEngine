@@ -1,6 +1,7 @@
 #include "CRenderer.h"
 
 #include <sge_render/command/RenderRequest.h>
+#include <sge_engine/ecs/Entity.h>
 
 namespace sge
 {
@@ -19,7 +20,13 @@ namespace sge
 		for (auto* c : m_components) 
 		{
 			if (!c->m_mesh || !c->m_material) continue;
+			
+			auto* t = c->entity()->transform();
+			request.model =   t->getModelMat();
+
 			request.drawMesh(SGE_LOC, *c->m_mesh, c->m_material);
+
+
 		}
 	}
 
