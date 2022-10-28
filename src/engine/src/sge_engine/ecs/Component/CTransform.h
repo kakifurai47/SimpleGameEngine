@@ -56,9 +56,11 @@ namespace sge
 		void _set(T& oriVal, const T& newVal)
 		{
 			if (oriVal == newVal) return;
-			m_isDirty = true; 
+			_setDirty();
 			oriVal  = newVal;
 		}
+
+		void _setDirty();
 
 	private:
 

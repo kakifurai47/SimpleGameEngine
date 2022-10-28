@@ -142,11 +142,10 @@ namespace sge {
 		const T yy = r.y *  y2;  const T yz = r.y *  z2;  const T zz = r.z *  z2;
 		const T wx = r.w *  x2;  const T wy = r.w *  y2;  const T wz = r.w *  z2;
 
-		return Mat4(
-			{ s.x * (1 - (yy + zz)),	xy + wz,					xz - wy,				 0  },
-			{ xy - wz,					s.y *( 1 - (xx + zz) ),		yz + wx,				 0  },
-			{ xz + wy,					yz - wx,					s.z * ( 1 - (xx + yy) ), 0  },
-			{ t.x,						t.y,						t.z,					 1  }
+		return  Mat4( { s.x * (1 - (yy + zz)),	s.x * (xy + wz),			s.x * (xz - wy),		 0  },
+					  { s.y * (xy - wz),		s.y * ( 1 - (xx + zz) ),	s.y * (yz + wx),		 0  },
+					  { s.z * (xz + wy),		s.z * (yz - wx),			s.z * ( 1 - (xx + yy) ), 0  },
+					  { t.x,					t.y,						t.z,					 1  }
 		);
 	}
 
@@ -229,18 +228,18 @@ namespace sge {
 	template<class T, class DATA> SGE_INLINE
 		Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_scale(const Vec3& s) {
 		return Mat4({ s.x, 0,   0,   0 },
-			{ 0,   s.y, 0,   0 },
-			{ 0,   0,   s.z, 0 },
-			{ 0,   0,   0,   1 });
+					{ 0,   s.y, 0,   0 },
+					{ 0,   0,   s.z, 0 },
+					{ 0,   0,   0,   1 });
 	}
 
 
 	template<class T, class DATA> SGE_INLINE
 		Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_shear(const Vec3& v) {
 		return Mat4({ 1,   0,  0,  0 },
-			{ v.x,   1,  0,  0 },
-			{ v.y, v.z,  1,  0 },
-			{ 0,   0,  0,  1 });
+					{ v.x,   1,  0,  0 },
+					{ v.y, v.z,  1,  0 },
+					{ 0,   0,  0,  1 });
 	}
 
 	template<class T, class DATA> SGE_INLINE

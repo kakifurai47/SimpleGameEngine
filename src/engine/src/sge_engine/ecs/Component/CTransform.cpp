@@ -1,4 +1,5 @@
 #include "CTransform.h"
+#include <sge_engine/ecs/Entity.h>
 
 namespace sge
 {
@@ -58,12 +59,22 @@ namespace sge
 
 	const Mat4f& CTransform::getModelMat()
 	{
-		if (m_isDirty)
-		{
+		if (!m_isDirty) return m_modelMat;
+
+		if (m_parent) {
+			m_modelMat = m_parent->getModelMat() * Mat4f::s_TRS(m_position, m_rotation, m_scale);
+		}
+		else {
 			m_modelMat = Mat4f::s_TRS(m_position, m_rotation, m_scale);
 		}
-
+		m_isDirty = false;
 		return m_modelMat;
+	}
+
+	void CTransform::_setDirty()
+	{
+		m_isDirty = true;
+		for (auto* c : m_childs) { c->_setDirty(); }
 	}
 
 }

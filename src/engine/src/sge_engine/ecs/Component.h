@@ -20,7 +20,7 @@ namespace sge
 
 		Entity* entity() { return m_entity; }
 
-	private:
+	protected:
 
 		Entity* m_entity = nullptr;
 	};
