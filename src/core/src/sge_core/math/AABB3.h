@@ -5,8 +5,8 @@ namespace sge
 
 	template<class T>
 	struct AABB3 {
-		Vec3<T> minimumPoint;
-		Vec3<T> maximumPoint;
+		Vec3<T> min;
+		Vec3<T> max;
 	};
 
 	using AABB3f = AABB3<float>;

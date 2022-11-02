@@ -60,13 +60,13 @@ namespace sge {
 
 		for (auto p : src.pos)
 		{
-			if (p.x > m_AABB.maximumPoint.x) m_AABB.maximumPoint.x = p.x;
-			if (p.y > m_AABB.maximumPoint.y) m_AABB.maximumPoint.y = p.y;
-			if (p.z > m_AABB.maximumPoint.z) m_AABB.maximumPoint.z = p.z;
+			if (p.x > m_AABB.max.x) m_AABB.max.x = p.x;
+			if (p.y > m_AABB.max.y) m_AABB.max.y = p.y;
+			if (p.z > m_AABB.max.z) m_AABB.max.z = p.z;
 
-			if (p.x < m_AABB.minimumPoint.x) m_AABB.minimumPoint.x = p.x;
-			if (p.y < m_AABB.minimumPoint.y) m_AABB.minimumPoint.y = p.y;
-			if (p.z < m_AABB.minimumPoint.z) m_AABB.minimumPoint.z = p.z;
+			if (p.x < m_AABB.min.x) m_AABB.min.x = p.x;
+			if (p.y < m_AABB.min.y) m_AABB.min.y = p.y;
+			if (p.z < m_AABB.min.z) m_AABB.min.z = p.z;
 		}
 
 		setSubMeshCount(1);

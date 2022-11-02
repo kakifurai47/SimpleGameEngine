@@ -2,6 +2,8 @@
 
 #include <sge_render/command/RenderRequest.h>
 #include <sge_engine/ecs/Entity.h>
+#include <sge_core/math/Plane4.h>
+#include <sge_core/math/Frustum3.h>
 
 namespace sge
 {
@@ -12,21 +14,39 @@ namespace sge
 	}
 
 	void RenderSystem::onDestroyComponent(Component* c) {
-		SGE_DUMP_VAR("OnDestroy");
 		m_components.erase_first_unsorted(static_cast<CRenderer*>(c));
 	}
 
-	void RenderSystem::render(RenderRequest& request) {
+	
+
+	void RenderSystem::render(RenderRequest& request) 
+	{
+		Frustum3f::Planes planes;
+
+		auto vp = request.proj * request.view;
+
 		for (auto* c : m_components) 
 		{
 			if (!c->m_mesh || !c->m_material) continue;
-			
+
 			auto* t = c->entity()->transform();
 			request.model =   t->getModelMat();
+			
+			auto mvp = vp * request.model;
 
-			request.drawMesh(SGE_LOC, *c->m_mesh, c->m_material);
+			planes.reset(mvp);
 
+			RenderMesh& mesh = *c-> m_mesh;
+			auto&	    aabb = mesh.AABB();
 
+			if (Frustum3f::s_isInBound(planes, aabb))
+			{
+				request.drawMesh(SGE_LOC, *c->m_mesh, c->m_material);
+			}
+			else
+			{
+				SGE_LOG("SKIPPPED");
+			}
 		}
 	}
 

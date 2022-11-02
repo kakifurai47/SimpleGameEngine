@@ -4,7 +4,7 @@
 
 #include <sge_render/buffer/RenderGpuBuffer.h>
 #include <sge_render/vertex/Vertex.h>
-#include <sge_render/mesh/AABB.h>
+#include <sge_core/math/AABB3.h>
 
 
 
@@ -73,6 +73,8 @@ namespace sge
 		void resetIndexBuffer (size_t  newIndexCount);
 
 		void setSubMeshCount(size_t newSize);
+
+		const AABB3f& AABB() const { return m_AABB; }
 
 	private:
 
