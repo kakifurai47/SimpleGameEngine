@@ -35,7 +35,7 @@ namespace sge {
 
 	private:
 		float m_fov		= Math::radians(50.0f);
-		float m_far		= 10000.0f;
+		float m_far		= 100.0f;
 		float m_near	= 1.0f;
 
 		Rect2 m_viewport;

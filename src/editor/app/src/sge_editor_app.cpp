@@ -101,9 +101,9 @@ namespace sge
 
 			m_renderRequest.reset();
 
-			if (m_showDemoWindow) {
-				EditorGui::ShowDemoWindow(&m_showDemoWindow);
-			}
+//			if (m_showDemoWindow) {
+//				EditorGui::ShowDemoWindow(&m_showDemoWindow);
+//			}
 
 			if (m_showSceneInfoWindow)
 			{
@@ -129,6 +129,17 @@ namespace sge
 			m_renderRequest.clearFrameBuffers()->setColor(m_backgroundCol);
 
 			RenderSystem::instance()->render(m_renderRequest);
+			
+			{
+				EditorGui::Window debugWindow("CullingList");
+				auto list = RenderSystem::instance()->_culledEntities();
+
+				for (auto* e : list)
+				{
+					if (!e) continue;
+					EditorGui::Text("name {} : id [{}]", e->name(), (int)e->id());
+				}
+			}
 
 //			m_renderRequest.drawMesh(SGE_LOC, m_mesh, m_mat);
 //			m_terrain.render(m_renderRequest);

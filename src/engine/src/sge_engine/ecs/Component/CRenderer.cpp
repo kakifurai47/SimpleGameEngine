@@ -2,7 +2,6 @@
 
 #include <sge_render/command/RenderRequest.h>
 #include <sge_engine/ecs/Entity.h>
-#include <sge_core/math/Plane4.h>
 #include <sge_core/math/Frustum3.h>
 
 namespace sge
@@ -13,17 +12,18 @@ namespace sge
 		return &system;
 	}
 
-	void RenderSystem::onDestroyComponent(Component* c) {
+	void RenderSystem::onDestroyComponent(Component* c) 
+	{
 		m_components.erase_first_unsorted(static_cast<CRenderer*>(c));
 	}
-
-	
 
 	void RenderSystem::render(RenderRequest& request) 
 	{
 		Frustum3f::Planes planes;
 
 		auto vp = request.proj * request.view;
+
+		m_culledEntities.clear();
 
 		for (auto* c : m_components) 
 		{
@@ -45,7 +45,7 @@ namespace sge
 			}
 			else
 			{
-				SGE_LOG("SKIPPPED");
+				m_culledEntities.emplace_back(c->entity());
 			}
 		}
 	}

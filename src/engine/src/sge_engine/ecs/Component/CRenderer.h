@@ -23,10 +23,14 @@ namespace sge
 
 		void render(RenderRequest& request);
 
+		Span<Entity*> _culledEntities() { return m_culledEntities; }
+
 	protected:
 		virtual void onDestroyComponent(Component* c) override;
 
 		Vector<CRenderer*> m_components;
+		Vector<Entity*>	   m_culledEntities;
+
 	};
 
 	template<class T>
