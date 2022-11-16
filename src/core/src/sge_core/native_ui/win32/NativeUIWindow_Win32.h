@@ -26,7 +26,7 @@ namespace sge {
 		virtual void onSetPos (const Vec2f& newPos ) override;
 		virtual void onSetSize(const Vec2f& newSize) override;
 
-		virtual void onSetTitle(StrView	title) override;
+//		virtual void onSetTitle(StrView	title) override;
 
 	private:
 		static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

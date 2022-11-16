@@ -414,7 +414,7 @@ namespace sge
 		auto* win = Helper::getNativeUIWindow(viewport);
 		if  (!win) throw SGE_ERROR("get window pos : w/o init");
 
-		win->setTitle(title);
+//		win->setTitle(title);
 
 //		SGE_DUMP_VAR("on set window title");
 	}
