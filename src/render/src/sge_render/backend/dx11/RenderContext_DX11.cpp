@@ -107,8 +107,8 @@ namespace sge
 		viewport.TopLeftY	= 0;
 		viewport.Width		= m_frameBufferSize.x;
 		viewport.Height		= m_frameBufferSize.y;
-//		viewport.MinDepth	= 0;
-//		viewport.MaxDepth	= 1;
+		viewport.MinDepth	= 0;
+		viewport.MaxDepth	= 1;
 
 		D3D11_RECT scissorRect = {};
 		scissorRect.left	= 0;

@@ -46,7 +46,7 @@ namespace sge {
 		This& dontClearColor() { color.reset(); return *this; }
 
 		Opt<Color4f> color = Color4f(1, 1, 1, 1);
-		Opt<float>   depth = 0;
+		Opt<float>   depth = 1;
 	};
 
 	class RenderCommand_DrawCall : public RenderCommand {
