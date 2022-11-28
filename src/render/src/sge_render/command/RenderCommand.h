@@ -5,7 +5,7 @@
 
 #include <sge_core/alllocators/LinearAllocator.h>
 
-#include "../vertex/Vertex.h"
+#include "../vertex/VertexLayoutManager.h"
 #include "../buffer/RenderGpuBuffer.h"
 #include "../shader/Material.h"
 #include "../mesh/RenderMesh.h"
@@ -72,7 +72,7 @@ namespace sge {
 		SPtr<Material> material;
 		size_t		   materialPassIndex = 0;
 
-		auto getMaterialPass() { return material ? material->getPass(materialPassIndex) : nullptr; }
+		MaterialPass* getMaterialPass() { return material ? material->getPass(materialPassIndex) : nullptr; }
 	};
 
 	

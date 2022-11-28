@@ -31,23 +31,59 @@ namespace sge
 			m_camera.setPos({0, 10, 10});
 			m_camera.setAim({0,  0,  0});
 
-			{//test material
-				Texture2D_CreateDesc t2dDesc;
-
-				t2dDesc.imageToUpload.emplace();
-				auto& image = t2dDesc.imageToUpload.value();
-				image.load("Assets/Textures/Debug.png");
-
-				t2dDesc.colorType = image.colorType();
-				t2dDesc.size = image.size();
-
-				auto tex = renderer->createTexture2D(t2dDesc);
-
+			{
 				//----
-				auto shad = renderer->createShader("Assets/Shaders/test.shader");
-				m_mat = renderer->createMaterial();
-				m_mat->setShader(shad);
-				m_mat->setParam("mainTex", tex);
+				{
+					auto shad = renderer->createShader("Assets/Shaders/test.shader");
+					m_mat = renderer->createMaterial();
+					m_mat->setShader(shad);
+					m_mat->setParam("mainTex", Texture2D::checker());
+				}
+
+				//---
+				{
+
+					int w = 4;
+					int h = 4;
+
+					Texture2D::CreateDesc t2dDesc;
+
+					t2dDesc.colorType = Color4b::kColorType;
+					t2dDesc.mipmapCount = 1;
+					t2dDesc.size = { w, h };
+					t2dDesc.cpuAcess = Texture2D::CpuAccess::Write;
+					t2dDesc.usage	 = Texture2D::Usage::Dynamic;
+
+					SamplerState ss;
+					ss.filter = TextureFilter::Point;
+					t2dDesc.samplerState = ss;
+
+					t2dDesc.imageToUpload.emplace();
+
+					m_testImage.create(Color4b::kColorType, w, h);
+					m_testImage.fill(Color4b{ 255, 0, 0, 255 });
+
+					auto& img = t2dDesc.imageToUpload.value();
+					img.create(Color4b::kColorType, w, h);
+					img.fill(Color4b{255, 0, 0, 255});
+
+					m_testTex2d = renderer->createTexture2D(t2dDesc);
+
+					
+
+//					SGE_DUMP_VAR( img.pixelData().size() );
+
+
+//					tex->uploadToGpu(img);
+
+
+					auto shad = renderer->createShader("Assets/Shaders/fullscreen.shader");
+					m_fullScreenMat = renderer->createMaterial();
+					m_fullScreenMat->setShader(shad);
+					m_fullScreenMat->setParam("mainTex", m_testTex2d);
+
+					
+				}
 			}
 			{//test mesh
 				EditMesh editMesh;
@@ -72,6 +108,9 @@ namespace sge
 			}
 		}
 
+		SPtr<Texture2D> m_testTex2d;
+		Image			m_testImage;
+
 		virtual void MainWin::onUIMouseEvent(UIMouseEvent& ev) override 
 		{
 			Base::onUIMouseEvent(ev);
@@ -95,11 +134,25 @@ namespace sge
 			m_editorGuiHandle.beginRender();
 
 			m_camera.setViewport(clientRect());
-			
+
 			m_renderContext->setFrameBufferSize(clientRect().size);
 			m_renderContext->beginRender();
 
 			m_renderRequest.reset();
+
+			auto col4b = Color4b(static_cast<u8>(m_backgroundCol.r * 255),
+								 static_cast<u8>(m_backgroundCol.g * 255), 
+								 static_cast<u8>(m_backgroundCol.b * 255), 
+								 static_cast<u8>(m_backgroundCol.a * 255));
+
+
+			m_testImage.fill(col4b);
+
+			Color4b& p = m_testImage.pixel<Color4b>(0, 0);
+
+			p = Color4b { 255, 255, 0, 255 };
+
+			m_testTex2d->uploadToGpu(m_testImage);
 
 //			if (m_showDemoWindow) {
 //				EditorGui::ShowDemoWindow(&m_showDemoWindow);
@@ -116,9 +169,20 @@ namespace sge
 				EditorGui::End();
 			}
 
-			m_controlTab.     draw(m_scene, m_renderRequest);
-			m_hierachyWindow. draw(m_scene, m_renderRequest);
-			m_inspectorWindow.draw(m_scene, m_renderRequest);
+			if (m_showLineEditorWindow)
+			{
+				EditorGui::Begin("Line Editor Window", &m_showLineEditorWindow);
+
+				PropertyAttribute att_p0; att_p0.name = "StartPoint";
+				PropertyAttribute att_p1; att_p1.name = "Endpoint";
+
+				EditorGui::ShowNumbers(m_startPt,	att_p0);
+				EditorGui::ShowNumbers(m_endPt,		att_p1);
+
+				EditorGui::End();
+			}
+
+
 
 			m_renderRequest.model	= Mat4f::s_identity();
 			m_renderRequest.view	= m_camera.viewMat ();
@@ -128,20 +192,31 @@ namespace sge
 			
 			m_renderRequest.clearFrameBuffers()->setColor(m_backgroundCol);
 
+			{
+				m_renderRequest.drawFullScreenTriangle(SGE_LOC, m_fullScreenMat);
+				m_renderRequest.drawMesh			  (SGE_LOC, m_mesh,   m_mat);
+			}
+
+
 			RenderSystem::instance()->render(m_renderRequest);
 			
 			{
-				EditorGui::Window debugWindow("CullingList");
-				auto list = RenderSystem::instance()->_culledEntities();
-
-				for (auto* e : list)
-				{
-					if (!e) continue;
-					EditorGui::Text("name {} : id [{}]", e->name(), (int)e->id());
-				}
+//				EditorGui::Window debugWindow("CullingList");
+//				auto list = RenderSystem::instance()->_culledEntities();
+//
+//				for (auto* e : list)
+//				{
+//					if (!e) continue;
+//					EditorGui::Text("name {} : id [{}]", e->name(), (int)e->id());
+//				}
 			}
 
-//			m_renderRequest.drawMesh(SGE_LOC, m_mesh, m_mat);
+			{
+//				m_controlTab.     draw(m_scene, m_renderRequest);
+//				m_hierachyWindow. draw(m_scene, m_renderRequest);
+//				m_inspectorWindow.draw(m_scene, m_renderRequest);
+			}
+
 //			m_terrain.render(m_renderRequest);
 			m_editorGuiHandle.render(m_renderRequest);
 
@@ -154,6 +229,8 @@ namespace sge
 
 			m_renderContext->commit(m_renderRequest.commandBuffer);
 			m_renderContext->endRender();
+
+			paintNeeded();
 		}
 
 		virtual void MainWin::onCloseButton() override {
@@ -171,10 +248,16 @@ namespace sge
 
 		Scene				m_scene;
 		
+		SPtr<Material>		m_fullScreenMat;
 		SPtr<Material>		m_mat;
 		RenderTerrain		m_terrain;
 		bool				m_showDemoWindow			= true;
-		bool				m_showSceneInfoWindow		= true;		
+		bool				m_showSceneInfoWindow		= true;
+
+
+		Vec2i				m_startPt					= Vec2i::s_one();
+		Vec2i				m_endPt						= Vec2i::s_one();
+		bool				m_showLineEditorWindow		= true;
 	};
 	
 	class EditorApp : public NativeUIApp 
@@ -229,7 +312,7 @@ namespace sge
 
 		virtual void EditorApp::onUpdate(float deltaTime) override {
 			m_mainWin.update(deltaTime);
-			m_mainWin.paintNeeded();
+//			m_mainWin.paintNeeded();
 		}
 
 		virtual void EditorApp::onQuit() override { Base::onQuit(); }

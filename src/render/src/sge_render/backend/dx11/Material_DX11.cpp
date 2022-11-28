@@ -65,11 +65,15 @@ namespace sge
 		bindInputLayout(ctx, layout);
 	}
 
-	void MaterialVertexStage_DX11::bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* layout) {
-		if (!layout) throw SGE_ERROR("vertexlayout is null");
-
+	void MaterialVertexStage_DX11::bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* layout) 
+	{
 		auto* dev = ctx->renderer()->d3dDevice();
 		auto* dc  = ctx->renderer()->d3dDeviceContext();
+
+		if (!layout) {
+			dc->IASetInputLayout(nullptr);
+			return;
+		}
 
 		DX11_ID3DInputLayout* dxLayout = nullptr;
 

@@ -35,24 +35,13 @@ namespace sge
 		if (EditorGui::Button("Add RenderMesh"))
 		{
 			auto r = select->addComponent<CMeshRenderer>();
-				
-			Texture2D_CreateDesc t2dDesc;
-
-			t2dDesc.imageToUpload.emplace();
-			auto& image = t2dDesc.imageToUpload.value();
-			image.load("Assets/Textures/Debug.png");
-
-			t2dDesc.colorType = image.colorType();
-			t2dDesc.size = image.size();
-
-			auto* renderer = Renderer::current();
-			auto tex = renderer->createTexture2D(t2dDesc);
 
 			//----
+			auto* renderer = Renderer::current();
 			auto shad = renderer->createShader("Assets/Shaders/test.shader");
 			auto mat  = renderer->createMaterial();
 			mat->setShader(shad);
-			mat->setParam("mainTex", tex);
+			mat->setParam("mainTex", Texture2D::checker());		
 
 			EditMesh editMesh;
 			editMesh.loadObj("Assets/Mesh/box.obj");

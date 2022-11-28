@@ -13,6 +13,13 @@ namespace sge {
 	
 		using DATA::x;
 		using DATA::y;
+
+		using DATA::data;
+
+		SGE_INLINE static Vec2 s_zero()		{ return Vec2(0,0); }
+		SGE_INLINE static Vec2  s_one()		{ return Vec2(1,1); }
+
+		SGE_INLINE static Vec2 s_inf() { auto f = Math::inf<T>(); return Vec2(f, f); }
 	
 		SGE_INLINE Vec2()			   = default;
 		SGE_INLINE Vec2(const Vec2& v) = default;

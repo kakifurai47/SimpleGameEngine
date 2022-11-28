@@ -7,6 +7,12 @@ namespace sge
 
 	class RenderRequest : public Object
 	{
+		struct Command {
+			using Clear = RenderCommand_ClearFrameBuffers;
+			using Swap  = RenderCommand_SwapBuffers;
+			using Draw  = RenderCommand_DrawCall;
+		};
+
 	public:
 
 		Mat4f model			= Mat4f::s_identity();
@@ -24,13 +30,14 @@ namespace sge
 		void drawMesh	(const SrcLoc& debugLoc, RenderMesh&    mesh,	 Material* mtl);
 		void drawSubMesh(const SrcLoc& debugLoc, RenderSubMesh& subMesh, Material* mtl);
 
-		RenderCommand_ClearFrameBuffers* clearFrameBuffers() {
-			return commandBuffer.newCommand<RenderCommand_ClearFrameBuffers>();
-		}
+		void drawFullScreenTriangle(const SrcLoc& debugLoc, Material* mtl);
 
-		RenderCommand_SwapBuffers* swapBuffers() {
-			return commandBuffer.newCommand<RenderCommand_SwapBuffers>();
-		}
+
+		RenderCommand_ClearFrameBuffers* clearFrameBuffers() { return commandBuffer.newCommand<Command::Clear>(); }
+		RenderCommand_SwapBuffers*			   swapBuffers() { return commandBuffer.newCommand<Command::Swap> (); }
+		RenderCommand_DrawCall*				   addDrawCall() { return commandBuffer.newCommand<Command::Draw> (); }
+
+
 	};
 
 

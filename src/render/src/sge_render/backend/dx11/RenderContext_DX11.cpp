@@ -137,17 +137,17 @@ namespace sge
 	}
 
 	void RenderContext_DX11::onCommand_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
-		auto hr = m_dxgiSwapChain->Present(0, 0);
+		auto hr = m_dxgiSwapChain->Present(m_renderer->vsync() ? 1 : 0, 0);
 		Util::throwIfError(hr);
 	}
 
 	void RenderContext_DX11::onCommand_DrawCall(RenderCommand_DrawCall& cmd) {
-		SGE_ASSERT(cmd.vertexLayout);
+//		SGE_ASSERT(cmd.vertexLayout);
 
 		auto* vertexBuffer = static_cast<RenderGpuBuffer_DX11*>(cmd.vertexBuffer.ptr());
-		SGE_ASSERT(vertexBuffer);
+//		SGE_ASSERT(vertexBuffer); 
 
-		SGE_ASSERT(cmd.vertexCount > 0);
+//		SGE_ASSERT(cmd.vertexCount > 0);
 		SGE_ASSERT(cmd.primitive != RenderPrimitiveType::None);
 
 		RenderGpuBuffer_DX11* indexBuffer = nullptr;
@@ -168,13 +168,13 @@ namespace sge
 		ctx->IASetPrimitiveTopology(primitive);
 		
 		UINT offset		 = 0;
-		UINT stride		 = static_cast<UINT>(cmd.vertexLayout->stride);
+		UINT stride		 = static_cast<UINT>(cmd.vertexLayout ? cmd.vertexLayout->stride : 0);
 		UINT vertexCount = static_cast<UINT>(cmd.vertexCount);
 		UINT indexCount	 = static_cast<UINT>(cmd.indexCount);
 		UINT startIndex  = static_cast<UINT>(cmd.startIndex);
 		INT  baseVertex  = static_cast< INT>(cmd.baseVertex);
 
-		DX11_ID3DBuffer* ppVertexBuffers[]  = { vertexBuffer->d3dBuf() };
+		DX11_ID3DBuffer* ppVertexBuffers[]  = { vertexBuffer ? vertexBuffer->d3dBuf() : nullptr };
 		ctx->IASetVertexBuffers(0, 1, ppVertexBuffers, &stride, &offset);
 		
 		if (indexCount > 0) {

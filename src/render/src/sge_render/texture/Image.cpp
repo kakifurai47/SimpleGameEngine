@@ -36,17 +36,16 @@ namespace sge {
 		r.load(data, *this);
 	}
 
-	void Image::create(ColorType type, int width, int height) 
+	void Image::create(ColorType type, size_t width, size_t height) 
 	{
 		m_info.colorType		= type;
-		m_info.size				= { width, height };
-		m_info.pixelSizeInBytes = ColorUtil::pixelSizeInBytes(type);
+		m_info.size				= { static_cast<int>(width), static_cast<int>(height) };
 		m_info.mipmapCount		= 1;
-		m_info.strideInBytes	= width * m_info.pixelSizeInBytes;
+		m_info.strideInBytes	= width * m_info.pixelSizeInBytes();
 
 		try {
 			m_pixels.clear();
-			m_pixels.resize(m_info.strideInBytes * height);
+			m_pixels.resize( static_cast<size_t>( height * m_info.strideInBytes ) );
 		}
 		catch (...) {
 			clear();

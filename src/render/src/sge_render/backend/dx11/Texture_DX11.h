@@ -14,6 +14,11 @@ namespace sge {
 		DX11_ID3DShaderResourceView*	resourceView() { return m_d3dResourceView.ptr(); }
 		DX11_ID3DSamplerState*			samplerState() { return m_d3dSamplerState.ptr(); }
 
+	protected:
+
+		virtual void onUploadToGpu(const Image& newImage) override;
+
+
 	private:		
 		ComPtr<DX11_ID3DTexture2D>			m_d3dTexture2D;
 		ComPtr<DX11_ID3DSamplerState>		m_d3dSamplerState;

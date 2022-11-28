@@ -19,6 +19,10 @@ namespace sge
 			case Render_ApiType::DX11: p = new Renderer_DX11(desc); break;
 			default: throw SGE_ERROR("Unsupported platform");
 		}
+
+		p->stockTextures.create();
+
+
 		return p;
 	}
 
@@ -28,6 +32,7 @@ namespace sge
 	}
 
 	Renderer::~Renderer() {
+		SGE_ASSERT(m_shaders.size() == 0);
 		SGE_ASSERT(s_current == this);
 		s_current = nullptr;
 	}

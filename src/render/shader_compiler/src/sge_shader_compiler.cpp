@@ -60,6 +60,7 @@ namespace sge {
 				"Assets/Shaders/terrain.shader",
 				"Assets/Shaders/test.shader",
 				"Assets/Shaders/editorgui.shader",
+				"Assets/Shaders/fullscreen.shader",
 			};
 
 			for (size_t i = 0; i < array_size(shaderFilenames); i++)

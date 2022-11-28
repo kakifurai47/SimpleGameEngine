@@ -24,14 +24,14 @@ namespace sge
 
 	void RenderRequest::drawSubMesh(const SrcLoc& debugLoc, RenderSubMesh& subMesh, Material* mtl)
 	{
-		SGE_ASSERT(mtl != nullptr);
+		if (!mtl) { SGE_ASSERT(false); return; }
 
 		auto passes = mtl->passes();
 
 		for (size_t i = 0; i < passes.size(); i++) {
-			auto* cmd = commandBuffer.newCommand<RenderCommand_DrawCall>();
+			auto* cmd = addDrawCall();
 	#if _DEBUG
-			cmd->debugLoc = debugLoc;
+			cmd->debugLoc			= debugLoc;
 	#endif
 			cmd->primitive			= subMesh.primitive	  ();
 
@@ -49,6 +49,30 @@ namespace sge
 
 			cmd->material			= mtl;
 			cmd->materialPassIndex	= i;
+		}
+	}
+
+	void RenderRequest::drawFullScreenTriangle(const SrcLoc& debugLoc, Material* mtl)
+	{	
+		if (!mtl) { SGE_ASSERT(false); return; }
+
+		setMaterialCommonParams(mtl);
+		auto passes  = mtl->passes();
+
+		for (size_t i = 0; i < passes.size(); i++)
+		{
+			auto* cmd = addDrawCall();
+	#if _DEBUG
+			cmd->debugLoc			= debugLoc;
+	#endif
+			cmd->primitive			= RenderPrimitiveType::Triangles;
+			cmd->vertexLayout		= nullptr;
+			cmd->indexFormat		= RenderFormatType::None;
+			cmd->vertexCount		= 3;
+			cmd->indexCount			= 0;
+	
+			cmd->material			= mtl;
+			cmd->materialPassIndex	= i;	
 		}
 	}
 

@@ -10,27 +10,17 @@ namespace sge {
 
 	using VertexSemanticIndex = u8;
 
-	enum class VertexSemanticType : u8 {
-		None,
-		POSITION,
-		COLOR,
-		TEXCOORD,
-		NORMAL,
-		TANGENT,
-		BINORMAL,
-	};
-
 #define VertexSemanticType_ENUM_LIST(E) \
-		E(None) \
-		E(POSITION) \
-		E(COLOR) \
-		E(TEXCOORD) \
-		E(NORMAL) \
-		E(TANGENT) \
-		E(BINORMAL) \
+		E(None, ) \
+		E(POSITION, ) \
+		E(COLOR, ) \
+		E(TEXCOORD, ) \
+		E(NORMAL, ) \
+		E(TANGENT, ) \
+		E(BINORMAL, ) \
+		E(SV_VertexID, ) \
 //-------
-	SGE_ENUM_STR_UTIL(VertexSemanticType)
-
+	SGE_ENUM_CLASS(VertexSemanticType, : u8)
 
 	struct VertexSemanticUtil {
 		using Semantic = VertexSemantic;
@@ -47,55 +37,34 @@ namespace sge {
 
 		static constexpr Type	getType (Semantic v) { return static_cast<Type>(enumInt(v) >> 8); }
 		static constexpr Index	getIndex(Semantic v) { return static_cast<u8  >(enumInt(v)); }
-	};
-
-	enum class VertexSemantic : u16 {
-		None = 0,
-
-		POSITION	= VertexSemanticUtil::_make(VertexSemanticType::POSITION, 0),
-
-		COLOR0		= VertexSemanticUtil::_make(VertexSemanticType::COLOR, 0),
-		COLOR1		= VertexSemanticUtil::_make(VertexSemanticType::COLOR, 1),
-		COLOR2		= VertexSemanticUtil::_make(VertexSemanticType::COLOR, 2),
-		COLOR3		= VertexSemanticUtil::_make(VertexSemanticType::COLOR, 3),
-
-		TEXCOORD0	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 0),
-		TEXCOORD1	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 1),
-		TEXCOORD2	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 2),
-		TEXCOORD3	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 3),
-		TEXCOORD4	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 4),
-		TEXCOORD5	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 5),
-		TEXCOORD6	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 6),
-		TEXCOORD7	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 7),
-
-		NORMAL		= VertexSemanticUtil::_make(VertexSemanticType::NORMAL,   0),
-		TANGENT		= VertexSemanticUtil::_make(VertexSemanticType::TANGENT,  0),
-		BINORMAL	= VertexSemanticUtil::_make(VertexSemanticType::BINORMAL, 0),
-	};
+	};	
 
 #define VertexSemantic_ENUM_LIST(E) \
-	E(None)	\
-	E(POSITION) \
+	E(None,			= 0) \
 	\
-	E(COLOR0) \
-	E(COLOR1) \
-	E(COLOR2) \
-	E(COLOR3) \
+	E(POSITION,		= VertexSemanticUtil::_make(VertexSemanticType::POSITION, 0)) \
 	\
-	E(TEXCOORD0) \
-	E(TEXCOORD1) \
-	E(TEXCOORD2) \
-	E(TEXCOORD3) \
-	E(TEXCOORD4) \
-	E(TEXCOORD5) \
-	E(TEXCOORD6) \
-	E(TEXCOORD7) \
+	E(COLOR0,		= VertexSemanticUtil::_make(VertexSemanticType::COLOR, 0)) \
+	E(COLOR1,		= VertexSemanticUtil::_make(VertexSemanticType::COLOR, 1)) \
+	E(COLOR2,		= VertexSemanticUtil::_make(VertexSemanticType::COLOR, 2)) \
+	E(COLOR3,		= VertexSemanticUtil::_make(VertexSemanticType::COLOR, 3)) \
 	\
-	E(NORMAL)   \
-	E(TANGENT)  \
-	E(BINORMAL) \
+	E(TEXCOORD0,	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 0)) \
+	E(TEXCOORD1,	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 1)) \
+	E(TEXCOORD2,	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 2)) \
+	E(TEXCOORD3,	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 3)) \
+	E(TEXCOORD4,	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 4)) \
+	E(TEXCOORD5,	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 5)) \
+	E(TEXCOORD6,	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 6)) \
+	E(TEXCOORD7,	= VertexSemanticUtil::_make(VertexSemanticType::TEXCOORD, 7)) \
+	\
+	E(NORMAL,		= VertexSemanticUtil::_make(VertexSemanticType::NORMAL,   0)) \
+	E(TANGENT,		= VertexSemanticUtil::_make(VertexSemanticType::TANGENT,  0)) \
+	E(BINORMAL,		= VertexSemanticUtil::_make(VertexSemanticType::BINORMAL, 0)) \
+	\
+	E(SV_VertexID,	= VertexSemanticUtil::_make(VertexSemanticType::SV_VertexID, 0)) \
 	//----
-	SGE_ENUM_STR_UTIL(VertexSemantic)
+	SGE_ENUM_CLASS(VertexSemantic, : u16)
 
 	template<VertexSemanticType SMT_TYPE, class FMT, u8 CNT>
 	struct VertexElmDesc {
@@ -340,6 +309,12 @@ namespace sge {
 		static constexpr VertexType kType() {
 			return VertexType::make(meta::cocat(meta::vlist<DESCs::semantic_t(), DESCs::format_t(), DESCs::count()>{}...));
 		}
+
+		static const VertexLayout* s_layout() {
+			static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType());
+			return s;
+		}
+
 		template<u8 SMT_IDX> constexpr inline decltype(auto) position() { return _data<ST::POSITION, SMT_IDX>(); }
 		template<u8 SMT_IDX> constexpr inline decltype(auto) color	 () { return _data<ST::COLOR,	 SMT_IDX>(); }
 		template<u8 SMT_IDX> constexpr inline decltype(auto) texcoord() { return _data<ST::TEXCOORD, SMT_IDX>(); }

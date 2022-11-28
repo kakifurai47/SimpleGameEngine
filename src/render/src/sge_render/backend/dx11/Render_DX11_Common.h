@@ -72,6 +72,8 @@ namespace sge
 		static DXGI_FORMAT  getDxFormat		(RenderFormatType v);
 		static DXGI_FORMAT  getDxColorFormat(ColorType v);
 
+		static D3D11_USAGE				getDxUsage				(TextureUsage			 v);
+		static UINT						getDxCpuAccessFlags		(TextureCpuAccess		 v);
 		static D3D11_CULL_MODE			getDxCullMode			(RenderState_CullType	 v);
 		static D3D11_COMPARISON_FUNC	getDxDepthTestOp		(RenderState_DepthTestOp v);
 		static D3D11_BLEND_OP			getDxBlendOp			(RenderState_BlendOp	 v);
@@ -237,6 +239,32 @@ namespace sge
 		case SRC::BC7:		return DXGI_FORMAT_BC7_UNORM;
 
 		default: throw SGE_ERROR("unsupported ColorType : {}", t);
+		}
+	}
+
+	inline 
+	D3D11_USAGE DX11Util::getDxUsage(TextureUsage v)
+	{
+		using SRC = TextureUsage;
+		switch (v) {
+			case SRC::Default:		return D3D11_USAGE_DEFAULT;
+			case SRC::Staging:		return D3D11_USAGE_STAGING;
+			case SRC::Dynamic:		return D3D11_USAGE_DYNAMIC;
+			case SRC::Immutable:	return D3D11_USAGE_IMMUTABLE;
+			default: throw SGE_ERROR("unsupported DxUsage : {}", v);
+		}
+	}
+	
+	inline
+	UINT DX11Util::getDxCpuAccessFlags(TextureCpuAccess v) 
+	{
+		using SRC = TextureCpuAccess;
+		switch (v) {
+			case SRC::NoAccess:		return 0;
+			case SRC::Read:			return D3D11_CPU_ACCESS_READ;
+			case SRC::Write:		return D3D11_CPU_ACCESS_WRITE;
+			case SRC::ReadWrite:	return D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+			default: throw SGE_ERROR("unsupported DxCpuAccess : {}", v);
 		}
 	}
 

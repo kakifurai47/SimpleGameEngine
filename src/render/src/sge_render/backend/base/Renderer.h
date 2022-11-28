@@ -28,6 +28,8 @@ namespace sge
 				 Renderer();
 		virtual ~Renderer();
 
+		bool vsync() const { return m_vsync; }
+
 		SPtr<Shader>			createShader	(StrView filename);
 		SPtr<Material>			createMaterial	()									{ return onCreateMaterial ();			  }
 		SPtr<Texture2D>			createTexture2D (Texture2D_CreateDesc&		 desc)	{ return onCreateTexture2D(desc);		  }	
@@ -45,6 +47,9 @@ namespace sge
 		static Renderer*	s_current;
 		Map<u128, Shader*>  m_shaders;
 		
+		bool m_vsync : 1;
 
+	private:
+		Texture2D::Stock stockTextures;
 	};
 }

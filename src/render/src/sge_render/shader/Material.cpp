@@ -55,9 +55,11 @@ namespace sge {
 
 	Texture* MaterialStage::TexParam::getUpdatedTexture() {
 		if (!m_tex) {
-			//TODO : handle error here
-			throw SGE_ERROR("missing texture");
-			//SGE_LOG("missing texture");
+			switch (m_info->formatType) 
+			{
+				case FormatType::Texture2D: return Texture2D::error(); break;
+				default: throw SGE_ERROR("unsupported texture type");
+			}
 		}
 		//TODO : update texture
 		return m_tex;

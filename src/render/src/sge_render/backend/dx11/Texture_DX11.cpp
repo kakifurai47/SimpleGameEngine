@@ -20,10 +20,10 @@ namespace sge {
 		t2dDesc.Format				= Util::getDxColorFormat(desc.colorType);
 		t2dDesc.SampleDesc.Count	= 1;
 		t2dDesc.SampleDesc.Quality	= 0;
-		t2dDesc.Usage				= D3D11_USAGE_DEFAULT;			//temp
-		t2dDesc.BindFlags			= D3D11_BIND_SHADER_RESOURCE;	//temp
-		t2dDesc.CPUAccessFlags		= 0;							//temp
-		t2dDesc.MiscFlags			= 0;							//temp
+		t2dDesc.Usage				= Util::getDxUsage(desc.usage);
+		t2dDesc.BindFlags			= D3D11_BIND_SHADER_RESOURCE; // D3D11_BIND_RENDER_TARGET
+		t2dDesc.CPUAccessFlags		= Util::getDxCpuAccessFlags(desc.cpuAcess);
+		t2dDesc.MiscFlags			= 0; // D3D11_RESOURCE_MISC_GENERATE_MIPS
 
 		D3D11_SUBRESOURCE_DATA initData {};
 
@@ -66,4 +66,28 @@ namespace sge {
 		Util::throwIfError(hr);
 	}
 
+	void Texture2D_DX11::onUploadToGpu(const Image& newImage) 
+	{
+		auto* renderer = Renderer_DX11::current();
+		auto* ctx  = renderer->d3dDeviceContext();
+
+		D3D11_MAPPED_SUBRESOURCE mapped {};
+
+		auto hr = ctx->Map(m_d3dTexture2D, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+		Util::throwIfError(hr);
+
+		auto data  = newImage.pixelData();
+		auto stde  = newImage.info().strideInBytes;
+
+		auto* dst  = reinterpret_cast<u8*>(mapped.pData);
+		auto* src  = data.begin();
+
+		for (size_t y = 0; y < newImage.height(); y++) {
+			memcpy(dst, src, stde);
+			dst += mapped.RowPitch;
+			src += stde;
+		}
+
+		ctx->Unmap(m_d3dTexture2D, 0);
+	}
 }
