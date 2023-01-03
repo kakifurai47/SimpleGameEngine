@@ -1,4 +1,5 @@
 [SearchableFiles.include]
 src/
+examples/
 
 [SearchableFiles.ignore]
