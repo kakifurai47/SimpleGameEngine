@@ -38,14 +38,17 @@ namespace sge {
 			bool			 m_mapping = false;
 		};
 
-		RenderGpuBuffer(CreateDesc& desc);
+		CreateDesc  desc() const { return m_desc; }
+		size_t		size() const { return m_desc.bufferSize; }
 
-		size_t size() const { return m_desc.bufferSize; }
 
+		void create(CreateDesc& desc);
 		void uploadToGpu(ByteSpan data, size_t offset = 0);
 
 	protected:
-		void	checkInRange(size_t size);
+		void checkInRange(size_t size);
+
+		virtual void onCreate(CreateDesc& desc) = 0;
 
 		virtual u8*  onBeginMapping() = 0;
 		virtual void   onEndMapping() = 0;

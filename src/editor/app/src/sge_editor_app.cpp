@@ -7,14 +7,19 @@
 #include <sge_render/shader/RenderState.h>
 #include <sge_render/terrain/RenderTerrain.h>
 
+#include "exercises/BasicDrawer.h"
+
+
 namespace sge 
 {
 	class MainWin : public EditorMainWindow 
 	{
 		using Base = EditorMainWindow;
+
 	public:
 		 
-		virtual void MainWin::onCreate(CreateDesc& desc) override {
+		virtual void MainWin::onCreate(CreateDesc& desc) override 
+		{
 			Base::onCreate(desc);
 
 			auto* renderer = Renderer::current();
@@ -26,7 +31,6 @@ namespace sge
 			{
 				EditorContext::createContext();
 			}
-
 
 			m_camera.setPos({0, 10, 10});
 			m_camera.setAim({0,  0,  0});
@@ -40,50 +44,14 @@ namespace sge
 					m_mat->setParam("mainTex", Texture2D::checker());
 				}
 
-				//---
-				{
-
-					int w = 4;
-					int h = 4;
-
-					Texture2D::CreateDesc t2dDesc;
-
-					t2dDesc.colorType = Color4b::kColorType;
-					t2dDesc.mipmapCount = 1;
-					t2dDesc.size = { w, h };
-					t2dDesc.cpuAcess = Texture2D::CpuAccess::Write;
-					t2dDesc.usage	 = Texture2D::Usage::Dynamic;
-
-					SamplerState ss;
-					ss.filter = TextureFilter::Point;
-					t2dDesc.samplerState = ss;
-
-					t2dDesc.imageToUpload.emplace();
-
-					m_testImage.create(Color4b::kColorType, w, h);
-					m_testImage.fill(Color4b{ 255, 0, 0, 255 });
-
-					auto& img = t2dDesc.imageToUpload.value();
-					img.create(Color4b::kColorType, w, h);
-					img.fill(Color4b{255, 0, 0, 255});
-
-					m_testTex2d = renderer->createTexture2D(t2dDesc);
-
-					
-
-//					SGE_DUMP_VAR( img.pixelData().size() );
-
-
-//					tex->uploadToGpu(img);
-
-
-					auto shad = renderer->createShader("Assets/Shaders/fullscreen.shader");
-					m_fullScreenMat = renderer->createMaterial();
-					m_fullScreenMat->setShader(shad);
-					m_fullScreenMat->setParam("mainTex", m_testTex2d);
-
-					
+				{// Line Material
+					auto shad = renderer->createShader("Assets/Shaders/line.shader");
+					m_lineMat = renderer->createMaterial();
+					m_lineMat->setShader(shad);
 				}
+
+				m_basicDrawer.create({m_width, m_height});
+				
 			}
 			{//test mesh
 				EditMesh editMesh;
@@ -91,6 +59,7 @@ namespace sge
 //				editMesh.loadObj("Assets/Mesh/standford_bunny.obj");
 //				editMesh.loadObj("Assets/Mesh/monkey.obj");
 				editMesh.loadObj("Assets/Mesh/box.obj");
+
 			#else
 				auto& positions = editMesh.pos;
 				positions.emplace_back(   0.0f,  0.5f, 0.0f );
@@ -108,9 +77,6 @@ namespace sge
 			}
 		}
 
-		SPtr<Texture2D> m_testTex2d;
-		Image			m_testImage;
-
 		virtual void MainWin::onUIMouseEvent(UIMouseEvent& ev) override 
 		{
 			Base::onUIMouseEvent(ev);
@@ -127,7 +93,8 @@ namespace sge
 			}
 		}
 
-		virtual void MainWin::onPaint() override {
+		virtual void MainWin::onPaint() override 
+		{
 			Base::onPaint();
 			if (!m_renderContext) return;
 
@@ -138,21 +105,7 @@ namespace sge
 			m_renderContext->setFrameBufferSize(clientRect().size);
 			m_renderContext->beginRender();
 
-			m_renderRequest.reset();
-
-			auto col4b = Color4b(static_cast<u8>(m_backgroundCol.r * 255),
-								 static_cast<u8>(m_backgroundCol.g * 255), 
-								 static_cast<u8>(m_backgroundCol.b * 255), 
-								 static_cast<u8>(m_backgroundCol.a * 255));
-
-
-			m_testImage.fill(col4b);
-
-			Color4b& p = m_testImage.pixel<Color4b>(0, 0);
-
-			p = Color4b { 255, 255, 0, 255 };
-
-			m_testTex2d->uploadToGpu(m_testImage);
+			m_renderRequest.reset(m_renderContext);
 
 //			if (m_showDemoWindow) {
 //				EditorGui::ShowDemoWindow(&m_showDemoWindow);
@@ -173,8 +126,17 @@ namespace sge
 			{
 				EditorGui::Begin("Line Editor Window", &m_showLineEditorWindow);
 
-				PropertyAttribute att_p0; att_p0.name = "StartPoint";
-				PropertyAttribute att_p1; att_p1.name = "Endpoint";
+				PropertyAttribute att_p0;
+				att_p0.name		= "Startpoint";
+				att_p0.hasRange = true;
+				att_p0.min		= 0.0f;
+				att_p0.max		= static_cast<float>(m_width - 1);
+
+				PropertyAttribute att_p1;
+				att_p1.name		= "Endpoint";
+				att_p1.hasRange = true; 
+				att_p1.min		= 0.0f;
+				att_p1.max		= static_cast<float>(m_height - 1);
 
 				EditorGui::ShowNumbers(m_startPt,	att_p0);
 				EditorGui::ShowNumbers(m_endPt,		att_p1);
@@ -182,7 +144,7 @@ namespace sge
 				EditorGui::End();
 			}
 
-
+			m_renderRequest.lineMaterial = m_lineMat;
 
 			m_renderRequest.model	= Mat4f::s_identity();
 			m_renderRequest.view	= m_camera.viewMat ();
@@ -192,11 +154,15 @@ namespace sge
 			
 			m_renderRequest.clearFrameBuffers()->setColor(m_backgroundCol);
 
-			{
-				m_renderRequest.drawFullScreenTriangle(SGE_LOC, m_fullScreenMat);
-				m_renderRequest.drawMesh			  (SGE_LOC, m_mesh,   m_mat);
+			{				
+				//m_renderRequest.drawMesh			  (SGE_LOC, m_mesh,   m_mat);
+				//m_renderRequest.drawWiredCube		  (Vec3f::s_one(), Vec3f::s_one(), Color4b{255,0,255,255});
 			}
 
+			{//scanline
+				m_basicDrawer.midpointScanLine(m_startPt, m_endPt);
+				m_basicDrawer.render(m_renderRequest);
+			}
 
 			RenderSystem::instance()->render(m_renderRequest);
 			
@@ -226,8 +192,8 @@ namespace sge
 			}
 
 			m_renderRequest.swapBuffers();
+			m_renderRequest.commit();
 
-			m_renderContext->commit(m_renderRequest.commandBuffer);
 			m_renderContext->endRender();
 
 			paintNeeded();
@@ -255,9 +221,17 @@ namespace sge
 		bool				m_showSceneInfoWindow		= true;
 
 
-		Vec2i				m_startPt					= Vec2i::s_one();
-		Vec2i				m_endPt						= Vec2i::s_one();
+		Vec2i				m_startPt					= {0,1};
+		Vec2i				m_endPt						= {3,3};
 		bool				m_showLineEditorWindow		= true;
+
+		int					m_width  = 4;
+		int					m_height = 4;
+
+		SPtr<Material>		m_lineMat;
+
+		BasicDrawer			m_basicDrawer;
+
 	};
 	
 	class EditorApp : public NativeUIApp 
@@ -304,7 +278,8 @@ namespace sge
 //				desc.type = NativeUIWindow::CreateDesc::Type::ToolWindow;
 				desc.isMainWindow   = true;
 				desc.centerToScreen = true;
-				desc.rect = {0,0,1280,720};
+				desc.rect = {0,0,900,900};
+//				desc.rect = {0,0,1280,720};
 				m_mainWin.create(desc);
 //				m_mainWin.setWindowTitle("");
 			}

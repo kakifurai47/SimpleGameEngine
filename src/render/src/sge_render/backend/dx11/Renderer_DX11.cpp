@@ -69,8 +69,11 @@ namespace sge
 	}
 
 
-	RenderGpuBuffer* Renderer_DX11::onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) {
-		return new RenderGpuBuffer_DX11(desc);
+	RenderGpuBuffer* Renderer_DX11::onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) 
+	{
+		auto* p = new RenderGpuBuffer_DX11();
+		p->create(desc);
+		return p;
 	}
 
 	Material* Renderer_DX11::onCreateMaterial() {

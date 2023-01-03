@@ -27,6 +27,50 @@ namespace sge
 		template < class T > constexpr bool	isInf	( const T& v )	{ return std::numeric_limits<T>::has_infinity && v == inf<T>(); }
 
 
+		//Splits a floating-point value into fractional and integer parts
+		SGE_INLINE float	modf	( float  v, float  *i ) { return std::modf( v, i ); }
+		SGE_INLINE double	modf	( double v, double *i ) { return std::modf( v, i ); }
+
+		SGE_INLINE float	frac	( float  v )	{ float  intPart; return modf(v, &intPart); }
+		SGE_INLINE double	frac	( double v )	{ double intPart; return modf(v, &intPart); }
+
+		SGE_INLINE float	ceil	( float  a )	{ return std::ceil(a); }
+		SGE_INLINE double	ceil	( double a )	{ return std::ceil(a); }
+
+		SGE_INLINE float	floor	( float  a )	{ return std::floor(a); }
+		SGE_INLINE double	floor	( double a )	{ return std::floor(a); }
+
+		//get remainder
+		SGE_INLINE float	fmod	( float  a, float  b ) { return std::fmod(a,b); }
+		SGE_INLINE double	fmod	( double a, double b ) { return std::fmod(a,b); }
+
+	#if SGE_COMPILER_VC | SGE_OS_CYGWIN
+		SGE_INLINE float  trunc	( float  n )	{ float  i; return std::modf( n, &i ); }
+		SGE_INLINE double trunc	( double n )	{ double i; return std::modf( n, &i ); }
+
+		SGE_INLINE float  round	( float  a )	{ return a > 0 ? floor(a+0.5f) : ceil(a-0.5f); }
+		SGE_INLINE double round	( double a )	{ return a > 0 ? floor(a+0.5 ) : ceil(a-0.5 ); }
+	#else
+		SGE_INLINE float  trunc	( float  n )	{ return std::trunc(n); }
+		SGE_INLINE double trunc	( double n )	{ return std::trunc(n); }
+
+		SGE_INLINE float  round	( float  a )	{ return std::round(a); }
+		SGE_INLINE double round	( double a )	{ return std::round(a); }
+	#endif
+
+		SGE_INLINE int	truncToInt	( float  a )	{ return static_cast<int>( trunc(a) ); }
+		SGE_INLINE int	truncToInt	( double a )	{ return static_cast<int>( trunc(a) ); }
+
+		SGE_INLINE int	roundToInt	( float  a )	{ return static_cast<int>( round(a) ); }
+		SGE_INLINE int	roundToInt	( double a )	{ return static_cast<int>( round(a) ); }
+
+		SGE_INLINE int	floorTo_Int	( float  a )	{ return static_cast<int>( floor(a) ); }
+		SGE_INLINE int	floorTo_Int	( double a )	{ return static_cast<int>( floor(a) ); }
+
+		SGE_INLINE int	ceilToInt	( float  a )	{ return static_cast<int>( ceil (a) ); }
+		SGE_INLINE int	ceilToInt	( double a )	{ return static_cast<int>( ceil (a) ); }
+
+		//----------
 
 		template<class T> SGE_INLINE constexpr T byteToK(const T& v) { return v / 1024; }
 		template<class T> SGE_INLINE constexpr T byteToM(const T& v) { return v / (1024 * 1024); }

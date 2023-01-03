@@ -9,7 +9,7 @@ namespace sge {
 		using Base = RenderGpuBuffer;
 		using Util = DX11Util;
 	public :
-		RenderGpuBuffer_DX11(CreateDesc& desc);
+		virtual void onCreate(CreateDesc& desc) override;
 
 		virtual void onUploadToGpu(ByteSpan data, size_t offset) override;
 

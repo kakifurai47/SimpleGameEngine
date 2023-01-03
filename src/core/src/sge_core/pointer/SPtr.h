@@ -11,6 +11,7 @@ namespace sge {
 		SPtr(SPtr&& r)			 noexcept	 { m_p = r; r.m_p = nullptr; }
 
 		void operator=(T* p)	 noexcept	 { reset(p); }
+		void operator=(SPtr&  r) noexcept	 { reset(r.ptr()); }
 		void operator=(SPtr&& r) noexcept	 { reset(nullptr); m_p = r.m_p; r.m_p = nullptr; }
 
 		~SPtr()					 noexcept	 { reset(nullptr); }

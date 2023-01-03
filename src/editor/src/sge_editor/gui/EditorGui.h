@@ -107,8 +107,8 @@ namespace sge {
 		inline static bool Drag(const char* label, Vec3f& value, float speed = 1.0f, f32 min = 0.0f, f32 max = 0.0f) { return ImGui::DragFloat3(label, value.data, speed,	   min,		 max); }
 		
 		inline static bool Slider(const char* label, i32&	value, f32 min, f32 max) { return ImGui::SliderInt   (label, &value,	 (int)min, (int)max); }
-		inline static bool Slider(const char* label, Vec2i&	value, f32 min, f32 max) { return ImGui::SliderInt   (label, value.data, (int)min, (int)max); }
-		inline static bool Slider(const char* label, Vec3i&	value, f32 min, f32 max) { return ImGui::SliderInt   (label, value.data, (int)min, (int)max); }
+		inline static bool Slider(const char* label, Vec2i&	value, f32 min, f32 max) { return ImGui::SliderInt2  (label, value.data, (int)min, (int)max); }
+		inline static bool Slider(const char* label, Vec3i&	value, f32 min, f32 max) { return ImGui::SliderInt3  (label, value.data, (int)min, (int)max); }
 		inline static bool Slider(const char* label, f32&	value, f32 min, f32 max) { return ImGui::SliderFloat (label, &value,		  min,		max); }
 		inline static bool Slider(const char* label, Vec2f&	value, f32 min, f32 max) { return ImGui::SliderFloat2(label, value.data,	  min,		max); }
 		inline static bool Slider(const char* label, Vec3f&	value, f32 min, f32 max) { return ImGui::SliderFloat3(label, value.data,	  min,		max); }
