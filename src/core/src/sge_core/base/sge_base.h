@@ -8,7 +8,16 @@
 
 #include "../detect_platform/sge_detect_platform.h"
 
+#if  _TARGET_EDITOR
+	#define SGE_TARGET_EDITOR 1
+#elif _TARGET_CLIENT
+	#define SGE_TARGET_CLIENT 1
+#elif _TARGET_SERVER
+	#define SGE_TARGET_SERVER 1
+#endif
+
 #if SGE_OS_WINDOWS
+	#define FD_SETSIZE 1024
 	#define NOMINMAX 1
 	#include <WinSock2.h> // WinSock2.h must include before windows.h to avoid winsock1 define
 	#include <ws2tcpip.h> // struct sockaddr_in6
@@ -17,9 +26,13 @@
 	#include <intsafe.h>
 #else
 	#include <sys/types.h>
+	#include <unistd.h> // sleep
+	#include <arpa/inet.h> // htons
 	#include <sys/socket.h>
-	#include <netdb.h>
+	#include <sys/ioctl.h>
+	#include <netdb.h> // struct addrinfo
 	#include <netinet/in.h> // struct sockaddr_in
+
 #endif
 
 #include <cassert>
@@ -117,8 +130,8 @@ namespace sge
 	template<class T> using Span = eastl::span<T>;
 	using ByteSpan = Span<const u8>;
 
-	template<class DST, class SRC> inline
-		Span<DST> spanCast(Span<SRC> src) {
+	template<class DST, class SRC> 
+	inline Span<DST> spanCast(Span<SRC> src) {
 		size_t sizeInBytes = src.size() * sizeof(SRC);
 		return Span<DST>(reinterpret_cast<DST*>(src.data()), sizeInBytes / sizeof(DST));
 	}
@@ -269,6 +282,15 @@ namespace sge
 		std::atomic_int m_refCount  = 0;
 		std::atomic_int m_weakCount = 0;
 	};
+
+	inline void sge_sleep(size_t seconds) {
+	#if SGE_OS_WINDOWS
+		::Sleep(seconds * 1000);
+	#else
+		::sleep(seconds);
+	#endif
+	}
+
 
 	template<class T> inline void sge_destroy (T* p) { p->~T();			   }
 	template<class T> inline void sge_release (T* p) { operator delete(p); }

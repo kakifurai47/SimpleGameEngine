@@ -1,4 +1,4 @@
-#include "String.h"
+#include "StringUtil.h"
 #include "UtfUtil.h"
 
 namespace sge {
@@ -95,6 +95,29 @@ namespace sge {
 		return nullptr;
 	}
 	
+	const char* StringUtil::findStr(StrView view, StrView subString) {
+		size_t len = subString.size();
+		if (len <= 0)
+			return nullptr;
+
+		auto* start = view.begin();
+		auto* end   = view.end();
+		auto* p		= start;
+
+		for (; p < end; p++) 
+		{
+			if (len > static_cast<size_t>(end - p))
+				return nullptr;
+
+			if (*p == *subString.begin()) {
+				if (StrView(p, subString.size()) == subString) {
+					return p;
+				}
+			}
+		}
+		return nullptr;
+	}
+
 	struct StringUtil_ParseHelper {
 		template<class T> SGE_INLINE
 		static bool tryParseInt(StrView view, T& outValue) {
@@ -150,7 +173,7 @@ namespace sge {
 		return 0;
 	}
 
-	bool StringUtil::tryParse(StrView view, i8& outValue) { return StringUtil_ParseHelper::tryParseInt(view, outValue); }
+	bool StringUtil::tryParse(StrView view, i8&  outValue) { return StringUtil_ParseHelper::tryParseInt(view, outValue); }
 	bool StringUtil::tryParse(StrView view, i16& outValue) { return StringUtil_ParseHelper::tryParseInt(view, outValue); }
 	bool StringUtil::tryParse(StrView view, i32& outValue) { return StringUtil_ParseHelper::tryParseInt(view, outValue); }
 	bool StringUtil::tryParse(StrView view, i64& outValue) { return StringUtil_ParseHelper::tryParseInt(view, outValue); }

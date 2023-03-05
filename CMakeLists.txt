@@ -67,6 +67,9 @@ endfunction()
 add_subdirectory(src/core)
 add_subdirectory(src/core/test)
 
+#-- net --
+add_subdirectory(src/net)
+
 #-- render --
 add_subdirectory(src/render)
 add_subdirectory(src/render/shader_compiler)

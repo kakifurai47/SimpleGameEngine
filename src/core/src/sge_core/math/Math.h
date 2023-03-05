@@ -26,6 +26,7 @@ namespace sge
 		template < class T > constexpr T	inf		()				{ return std::numeric_limits<T>::infinity(); }
 		template < class T > constexpr bool	isInf	( const T& v )	{ return std::numeric_limits<T>::has_infinity && v == inf<T>(); }
 
+		template <class T> constexpr T max() { return std::numeric_limits<T>::max(); }
 
 		//Splits a floating-point value into fractional and integer parts
 		SGE_INLINE float	modf	( float  v, float  *i ) { return std::modf( v, i ); }
