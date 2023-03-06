@@ -1,30 +1,10 @@
 #pragma once
 
 #include "../string/UtfUtil.h"
+#include "FileStream.h"
 
 namespace sge {
-
-	using FileSize = u64;
-
-	enum class FileMode {
-		CreateNew,
-		OpenExists,
-		OpenOrCreate,
-	};
-
-	enum class FileAccess {
-		Read,
-		ReadWrite,
-		WriteOnly,
-	};
-
-	enum class FileShareMode {
-		None,
-		Read,
-		Write,
-		ReadWrite,
-	};
-
+		
 	struct File {
 		static u128 getId (StrView filename);
 

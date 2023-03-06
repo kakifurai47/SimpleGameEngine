@@ -14,7 +14,7 @@ namespace sge
 	{
 		template<class T> static
 		const TypeInfo* getContainerElementInfo() {
-			if constexpr (meta::is_container<T>()) { return sge_typeof<T::ElementType>(); }
+			if constexpr (meta::is_container<T>()) { return sge_typeof<typename T::ElementType>(); }
 			else								   { return nullptr; }
 		}
 	};
@@ -174,8 +174,8 @@ namespace sge
 #define SGE_FIELD_INFO_CALLBACK(CLASS, NAME, MEM_FIELD) \
 	FieldInfo(#NAME, &CLASS::MEM_FIELD, Getter<&CLASS::get##NAME>::callback, Setter<&CLASS::set##NAME>::callback) \
 
-	class TypeInfo
-	{
+	class TypeInfo {
+	protected:
 		using Util = TypeInfoUtil;
 	public:
 
@@ -244,6 +244,8 @@ namespace sge
 	class TypeInfoInit_NoBase : public TypeInfo
 	{
 	public:
+		using TypeInfo::base;
+
 		TypeInfoInit_NoBase(const char* name_) {
 			this->name			   = name_;
 			this->size			   = sizeof(T);
@@ -255,7 +257,9 @@ namespace sge
 	class TypeInfoInit : public TypeInfoInit_NoBase<T>
 	{
 	public:
-		TypeInfoInit(const char* name_) : TypeInfoInit_NoBase(name_)
+		using TypeInfoInit_NoBase<T>::base;
+
+		TypeInfoInit(const char* name_) : TypeInfoInit_NoBase<T>(name_)
 		{
 			static_assert(std::is_base_of<BASE, T>::value);
 			base = sge_typeof<BASE>();

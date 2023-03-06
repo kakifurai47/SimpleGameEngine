@@ -19,6 +19,7 @@
 #include <sge_core/math/Mat4.h>
 #include <sge_core/math/Quat4.h>
 
+#include <sge_core/file/File.h>
 #include <sge_core/file/MemMapFile.h>
 #include <sge_core/file/Directory.h>
 #include <sge_core/file/FilePath.h>

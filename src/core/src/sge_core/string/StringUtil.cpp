@@ -119,12 +119,21 @@ namespace sge {
 	}
 
 	struct StringUtil_ParseHelper {
+		static int _parse(const char* str, long long int&			outValue) { return ::sscanf(str, "%lld", &outValue); }
+		static int _parse(const char* str, long int&				outValue) { return ::sscanf(str, "%ld",  &outValue); }
+
+		static int _parse(const char* str, unsigned long long int&	outValue) { return ::sscanf(str, "%llu", &outValue); }
+		static int _parse(const char* str, unsigned long int&		outValue) { return ::sscanf(str, "%lu",  &outValue); }
+
+		static int _parse(const char* str, float&					outValue) { return ::sscanf(str, "%f",   &outValue); }
+		static int _parse(const char* str, double&					outValue) { return ::sscanf(str, "%lf",  &outValue); }
+
 		template<class T> SGE_INLINE
 		static bool tryParseInt(StrView view, T& outValue) {
 			static_assert(std::is_signed<T>::value, "");
 			String_<256> tmp = view;
 			i64 v;
-			auto ret = ::sscanf(tmp.c_str(), "%lld", &v);
+			auto ret = _parse(tmp.c_str(), v);
 			if (ret != 1) return false;
 			if (v < std::numeric_limits<T>::min()) return false;
 			if (v > std::numeric_limits<T>::max()) return false;
@@ -137,7 +146,7 @@ namespace sge {
 			static_assert(std::is_unsigned<T>::value, "");
 			String_<256> tmp = view;
 			u64 v;
-			auto ret = ::sscanf(tmp.c_str(), "%llu", &v);
+			auto ret = _parse(tmp.c_str(), v);
 			if (ret != 1) return false;
 			if (v < std::numeric_limits<T>::min()) return false;
 			if (v > std::numeric_limits<T>::max()) return false;
@@ -147,14 +156,14 @@ namespace sge {
 	
 		static bool tryParseFloat(StrView view, f32& outValue) {
 			String_<256> tmp = view;
-			auto ret = ::sscanf(tmp.c_str(), "%f", &outValue);
+			auto ret = _parse(tmp.c_str(), outValue);
 			if (ret != 1) return false;
 			return true;
 		}
 	
 		static bool tryParseFloat(StrView view, f64& outValue) {
 			String_<256> tmp = view;
-			auto ret = ::sscanf(tmp.c_str(), "%lf", &outValue);
+			auto ret = _parse(tmp.c_str(), outValue);
 			if (ret != 1) return false;
 			return true;
 		}

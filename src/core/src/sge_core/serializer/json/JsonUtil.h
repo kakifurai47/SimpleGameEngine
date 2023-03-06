@@ -1,6 +1,8 @@
 #pragma once
 
 #include <sge_core/base/Error.h>
+#include <sge_core/file/File.h>
+#include <sge_core/file/MemMapFile.h>
 #include "JsonSerializer.h"
 #include "JsonDeserializer.h"
 

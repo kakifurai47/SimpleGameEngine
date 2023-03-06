@@ -46,7 +46,7 @@ namespace sge {
 		close();
 		_fs.openRead(filename);
 
-		if (_fs.fileSize() >= SIZE_T_MAX)
+		if (_fs.fileSize() >= SIZE_MAX)
 			throw SGE_ERROR("memmap file size too larget");
 
 		auto size = static_cast<size_t>(_fs.fileSize());
@@ -61,7 +61,7 @@ namespace sge {
 
 	void MemMapFile::close() {
 		if (_span.data()) {
-			::munmap(_span.data(), _span.size());
+			::munmap(const_cast<u8*>(_span.data()), _span.size());
 		}
 		_span = ByteSpan();
 		_fs.close();

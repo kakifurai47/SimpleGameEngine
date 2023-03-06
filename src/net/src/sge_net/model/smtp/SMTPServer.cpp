@@ -19,7 +19,7 @@ namespace sge
 
 	void SMTPServer::removeClosedClients() 
 	{
-		for (int i = 0; i < m_clients.size(); ) {
+		for (size_t i = 0; i < m_clients.size(); ) {
 			
 			auto& c = m_clients[i];
 

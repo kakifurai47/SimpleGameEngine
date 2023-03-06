@@ -2,6 +2,8 @@
 
 namespace sge {
 
+#if SGE_OS_WINDOWS
+
 	struct Win32Util {
 		Win32Util() = delete;
 
@@ -31,8 +33,6 @@ namespace sge {
 		static Rect2f toRect2f(const ::RECT& i) { Rect2f o; convert(o, i); return o; }
 	};
 
-
-
-
+#endif
 
 }

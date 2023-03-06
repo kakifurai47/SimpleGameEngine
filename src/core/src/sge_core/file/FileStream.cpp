@@ -1,5 +1,4 @@
 #include "FileStream.h"
-#include "../base/Error.h"
 
 namespace sge {
 
@@ -161,7 +160,7 @@ namespace sge {
 		close();
 
 		_filename = filename;
-		int access_flag = 0;
+		int access_flags = 0;
 
 #if SGE_OS_LINUX
 		access_flags |= O_LARGEFILE;
@@ -170,9 +169,9 @@ namespace sge {
 		mode_t mode_flags = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 
 		switch (mode) {
-		case FileMode::CreateNew: 		access_flags |= O_CREAT | O_EXCL; break;
-		case FileMode::OpenExists:		break;
-		case FileMode::OpenOrCreate: 	access_flags |= O_CREAT; break;
+		case FileMode::CreateNew: 		access_flags |= O_CREAT | O_EXCL; 	break;
+		case FileMode::OpenExists:								 			break;
+		case FileMode::OpenOrCreate: 	access_flags |= O_CREAT; 			break;
 		default: throw SGE_ERROR("unknown file mode");
 		}
 
@@ -183,7 +182,7 @@ namespace sge {
 		default: throw SGE_ERROR("unknown file access");
 		}
 
-		SGE_ASSERT(_fd == kInvalid);
+		SGE_ASSERT(_fd == kInvalid());
 		_fd = ::open(_filename.c_str(), access_flags, mode_flags);
 		if (_fd == kInvalid()) {
 			switch (errno) {
@@ -264,8 +263,8 @@ namespace sge {
 
 	void FileStream::readBytes(Span<u8> data) {
 		_ensure_fd();
-		if (reqSize <= 0) return 0;
-		auto ret = ::read(_fd, data.data(), reqSize);
+		if (data.size() <= 0) return;
+		auto ret = ::read(_fd, data.data(), data.size());
 		if (ret <= 0) throw SGE_ERROR("file read");
 
 		size_t result = static_cast<size_t>(ret);
@@ -276,7 +275,7 @@ namespace sge {
 	void FileStream::writeBytes(ByteSpan data) {
 		_ensure_fd();
 
-		if (data.size() <= 0) return 0;
+		if (data.size() <= 0) return;
 		auto ret = ::write(_fd, data.data(), data.size());
 		if (ret <= 0) throw SGE_ERROR("error write file");
 

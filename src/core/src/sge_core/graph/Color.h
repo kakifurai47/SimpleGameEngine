@@ -183,13 +183,14 @@ constexpr ColorType ColorType_make(ColorModel model, ColorCompressType compress)
 		
 		template<class R>
 		static ColorRGBA<T> s_cast(const ColorRGBA<R>& v) {
-			static_assert(false);
+//			static_assert(false);
+			SGE_ASSERT(false);
 			return {};
 		}
 	};
 
 	template<>
-	template<> static inline 
+	template<> inline
 	ColorRGBA<u8> ColorRGBA<u8>::s_cast(const ColorRGBA<float>& v)
 	{	
 		return ColorRGBA<u8>(static_cast<u8>(v.r * 255),

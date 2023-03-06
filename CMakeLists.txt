@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 set(CMAKE_TOOLCHAIN_FILE "./externals/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
-set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_CXX_STANDARD 17)
 
 #set(CMAKE_BUILD_TYPE Debug)
 
@@ -24,19 +24,29 @@ function(sge_source_group src_path src_files)
 		file(RELATIVE_PATH PARENT_DIR ${src_path} ${PARENT_DIR})
 		string(REPLACE "/" "\\" GROUP "${PARENT_DIR}")
 		set(GROUP "${GROUP}")
-		source_group("${GROUP}" FILES "${FILE}")	
+		source_group("${GROUP}" FILES "${FILE}")
 	endforeach()
 endfunction()
 
 function(sge_set_target_warning_level target_name)
+	target_compile_options(${target_name} PRIVATE -std=c++17)
 	if(MSVC)
-	  target_compile_options(${target_name} PRIVATE /WX)     #warning treated as error
-	  target_compile_options(${target_name} PRIVATE /W4)     #warning level 4
-	  target_compile_options(${target_name} PRIVATE /wd4100) #warning C4100: unreferenced formal parameter in function
-	  target_compile_options(${target_name} PRIVATE /wd4201) #warning C4201: nonstandard extension used: nameless struct/union
-	  target_compile_options(${target_name} PRIVATE /wd4127) #warning C4127: conditional expression is constant
+		target_compile_options(${target_name} PRIVATE /WX)     #warning treated as error
+		target_compile_options(${target_name} PRIVATE /W4)     #warning level 4
+		target_compile_options(${target_name} PRIVATE /wd4100) #warning C4100: unreferenced formal parameter in function
+		target_compile_options(${target_name} PRIVATE /wd4201) #warning C4201: nonstandard extension used: nameless struct/union
+		target_compile_options(${target_name} PRIVATE /wd4127) #warning C4127: conditional expression is constant
 	else()
-	  target_compile_options(${target_name} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+		target_compile_options(${target_name} PRIVATE -fms-extensions)
+		target_compile_options(${target_name} PRIVATE -Wall)
+		target_compile_options(${target_name} PRIVATE -Wextra)
+		target_compile_options(${target_name} PRIVATE -Werror)
+#	  	target_compile_options(${target_name} PRIVATE -Wpedantic) // disable for unnamed struct
+		target_compile_options(${target_name} PRIVATE -mavx)
+		target_compile_options(${target_name} PRIVATE -Wno-unused-parameter)
+		target_compile_options(${target_name} PRIVATE -Wno-unused-local-typedefs)
+		target_compile_options(${target_name} PRIVATE -Wno-comment)
+		target_compile_options(${target_name} PRIVATE -Wno-switch)
 	endif()
 endfunction()
 
@@ -71,14 +81,14 @@ add_subdirectory(src/core/test)
 add_subdirectory(src/net)
 
 #-- render --
-add_subdirectory(src/render)
-add_subdirectory(src/render/shader_compiler)
+#add_subdirectory(src/render)
+#add_subdirectory(src/render/shader_compiler)
 
 #-- engine
-add_subdirectory(src/engine)
+#add_subdirectory(src/engine)
 
 #-- editor
-add_subdirectory(src/editor)
-add_subdirectory(src/editor/app)
+#add_subdirectory(src/editor)
+#add_subdirectory(src/editor/app)
 
-set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_editor_app)
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_core_test)

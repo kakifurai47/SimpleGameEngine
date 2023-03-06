@@ -1,6 +1,8 @@
 #pragma once
 
-#include "File.h"
+#include <sge_core/base/sge_base.h>
+#include <sge_core/base/Error.h>
+#include "FileFlags.h"
 
 namespace sge {
 
@@ -8,15 +10,15 @@ namespace sge {
 	public:
 #if SGE_OS_WINDOWS
 		using NativeFd = ::HANDLE;
-		static const NativeFd kInvalid() { return INVALID_HANDLE_VALUE; }
+		static constexpr NativeFd kInvalid() { return INVALID_HANDLE_VALUE; }
 #else
 		using NativeFd = int;
-		static const NativeFd kInvalid() { return -1; }
+		static constexpr NativeFd kInvalid() { return -1; }
 #endif
 
 		~FileStream() { close(); }
 
-		bool isOpened() const { return _fd != kInvalid; }
+		bool isOpened() const { return _fd != kInvalid(); }
 
 		void openRead(StrView filename);
 		void openAppend(StrView filename);
@@ -45,7 +47,7 @@ namespace sge {
 
 		String _filename;
 
-		NativeFd _fd = kInvalid;
+		NativeFd _fd = kInvalid();
 	};
 
 }

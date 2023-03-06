@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Vec3_Basic.h"
-#include <intrin.h>
 
 namespace sge {
 

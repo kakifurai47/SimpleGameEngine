@@ -9,8 +9,8 @@ namespace sge
 	public:
 		LinearAllocator(u8* buffer, int size)
 			:m_buffer(buffer)
-			,m_size(size)
 			,m_offset(0)
+			,m_size(size)
 		{
 		}
 

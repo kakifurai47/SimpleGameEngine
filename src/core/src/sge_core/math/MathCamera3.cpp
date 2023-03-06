@@ -27,6 +27,7 @@ namespace sge {
 
 	template<class T>
 	void Camera3<T>::pan(const Vec2& v) {
+		(void)v;
 	}
 
 	template<class T>
@@ -62,5 +63,5 @@ namespace sge {
 		return Mat4::s_lookAt(m_pos, m_aim, m_up);		
 	}
 
-	template Camera3<float>;
+	template struct Camera3<float>;
 }

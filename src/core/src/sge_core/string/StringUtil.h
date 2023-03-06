@@ -100,7 +100,8 @@ template<>
 struct fmt::formatter<sge::StrViewW> {
 	auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
 	auto format(const sge::StrViewW& v, fmt::format_context& ctx) {
-		sge::TempStringA tmp = sge::UtfUtil::toString(v);
+		sge::TempStringA tmp;
+		sge::UtfUtil::convert(tmp, v);
 		return fmt::format_to(ctx.out(), "{}", tmp);
 	}
 };

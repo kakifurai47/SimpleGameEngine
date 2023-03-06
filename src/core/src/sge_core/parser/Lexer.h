@@ -33,7 +33,7 @@ namespace sge {
 		void throwUnexpected();
 
 		inline
-		bool Lexer::checkToken(TokenType type, StrView val = nullptr) {
+		bool checkToken(TokenType type, StrView val = nullptr) {
 			return val == nullptr ? type == m_tok.type :
 									type == m_tok.type && val.compare(m_tok.value) == 0;
 		}
@@ -58,7 +58,7 @@ namespace sge {
 			else if constexpr (meta::isBool  <T>()) { _readBool  (out); }
 			else if constexpr (meta::isEnum  <T>()) { _readEnum  (out); }
 			else {
-				static_assert(false, "unexpected type");
+				SGE_ASSERT(false); //unexpected type
 			}
 		}
 

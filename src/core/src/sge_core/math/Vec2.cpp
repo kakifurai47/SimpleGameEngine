@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Vec2.h"
 
 namespace sge {
@@ -7,12 +5,12 @@ namespace sge {
 #ifndef SGE_MATH_USE_SSE
 #error
 #elif SGE_MATH_USE_SSE
-	template Vec2_SSE<float>;
-	template Vec2_SSE<double>;
+	template struct Vec2_Basic<float,  typename Vec2_SSE_Select<float >::Data>;
+	template struct Vec2_Basic<double, typename Vec2_SSE_Select<double>::Data>;
 
 #else
-	template Vec2_Basic<float>;
-	template Vec2_Basic<double>;
+	template struct Vec2_Basic<float >;
+	template struct Vec2_Basic<double>;
 #endif
 
 }

@@ -120,4 +120,4 @@
 	SGE_ENUM_STR_UTIL(T) \
 //----
 
-#define SGE_SERDES_IO(SE, OBJ, V) do { SE.named_io(#V, OBJ##.##V); } while(false)
+#define SGE_SERDES_IO(SE, OBJ, V) do { SE.named_io(#V, OBJ.V); } while(false)

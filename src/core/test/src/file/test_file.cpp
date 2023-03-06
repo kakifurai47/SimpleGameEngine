@@ -21,7 +21,9 @@ namespace sge {
 			std::stringstream strStream;
 			strStream << inFile.rdbuf();
 
-			const StringA src = strStream.str().c_str();
+			auto str  = strStream.str();
+
+			StrView src (str.c_str(), str.size());
 
 			SGE_DUMP_VAR(src);
 		}

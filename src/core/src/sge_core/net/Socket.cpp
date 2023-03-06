@@ -51,7 +51,7 @@ namespace sge
 		int ret = ::ioctlsocket(m_sock, FIONBIO, &v);
 		if (ret != 0)
 			_throwError("setNonBlocking");
-	#elif
+	#else
 		int v = b ? 1 : 0;
 		int ret = ::ioctl(m_sock, FIONBIO, &v);
 		if (ret < 0)
@@ -141,7 +141,7 @@ namespace sge
 	int Socket::sendto(const SockAddr& addr, ByteSpan data) {
 		if (!isValid()) return 0;
 
-		if (data.size() > Math::max<int>())
+		if (data.size() > static_cast<size_t>(Math::max<int>()))
 			_throwError("send : dataSize > max value");
 
 		int ret = ::sendto(m_sock, reinterpret_cast<const char*>(data.data()), static_cast<int>(data.size()), 0, &addr.m_addr, sizeof(addr.m_addr));
@@ -151,7 +151,7 @@ namespace sge
 	int Socket::send(ByteSpan data) {
 		if (!isValid()) return 0;
 
-		if (data.size() > Math::max<int>())
+		if (data.size() > static_cast<size_t>(Math::max<int>()))
 			_throwError("send : data.size() > max value");
 
 		int ret = ::send(m_sock, reinterpret_cast<const char*>(data.data()), static_cast<int>(data.size()), 0);
@@ -162,7 +162,7 @@ namespace sge
 	{
 		if (!isValid()) return 0;
 
-		if (bytesToRecv > Math::max<int>())
+		if (bytesToRecv > static_cast<size_t>(Math::max<int>()))
 			bytesToRecv = Math::max<int>();
 
 		int ret = ::recv(m_sock, reinterpret_cast<char*>(buf), static_cast<int>(bytesToRecv), flags);
@@ -173,7 +173,7 @@ namespace sge
 	int Socket::recvfrom(const SockAddr& addr, u8* buf, size_t bytesToRecv) {
 		if (!isValid()) return 0;
 
-		if (bytesToRecv > Math::max<int>())
+		if (bytesToRecv > static_cast<size_t>(Math::max<int>()))
 			bytesToRecv = Math::max<int>();
 		
 		socklen_t addrLen = sizeof(addr.m_addr);

@@ -25,7 +25,11 @@
 	#include <Windows.h>
 	#include <intsafe.h>
 #else
+	#include <sys/stat.h>
+	#include <stdint.h>
+	#include <fcntl.h>
 	#include <sys/types.h>
+	#include <sys/mman.h>	
 	#include <unistd.h> // sleep
 	#include <arpa/inet.h> // htons
 	#include <sys/socket.h>
@@ -33,6 +37,12 @@
 	#include <netdb.h> // struct addrinfo
 	#include <netinet/in.h> // struct sockaddr_in
 
+#endif
+
+#if SGE_COMPILER_VC | SGE_OS_CYGWIN
+	#include <intrin.h>
+#else
+	#include <x86intrin.h>
 #endif
 
 #include <cassert>
@@ -157,6 +167,7 @@ namespace sge
 	public:
 		using Base::begin;
 		using Base::end;
+		using Base::size;
 
 		using ElementType = T;
 		
@@ -201,9 +212,10 @@ namespace sge
 	class StringT : public StringT_Base<T, N, bEnableOverflow>::type {
 		using Base = typename StringT_Base<T, N, bEnableOverflow>::type;
 	public:
-
 		using ElementType = T;
-		
+		using Base::data;
+		using Base::size;
+
 		static const constexpr size_t kElementCount		= N;
 		static const constexpr bool	  kEnableOverflow	= bEnableOverflow;
 

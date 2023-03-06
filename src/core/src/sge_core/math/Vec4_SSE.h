@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Vec4_Basic.h"
-#include <intrin.h>
 
 namespace sge {
 
@@ -47,10 +46,10 @@ namespace sge {
 	template<class T> using Vec4_SSE = Vec4_Basic<T, typename Vec4_SSE_Select<T>::Data>;
 	
 	using Vec4f_SSE = Vec4_SSE<float >;
-	using Vec4d_SSE = Vec4_SSE<double>;	
+	using Vec4d_SSE = Vec4_SSE<double>;
 
-	SGE_INLINE Vec4f_SSE constexpr Vec4_SSE_make(__m128  m) { Vec4f_SSE o; o._m = m; return o; }
-	SGE_INLINE Vec4d_SSE constexpr Vec4_SSE_make(__m256d m) { Vec4d_SSE o; o._m = m; return o; }
+	SGE_INLINE Vec4f_SSE Vec4_SSE_make(__m128  m) { Vec4f_SSE o; o._m = m; return o; }
+	SGE_INLINE Vec4d_SSE Vec4_SSE_make(__m256d m) { Vec4d_SSE o; o._m = m; return o; }
 	
 	#if defined(SGE_CPU_ENDIAN_LITTLE)	
 	template<> SGE_INLINE void Vec4f_SSE::set(const Tuple4<float >& v) { _m =    _mm_set_ps(v.w, v.z, v.y, v.x); }

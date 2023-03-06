@@ -12,11 +12,12 @@ namespace meta {
 
 	template<auto V> constexpr decltype(auto) get_value(vlist<V>) noexcept { return V; }
 
-	template<auto... Vs> void print_list(vlist<Vs...>) { (print_value<Vs>(), ...); }
 	template<auto	 V > void print_value() {
 		if constexpr (std::is_enum<decltype(V)>())	{ SGE_LOG("print_value: {}", static_cast<std::underlying_type_t<decltype(V)>>(V)); }
 		else										{ SGE_LOG("print_value: {}", V); }
 	}
+	
+	template<auto... Vs> void print_list(vlist<Vs...>) { (print_value<Vs>(), ...); }
 
 	template<auto... V1s, class... V2s> constexpr auto cocat(vlist<V1s...>, V2s...)  noexcept ->vlist<V1s...> { return{}; }
 	template<auto... V1s, auto... V2s, class... Ts>

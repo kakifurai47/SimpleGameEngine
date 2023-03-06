@@ -25,11 +25,9 @@ namespace sge
 		template<class U>
 		explicit SGE_INLINE Tuple2(const Tuple2<U>& v) {
 			set( static_cast<T>(v.x), static_cast<T>(v.y) );
-		}
+		}	
 
-		template<class U> SGE_INLINE void set(const Tuple2<U>& u) { set(u.x, u.y); }
-		template<>		  SGE_INLINE void set(const Tuple2<T>& v) { *this = v; }
-
+		SGE_INLINE void set(const Tuple2<T>& v) { *this = v; }
 		SGE_INLINE void set(const T& x_, const T& y_) {
 			x = x_; y = y_;
 		}
@@ -59,10 +57,8 @@ namespace sge
 		explicit SGE_INLINE Tuple3(const Tuple3<U>& v) {
 			set( static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z) );
 		}
-
-		template<class U> SGE_INLINE void set(const Tuple3<U>& u) { set(u.x, u.y, u.z); }
-		template<>		  SGE_INLINE void set(const Tuple3<T>& v) { *this = v; }
-		
+				
+		SGE_INLINE void set(const Tuple3<T>& v) { *this = v; }
 		SGE_INLINE void set(const T& x_, const T& y_, const T& z_) {
 			x = x_; y = y_; z = z_;
 		}

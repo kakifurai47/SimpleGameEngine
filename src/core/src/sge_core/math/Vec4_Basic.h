@@ -21,16 +21,12 @@ namespace sge {
 		using Vec2 = Vec2<T>;
 		using Vec3 = Vec3<T>;
 
-		SGE_INLINE Vec4()			   = default;
-		SGE_INLINE Vec4(const Vec4& v) = default;
-		SGE_INLINE Vec4(const Tuple4<T>& v)									{ set(v); }
-		SGE_INLINE Vec4(const Vec3& v, const T& w_)							{ set(v.x, v.y, v.z,  w_);  }
-		SGE_INLINE Vec4(const T& x_, const T& y_, const T& z_, const T& w_) { set( x_,  y_,  z_,  w_);	}
-
-		template<class U, class D>
-		SGE_INLINE explicit Vec4(const Vec4_Basic<U, D>& v) {
-			set(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w) );
-		}
+		SGE_INLINE Vec4_Basic()			   	 = default;
+		SGE_INLINE Vec4_Basic(const Vec4& v) = default;
+		SGE_INLINE Vec4_Basic(const Tuple4<T>& v)								  { set(v); }
+		SGE_INLINE Vec4_Basic(const Vec3& v, const T& w_)						  { set(v.x, v.y, v.z,  w_); }
+		SGE_INLINE Vec4_Basic(const T& x_, const T& y_, const T& z_, const T& w_) { set( x_,  y_,  z_,  w_); }
+		
 		
 		SGE_INLINE void set		(const T& x_, const T& y_, const T& z_, const T& w_) { set(Tuple4<T>(x_, y_, z_, w_)); }
 		SGE_INLINE void set		(const Tuple4<T>& v)								 { DATA::set(v);				   }
